@@ -17,18 +17,14 @@ __global__ void downSample(cudaSurfaceObject_t source, cudaSurfaceObject_t desti
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-	if (i % 2 == 1 || j % 2 == 1)
-	{
-		return;
-	}
-
 	//Just average for now. Do the same as in the paper later on.
-	int idx = i * 4;
+	int idx_i = i * 8;
+	int idx_j = j * 2;
 	float f1, f2, f3, f4;
-	surf2Dread(&f1, source, idx, j);
-	surf2Dread(&f2, source, idx + 4, j);
-	surf2Dread(&f3, source, idx, j + 1);
-	surf2Dread(&f4, source, idx + 4, j + 1);
+	surf2Dread(&f1, source, idx_i, idx_j);
+	surf2Dread(&f2, source, idx_i + 4, idx_j);
+	surf2Dread(&f3, source, idx_i, idx_j + 1);
+	surf2Dread(&f4, source, idx_i + 4, idx_j + 1);
 
-	surf2Dwrite((f1 + f2 + f3 + f4) * 0.25f, destination, idx / 2, j / 2);
+	surf2Dwrite((f1 + f2 + f3 + f4) * 0.25f, destination, i * 4, j);
 }

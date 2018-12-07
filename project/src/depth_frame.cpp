@@ -89,17 +89,15 @@ void DepthFrame::writeSurface(cudaArray* gpu_source, int width, int height) cons
 
 	HANDLE_ERROR(cudaMemcpyFromArray(float_data_ptr, gpu_source, 0, 0, width * height * 4, cudaMemcpyDeviceToHost));
 
-	std::unique_ptr<unsigned char[]> byte_data(new unsigned char[width * height * 3]);
+	std::unique_ptr<unsigned char[]> byte_data(new unsigned char[width * height]);
 	auto byte_data_ptr = byte_data.get();
+
 	int size = width * height;
 	for (int i = 0; i < size; ++i)
 	{
-		int idx = i * 3;
-		byte_data_ptr[idx] = static_cast<unsigned char>(float_data_ptr[i] / 100);
-		byte_data_ptr[idx + 1] = static_cast<unsigned char>(float_data_ptr[i] / 100);
-		byte_data_ptr[idx + 2] = static_cast<unsigned char>(float_data_ptr[i] / 100);
+		byte_data_ptr[i] = static_cast<unsigned char>(float_data_ptr[i] / 200);
 	}
 
 	auto final_path = std::to_string(width) + "x" + std::to_string(height) + ".png";
-	stbi_write_png(final_path.c_str(), width, height, 3, byte_data_ptr, width * 3);
+	stbi_write_png(final_path.c_str(), width, height, 1, byte_data_ptr, width);
 }
