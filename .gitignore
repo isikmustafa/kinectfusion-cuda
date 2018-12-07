@@ -4,3 +4,6 @@
 *.ptx
 *.cubin
 *.fatbin
+project/.vs/
+project/x64/
+project/*.png
