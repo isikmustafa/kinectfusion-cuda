@@ -5,11 +5,17 @@
     <ClInclude Include="src\cuda_event.h" />
     <ClInclude Include="src\cuda_utils.h" />
     <ClInclude Include="src\depth_frame.h" />
+    <ClInclude Include="src\vertex_map.h" />
+    <ClInclude Include="src\normal_map.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\main.cu" />
     <CudaCompile Include="src\measurement.cu" />
     <CudaCompile Include="src\depth_frame.cpp" />
     <CudaCompile Include="src\cuda_event.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\vertex_map.cpp" />
+    <ClCompile Include="src\normal_map.cpp" />
   </ItemGroup>
 </Project>

@@ -19,10 +19,16 @@
     <ClInclude Include="src\cuda_utils.h" />
     <ClInclude Include="src\depth_frame.h" />
     <ClInclude Include="src\measurement.cuh" />
+    <ClInclude Include="src\normal_map.h" />
+    <ClInclude Include="src\vertex_map.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\main.cu" />
     <CudaCompile Include="src\measurement.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\normal_map.cpp" />
+    <ClCompile Include="src\vertex_map.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FE52D5F8-E568-4E1D-9A0F-5502BD6FF4FD}</ProjectGuid>
@@ -56,10 +62,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\3rd\stb;$(IncludePath)</IncludePath>
+    <IncludePath>..\3rd\glm;..\3rd\stb;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\3rd\stb;$(IncludePath)</IncludePath>
+    <IncludePath>..\3rd\glm;..\3rd\stb;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
