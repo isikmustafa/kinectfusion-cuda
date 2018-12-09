@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\cuda_event.cpp" />
-    <ClCompile Include="src\depth_frame.cpp" />
+    <CudaCompile Include="src\cuda_event.cpp" />
+    <CudaCompile Include="src\depth_frame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cuda_event.h" />
@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\main.cu" />
+    <CudaCompile Include="src\measurement.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FE52D5F8-E568-4E1D-9A0F-5502BD6FF4FD}</ProjectGuid>
@@ -92,6 +93,8 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CodeGeneration>compute_35,sm_35</CodeGeneration>
+      <AdditionalOptions>-use_fast_math %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

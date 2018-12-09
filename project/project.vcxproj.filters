@@ -2,5 +2,14 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="src\measurement.cuh" />
+    <ClInclude Include="src\cuda_event.h" />
+    <ClInclude Include="src\cuda_utils.h" />
+    <ClInclude Include="src\depth_frame.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\main.cu" />
+    <CudaCompile Include="src\measurement.cu" />
+    <CudaCompile Include="src\depth_frame.cpp" />
+    <CudaCompile Include="src\cuda_event.cpp" />
   </ItemGroup>
 </Project>
