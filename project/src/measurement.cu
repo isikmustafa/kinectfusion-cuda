@@ -129,53 +129,151 @@ __global__ void createNormalMapKernel(cudaSurfaceObject_t vertex_map, cudaSurfac
 	surf2Dwrite(normal.z, normal_map, idx + 8, j);
 }
 
+__global__ void oneHalfChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+	unsigned short h_pixel;
+	surf2Dread(&h_pixel, surface, i * 2, j);
+
+	auto pixel = static_cast<unsigned char>(__half2float(h_pixel) * scale);
+
+	unsigned int pixel_w = (255) << 8;
+	pixel_w = (pixel_w | pixel) << 8;
+	pixel_w = (pixel_w | pixel) << 8;
+	pixel_w = (pixel_w | pixel);
+
+	surf2Dwrite(pixel_w, window_content, i * 4, j);
+}
+
+__global__ void oneFloatChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+	float f_pixel;
+	surf2Dread(&f_pixel, surface, i * 4, j);
+
+	auto pixel = static_cast<unsigned char>(f_pixel * scale);
+
+	unsigned int pixel_w = (255) << 8;
+	pixel_w = (pixel_w | pixel) << 8;
+	pixel_w = (pixel_w | pixel) << 8;
+	pixel_w = (pixel_w | pixel);
+
+	surf2Dwrite(pixel_w, window_content, i * 4, j);
+}
+
+__global__ void fourFloatChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+	float r, g, b;
+	int idx = i * 16;
+	surf2Dread(&r, surface, idx, j);
+	surf2Dread(&g, surface, idx + 4, j);
+	surf2Dread(&b, surface, idx + 8, j);
+
+	unsigned int pixel_w = (255) << 8;
+	pixel_w = (pixel_w | static_cast<unsigned char>(b * scale)) << 8;
+	pixel_w = (pixel_w | static_cast<unsigned char>(g * scale)) << 8;
+	pixel_w = (pixel_w | static_cast<unsigned char>(r * scale));
+
+	surf2Dwrite(pixel_w, window_content, i * 4, j);
+}
+
 namespace kernel
 {
-	void applyBilateralFilter(cudaSurfaceObject_t input, cudaSurfaceObject_t output)
+	float applyBilateralFilter(cudaSurfaceObject_t input, cudaSurfaceObject_t output)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(640 / threads.x, 480 / threads.y);
 		start.record();
-		applyBilateralFilterKernel <<<blocks, threads>>> (input, output);
+		applyBilateralFilterKernel << <blocks, threads >> > (input, output);
 		end.record();
 		end.synchronize();
-		std::cout << "applyBilateralFilter execution time: " << CudaEvent::calculateElapsedTime(start, end) << " ms" << std::endl;
+
+		return CudaEvent::calculateElapsedTime(start, end);
 	}
 
-	void downSample(cudaSurfaceObject_t input, cudaSurfaceObject_t output, int output_width, int output_height)
+	float downSample(cudaSurfaceObject_t input, cudaSurfaceObject_t output, int output_width, int output_height)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(output_width / threads.x, output_height / threads.y);
 		start.record();
-		downSampleKernel <<<blocks, threads>>> (input, output);
+		downSampleKernel << <blocks, threads >> > (input, output);
 		end.record();
 		end.synchronize();
-		std::cout << "downSample execution time: " << CudaEvent::calculateElapsedTime(start, end) << " ms" << std::endl;
+
+		return CudaEvent::calculateElapsedTime(start, end);
 	}
 
-	void createVertexMap(cudaSurfaceObject_t input_depth, cudaSurfaceObject_t output_vertex, const glm::mat3& inv_cam_k, int width, int height)
+	float createVertexMap(cudaSurfaceObject_t input_depth, cudaSurfaceObject_t output_vertex, const glm::mat3& inv_cam_k, int width, int height)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(width / threads.x, height / threads.y);
 		start.record();
-		createVertexMapKernel <<<blocks, threads>>> (input_depth, output_vertex, inv_cam_k, 640 / width);
+		createVertexMapKernel << <blocks, threads >> > (input_depth, output_vertex, inv_cam_k, 640 / width);
 		end.record();
 		end.synchronize();
-		std::cout << "createVertexMap execution time: " << CudaEvent::calculateElapsedTime(start, end) << " ms" << std::endl;
+
+		return CudaEvent::calculateElapsedTime(start, end);
 	}
 
-	void createNormalMap(cudaSurfaceObject_t input_vertex, cudaSurfaceObject_t output_normal, int width, int height)
+	float createNormalMap(cudaSurfaceObject_t input_vertex, cudaSurfaceObject_t output_normal, int width, int height)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(width / threads.x, height / threads.y);
 		start.record();
-		createNormalMapKernel <<<blocks, threads>>> (input_vertex, output_normal);
+		createNormalMapKernel << <blocks, threads >> > (input_vertex, output_normal);
 		end.record();
 		end.synchronize();
-		std::cout << "createNormalMap execution time: " << CudaEvent::calculateElapsedTime(start, end) << " ms" << std::endl;
+
+		return CudaEvent::calculateElapsedTime(start, end);
+	}
+
+	float oneHalfChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
+	{
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(640 / threads.x, 480 / threads.y);
+		start.record();
+		oneHalfChannelToWindowContentKernel << <blocks, threads >> > (surface, window_content, scale);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
+	}
+
+	float oneFloatChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
+	{
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(640 / threads.x, 480 / threads.y);
+		start.record();
+		oneFloatChannelToWindowContentKernel << <blocks, threads >> > (surface, window_content, scale);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
+	}
+
+	float fourFloatChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
+	{
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(640 / threads.x, 480 / threads.y);
+		start.record();
+		fourFloatChannelToWindowContentKernel <<<blocks, threads >>> (surface, window_content, scale);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
 	}
 }

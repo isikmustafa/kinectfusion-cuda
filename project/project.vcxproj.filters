@@ -7,6 +7,8 @@
     <ClInclude Include="src\depth_frame.h" />
     <ClInclude Include="src\vertex_map.h" />
     <ClInclude Include="src\normal_map.h" />
+    <ClInclude Include="src\window.h" />
+    <ClInclude Include="src\timer.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\measurement.cu" />
@@ -17,5 +19,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\vertex_map.cpp" />
     <ClCompile Include="src\normal_map.cpp" />
+    <ClCompile Include="src\window.cpp" />
+    <ClCompile Include="src\timer.cpp" />
   </ItemGroup>
 </Project>
