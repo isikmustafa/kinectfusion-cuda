@@ -65,6 +65,11 @@ void DepthFrame::update(const std::string& path)
 	stbi_image_free(data);
 }
 
+void DepthFrame::update(void* data_ptr)
+{
+	HANDLE_ERROR(cudaMemcpyToArray(m_cuda_array_raw, 0, 0, data_ptr, 640 * 480 * 2, cudaMemcpyHostToDevice));
+}
+
 cudaSurfaceObject_t DepthFrame::getRaw() const
 {
 	return m_depth_raw;

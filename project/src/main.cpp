@@ -17,7 +17,6 @@ int main()
 	VertexMap vm;
 	NormalMap nm;
 	Window window;
-	df.update("frame.png");
 
 	auto depth_pyramid = df.getPyramid();
 	auto vertex_map_pyramid = vm.getPyramid();
@@ -26,6 +25,9 @@ int main()
 	Timer timer;
 	while (true)
 	{
+		//Get depth frame from kinect.
+		window.getKinectData(df);
+
 		auto total_kernel_time = 0.0f;
 		timer.start();
 
@@ -41,7 +43,7 @@ int main()
 		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[1], normal_map_pyramid[1], 320, 240);
 		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[2], normal_map_pyramid[2], 160, 120);
 		
-		total_kernel_time += kernel::fourFloatChannelToWindowContent(normal_map_pyramid[0], window.get_content(), 255.0f);
+		total_kernel_time += kernel::oneFloatChannelToWindowContent(depth_pyramid[0], window.get_content(), 0.01f);
 		window.draw();
 
 		window.setWindowTitle("Total frame time: " + std::to_string(timer.getTime() * 1000.0) +

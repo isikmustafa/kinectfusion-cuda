@@ -12,6 +12,7 @@ public:
 	~DepthFrame();
 
 	void update(const std::string& path);
+	void update(void* data_ptr);
 	cudaSurfaceObject_t getRaw() const;
 	std::array<cudaSurfaceObject_t, 3> getPyramid() const;
 	void writePyramid() const;

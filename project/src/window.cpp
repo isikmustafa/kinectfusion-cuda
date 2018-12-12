@@ -4,6 +4,11 @@
 #include <cuda_gl_interop.h>
 #include <stdexcept>
 #include <cuda_runtime.h>
+#include <Windows.h>
+#include <Ole2.h>
+#include <NuiApi.h>
+#include <NuiImageCamera.h>
+#include <NuiSensor.h>
 
 constexpr int gWidth = 640;
 constexpr int gHeight = 480;
@@ -16,6 +21,7 @@ Window::Window()
 		throw std::runtime_error("SDL could not initialize!");
 	}
 
+	//No need for modern OpenGL for the time being.
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
@@ -67,6 +73,27 @@ Window::Window()
 
 	res_desc.res.array.array = m_content_array;
 	HANDLE_ERROR(cudaCreateSurfaceObject(&m_content, &res_desc));
+
+	//Kinect
+	int num_of_sensor;
+	if (NuiGetSensorCount(&num_of_sensor) < 0 || num_of_sensor < 1)
+	{
+		throw std::runtime_error("Kinect could not initialize!");
+	}
+
+	if (NuiCreateSensorByIndex(0, &m_sensor) < 0)
+	{
+		throw std::runtime_error("Kinect could not initialize!");
+	}
+
+	//Initialize sensor
+	m_sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH);
+	m_sensor->NuiImageStreamOpen(NUI_IMAGE_TYPE_DEPTH,
+		NUI_IMAGE_RESOLUTION_640x480,
+		NUI_IMAGE_STREAM_FLAG_ENABLE_NEAR_MODE,
+		2,
+		NULL,
+		&m_depth_stream);
 }
 
 Window::~Window()
@@ -75,6 +102,26 @@ Window::~Window()
 	HANDLE_ERROR(cudaFreeArray(m_content_array));
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
+}
+
+void Window::getKinectData(DepthFrame& depth_frame) const
+{
+	NUI_IMAGE_FRAME image_frame;
+	NUI_LOCKED_RECT locked_rect;
+	if (m_sensor->NuiImageStreamGetNextFrame(m_depth_stream, 100, &image_frame) < 0)
+	{
+		return;
+	}
+
+	INuiFrameTexture* texture = image_frame.pFrameTexture;
+	texture->LockRect(0, &locked_rect, nullptr, 0);
+	if (locked_rect.Pitch != 0)
+	{
+		depth_frame.update(locked_rect.pBits);
+	}
+
+	texture->UnlockRect(0);
+	m_sensor->NuiImageStreamReleaseFrame(m_depth_stream, &image_frame);
 }
 
 void Window::draw()
