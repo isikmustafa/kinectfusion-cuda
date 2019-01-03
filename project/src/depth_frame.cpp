@@ -1,12 +1,11 @@
-#include "depth_frame.h"
-#include "cuda_utils.h"
-
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#include "depth_frame.h"
+#include "cuda_utils.h"
 
 DepthFrame::DepthFrame()
 {
@@ -19,7 +18,7 @@ DepthFrame::DepthFrame()
 	HANDLE_ERROR(cudaMallocArray(&m_cuda_array_320x240, &channel_desc, 320, 240, cudaArraySurfaceLoadStore));
 	HANDLE_ERROR(cudaMallocArray(&m_cuda_array_160x120, &channel_desc, 160, 120 , cudaArraySurfaceLoadStore));
 
-	//Create resource descriptions.
+	//Create resource descriptors.
 	cudaResourceDesc res_desc;
 	memset(&res_desc, 0, sizeof(res_desc));
 	res_desc.resType = cudaResourceTypeArray;
@@ -61,7 +60,7 @@ void DepthFrame::update(const std::string& path)
 		throw std::runtime_error("Error: Image cannot be loaded");
 	}
 
-	HANDLE_ERROR(cudaMemcpyToArray(m_cuda_array_raw, 0, 0, data, 640 * 480 * 2, cudaMemcpyHostToDevice));
+    update(data);
 	stbi_image_free(data);
 }
 

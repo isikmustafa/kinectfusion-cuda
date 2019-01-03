@@ -1,10 +1,11 @@
 #define GLM_FORCE_PURE
 #include "measurement.cuh"
-#include "cuda_event.h"
+
+#include <iostream>
 
 #include <cuda_fp16.h>
-#include <iostream>
 #include <glm/vec3.hpp>
+#include "cuda_event.h"
 
 //TODO: How do we decide?
 constexpr float cSigmaS = 4.0f;

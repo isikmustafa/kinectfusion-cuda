@@ -1,20 +1,21 @@
 #include "window.h"
-#include "cuda_utils.h"
 
-#include <cuda_gl_interop.h>
 #include <stdexcept>
-#include <cuda_runtime.h>
+
 #include <Windows.h>
 #include <Ole2.h>
+#include <cuda_gl_interop.h>
+#include <cuda_runtime.h>
 #include <NuiApi.h>
 #include <NuiImageCamera.h>
 #include <NuiSensor.h>
+#include "cuda_utils.h"
 
 constexpr int gWidth = 640;
 constexpr int gHeight = 480;
 constexpr bool gVSync = true;
 
-Window::Window()
+Window::Window(const bool use_kinect = false)
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -75,25 +76,28 @@ Window::Window()
 	HANDLE_ERROR(cudaCreateSurfaceObject(&m_content, &res_desc));
 
 	//Kinect
-	int num_of_sensor;
-	if (NuiGetSensorCount(&num_of_sensor) < 0 || num_of_sensor < 1)
-	{
-		throw std::runtime_error("Kinect could not initialize!");
-	}
+    if (use_kinect)
+    {
+        int num_of_sensor;
+        if (NuiGetSensorCount(&num_of_sensor) < 0 || num_of_sensor < 1)
+        {
+            throw std::runtime_error("Kinect could not initialize!");
+        }
 
-	if (NuiCreateSensorByIndex(0, &m_sensor) < 0)
-	{
-		throw std::runtime_error("Kinect could not initialize!");
-	}
+        if (NuiCreateSensorByIndex(0, &m_sensor) < 0)
+        {
+            throw std::runtime_error("Kinect could not initialize!");
+        }
 
-	//Initialize sensor
-	m_sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH);
-	m_sensor->NuiImageStreamOpen(NUI_IMAGE_TYPE_DEPTH,
-		NUI_IMAGE_RESOLUTION_640x480,
-		NUI_IMAGE_STREAM_FLAG_ENABLE_NEAR_MODE,
-		2,
-		NULL,
-		&m_depth_stream);
+        //Initialize sensor
+        m_sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH);
+        m_sensor->NuiImageStreamOpen(NUI_IMAGE_TYPE_DEPTH,
+            NUI_IMAGE_RESOLUTION_640x480,
+            NUI_IMAGE_STREAM_FLAG_ENABLE_NEAR_MODE,
+            2,
+            NULL,
+            &m_depth_stream);
+    }
 }
 
 Window::~Window()

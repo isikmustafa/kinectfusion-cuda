@@ -1,9 +1,10 @@
 #include "vertex_map.h"
-#include "cuda_utils.h"
 
 #include <string>
 #include <iostream>
+
 #include <stb_image_write.h>
+#include "cuda_utils.h"
 
 VertexMap::VertexMap()
 {

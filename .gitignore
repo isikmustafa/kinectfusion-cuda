@@ -7,3 +7,5 @@
 project/.vs/
 project/x64/
 project/*.png
+*/SDL2-2.0.9/lib/
+*.vcxproj.user
