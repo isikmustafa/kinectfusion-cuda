@@ -1,25 +1,69 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="src\measurement.cuh" />
-    <ClInclude Include="src\cuda_event.h" />
-    <ClInclude Include="src\cuda_utils.h" />
-    <ClInclude Include="src\depth_frame.h" />
-    <ClInclude Include="src\vertex_map.h" />
-    <ClInclude Include="src\normal_map.h" />
-    <ClInclude Include="src\window.h" />
-    <ClInclude Include="src\timer.h" />
+    <ClInclude Include="src\cuda_event.h">
+      <Filter>CudaStuff</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cuda_utils.h">
+      <Filter>CudaStuff</Filter>
+    </ClInclude>
+    <ClInclude Include="src\measurement.cuh">
+      <Filter>CudaStuff</Filter>
+    </ClInclude>
+    <ClInclude Include="src\depth_frame.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\normal_map.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vertex_map.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\timer.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\measurement.cu" />
-    <CudaCompile Include="src\depth_frame.cpp" />
-    <CudaCompile Include="src\cuda_event.cpp" />
+    <CudaCompile Include="src\cuda_event.cpp">
+      <Filter>CudaStuff</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\measurement.cu">
+      <Filter>CudaStuff</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\depth_frame.cpp">
+      <Filter>DataStructures</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\vertex_map.cpp" />
-    <ClCompile Include="src\normal_map.cpp" />
-    <ClCompile Include="src\window.cpp" />
-    <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\normal_map.cpp">
+      <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vertex_map.cpp">
+      <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\timer.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="DataStructures">
+      <UniqueIdentifier>{8240cbc3-07a3-43cb-9046-1e39692ddc90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CudaStuff">
+      <UniqueIdentifier>{a2f5111c-b5c1-4006-99df-dac218dba2d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{91af19ec-0fe7-44ab-bf18-d5aa0d911d73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display">
+      <UniqueIdentifier>{1d56c85f-6d20-4e83-9da7-63ef3dfff869}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
