@@ -3,8 +3,8 @@
 #include <string>
 
 #include <SDL_opengl.h>
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
-#undef main
 #include <cuda_runtime.h>
 #include "depth_frame.h"
 
