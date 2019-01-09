@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -15,13 +15,13 @@
     <CudaCompile Include="src\depth_frame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="data_helper.h" />
     <ClInclude Include="src\cuda_event.h" />
     <ClInclude Include="src\cuda_utils.h" />
     <ClInclude Include="src\depth_frame.h" />
     <ClInclude Include="src\measurement.cuh" />
-    <ClInclude Include="src\normal_map.h" />
+    <ClInclude Include="src\vector_map.h" />
     <ClInclude Include="src\timer.h" />
-    <ClInclude Include="src\vertex_map.h" />
     <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -29,9 +29,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\normal_map.cpp" />
+    <ClCompile Include="src\vector_map.cpp" />
     <ClCompile Include="src\timer.cpp" />
-    <ClCompile Include="src\vertex_map.cpp" />
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

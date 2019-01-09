@@ -13,10 +13,10 @@ DepthFrame::DepthFrame()
 	cudaChannelFormatDesc channel_desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 
 	//Allocate arrays.
-	HANDLE_ERROR(cudaMallocArray(&m_cuda_array_raw, &half_channel_desc, 640, 480, cudaArraySurfaceLoadStore));
-	HANDLE_ERROR(cudaMallocArray(&m_cuda_array_640x480, &channel_desc, 640, 480, cudaArraySurfaceLoadStore));
-	HANDLE_ERROR(cudaMallocArray(&m_cuda_array_320x240, &channel_desc, 320, 240, cudaArraySurfaceLoadStore));
-	HANDLE_ERROR(cudaMallocArray(&m_cuda_array_160x120, &channel_desc, 160, 120 , cudaArraySurfaceLoadStore));
+	HANDLE_ERROR(cudaMallocArray(&m_depth_raw.cuda_array, &half_channel_desc, 640, 480, cudaArraySurfaceLoadStore));
+	HANDLE_ERROR(cudaMallocArray(&m_depth_640x480.cuda_array, &channel_desc, 640, 480, cudaArraySurfaceLoadStore));
+	HANDLE_ERROR(cudaMallocArray(&m_depth_320x240.cuda_array, &channel_desc, 320, 240, cudaArraySurfaceLoadStore));
+	HANDLE_ERROR(cudaMallocArray(&m_depth_160x120.cuda_array, &channel_desc, 160, 120 , cudaArraySurfaceLoadStore));
 
 	//Create resource descriptors.
 	cudaResourceDesc res_desc;
@@ -24,29 +24,29 @@ DepthFrame::DepthFrame()
 	res_desc.resType = cudaResourceTypeArray;
 
 	//Create CUDA Surface objects
-	res_desc.res.array.array = m_cuda_array_raw;
-	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_raw, &res_desc));
+	res_desc.res.array.array = m_depth_raw.cuda_array;
+	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_raw.surface_object, &res_desc));
 
-	res_desc.res.array.array = m_cuda_array_640x480;
-	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_640x480, &res_desc));
+	res_desc.res.array.array = m_depth_640x480.cuda_array;
+	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_640x480.surface_object, &res_desc));
 
-	res_desc.res.array.array = m_cuda_array_320x240;
-	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_320x240, &res_desc));
+	res_desc.res.array.array = m_depth_320x240.cuda_array;
+	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_320x240.surface_object, &res_desc));
 
-	res_desc.res.array.array = m_cuda_array_160x120;
-	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_160x120, &res_desc));
+	res_desc.res.array.array = m_depth_160x120.cuda_array;
+	HANDLE_ERROR(cudaCreateSurfaceObject(&m_depth_160x120.surface_object, &res_desc));
 }
 
 DepthFrame::~DepthFrame()
 {
-	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_raw));
-	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_640x480));
-	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_320x240));
-	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_160x120));
-	HANDLE_ERROR(cudaFreeArray(m_cuda_array_raw));
-	HANDLE_ERROR(cudaFreeArray(m_cuda_array_640x480));
-	HANDLE_ERROR(cudaFreeArray(m_cuda_array_320x240));
-	HANDLE_ERROR(cudaFreeArray(m_cuda_array_160x120));
+	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_raw.surface_object));
+	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_640x480.surface_object));
+	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_320x240.surface_object));
+	HANDLE_ERROR(cudaDestroySurfaceObject(m_depth_160x120.surface_object));
+	HANDLE_ERROR(cudaFreeArray(m_depth_raw.cuda_array));
+	HANDLE_ERROR(cudaFreeArray(m_depth_640x480.cuda_array));
+	HANDLE_ERROR(cudaFreeArray(m_depth_320x240.cuda_array));
+	HANDLE_ERROR(cudaFreeArray(m_depth_160x120.cuda_array));
 }
 
 void DepthFrame::update(const std::string& path)
@@ -66,24 +66,24 @@ void DepthFrame::update(const std::string& path)
 
 void DepthFrame::update(void* data_ptr)
 {
-	HANDLE_ERROR(cudaMemcpyToArray(m_cuda_array_raw, 0, 0, data_ptr, 640 * 480 * 2, cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemcpyToArray(m_depth_raw.cuda_array, 0, 0, data_ptr, 640 * 480 * 2, cudaMemcpyHostToDevice));
 }
 
 cudaSurfaceObject_t DepthFrame::getRaw() const
 {
-	return m_depth_raw;
+	return m_depth_raw.surface_object;
 }
 
 std::array<cudaSurfaceObject_t, 3> DepthFrame::getPyramid() const
 {
-	return { m_depth_640x480, m_depth_320x240, m_depth_160x120 };
+	return { m_depth_640x480.surface_object, m_depth_320x240.surface_object, m_depth_160x120.surface_object };
 }
 
 void DepthFrame::writePyramid() const
 {
-	writeSurface(m_cuda_array_640x480, 640, 480);
-	writeSurface(m_cuda_array_320x240, 320, 240);
-	writeSurface(m_cuda_array_160x120, 160, 120);
+	writeSurface(m_depth_640x480.cuda_array, 640, 480);
+	writeSurface(m_depth_320x240.cuda_array, 320, 240);
+	writeSurface(m_depth_160x120.cuda_array, 160, 120);
 }
 
 void DepthFrame::writeSurface(cudaArray* gpu_source, int width, int height) const

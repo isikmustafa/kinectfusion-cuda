@@ -13,17 +13,17 @@
     <ClInclude Include="src\depth_frame.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
-    <ClInclude Include="src\normal_map.h">
-      <Filter>DataStructures</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vertex_map.h">
-      <Filter>DataStructures</Filter>
-    </ClInclude>
     <ClInclude Include="src\timer.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="src\window.h">
       <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vector_map.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="data_helper.h">
+      <Filter>DataStructures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -39,17 +39,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\normal_map.cpp">
-      <Filter>DataStructures</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vertex_map.cpp">
-      <Filter>DataStructures</Filter>
-    </ClCompile>
     <ClCompile Include="src\timer.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\window.cpp">
       <Filter>Display</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vector_map.cpp">
+      <Filter>DataStructures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

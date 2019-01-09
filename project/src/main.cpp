@@ -1,8 +1,7 @@
 #include <glm/mat3x3.hpp>
 
 #include "depth_frame.h"
-#include "vertex_map.h"
-#include "normal_map.h"
+#include "vector_map.h"
 #include "window.h"
 #include "timer.h"
 #include "measurement.cuh"
@@ -18,8 +17,8 @@ int main()
 	glm::mat3 inv_camera_intrinsics = glm::inverse(camera_intrinsics);
 
 	DepthFrame depth_frame;
-	VertexMap vertex_map;
-	NormalMap normal_map;
+	VectorMap vertex_map;
+	VectorMap normal_map;
 	
 	Window window = Window(use_kinect);
 
