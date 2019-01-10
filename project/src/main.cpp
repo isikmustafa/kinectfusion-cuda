@@ -1,22 +1,15 @@
-#include <glm/mat3x3.hpp>
-
+#include "data_helper.h"
 #include "depth_map.h"
 #include "cuda_grid_map.h"
 #include "window.h"
 #include "timer.h"
 #include "measurement.cuh"
-#include "data_helper.h"
 
 int main()
 {
     const bool use_kinect = false;
     const unsigned int frame_width = 640;
     const unsigned int frame_height = 480;
-    
-    // Hardcoded camera intrinsics.
-    // Todo: Use an external configuration file to store and load the intrinsics (and any other configureations).
-    const glm::mat3 camera_intrinsics(glm::vec3(525.0f, 0.0f, 0.0f), glm::vec3(0.0f, 525.0f, 0.0f), glm::vec3(319.5f, 239.5f, 1.0f));
-    const glm::mat3 inv_camera_intrinsics = glm::inverse(camera_intrinsics);
 
 	//DepthMap depth_frame;
     cudaChannelFormatDesc raw_depth_desc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
@@ -54,9 +47,9 @@ int main()
 		total_kernel_time += kernel::downSample(depth_map_pyramid[0]->getCudaSurfaceObject(), depth_map_pyramid[1]->getCudaSurfaceObject(), 320, 240);
 		total_kernel_time += kernel::downSample(depth_map_pyramid[1]->getCudaSurfaceObject(), depth_map_pyramid[2]->getCudaSurfaceObject(), 160, 120);
 
-		total_kernel_time += kernel::createVertexMap(depth_map_pyramid[0]->getCudaSurfaceObject(), vertex_map_pyramid[0]->getCudaSurfaceObject(), inv_camera_intrinsics, 640, 480);
-        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[1]->getCudaSurfaceObject(), vertex_map_pyramid[1]->getCudaSurfaceObject(), inv_camera_intrinsics, 320, 240);
-        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[2]->getCudaSurfaceObject(), vertex_map_pyramid[2]->getCudaSurfaceObject(), inv_camera_intrinsics, 160, 120);
+		total_kernel_time += kernel::createVertexMap(depth_map_pyramid[0]->getCudaSurfaceObject(), vertex_map_pyramid[0]->getCudaSurfaceObject(), SensorIntrinsics::getInvMat(), 640, 480);
+        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[1]->getCudaSurfaceObject(), vertex_map_pyramid[1]->getCudaSurfaceObject(), SensorIntrinsics::getInvMat(), 320, 240);
+        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[2]->getCudaSurfaceObject(), vertex_map_pyramid[2]->getCudaSurfaceObject(), SensorIntrinsics::getInvMat(), 160, 120);
 
 		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[0]->getCudaSurfaceObject(), normal_map_pyramid[0]->getCudaSurfaceObject(), 640, 480);
         total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[1]->getCudaSurfaceObject(), normal_map_pyramid[1]->getCudaSurfaceObject(), 320, 240);

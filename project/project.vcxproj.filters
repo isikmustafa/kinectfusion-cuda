@@ -28,6 +28,12 @@
     <ClInclude Include="src\depth_map.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
+    <ClInclude Include="src\rigid_transform_3d.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glm_macro.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -49,6 +55,9 @@
       <Filter>Display</Filter>
     </ClCompile>
     <ClCompile Include="src\cuda_grid_map.cpp">
+      <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rigid_transform_3d.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
   </ItemGroup>

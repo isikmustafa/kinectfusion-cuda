@@ -6,5 +6,6 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <cmath>
 
 #include "gtest/gtest.h"

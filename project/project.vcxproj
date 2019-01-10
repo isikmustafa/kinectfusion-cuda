@@ -20,8 +20,10 @@
     <ClInclude Include="src\data_helper.h" />
     <ClInclude Include="src\depth_map.h" />
     <ClInclude Include="src\general_helpers.h" />
+    <ClInclude Include="src\glm_macro.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
+    <ClInclude Include="src\rigid_transform_3d.h" />
     <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\window.h" />
   </ItemGroup>
@@ -31,6 +33,7 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
+    <ClCompile Include="src\rigid_transform_3d.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
@@ -77,7 +80,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);CUDA_VERSION=10000</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

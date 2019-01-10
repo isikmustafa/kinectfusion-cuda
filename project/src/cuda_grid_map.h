@@ -27,5 +27,5 @@ protected:
     unsigned int m_width;
     unsigned int m_height;
     cudaChannelFormatDesc m_channel_description;
-    cuda_surface m_grid_elems;
+    CudaSurface m_grid_elems;
 };

@@ -4,6 +4,7 @@
     <ClCompile Include="example_test.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="cuda_grid_map_tests.cpp" />
+    <ClCompile Include="transformation_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
