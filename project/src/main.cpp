@@ -1,37 +1,55 @@
 #include <glm/mat3x3.hpp>
 
 #include "depth_frame.h"
-#include "vector_map.h"
+#include "cuda_grid_map.h"
 #include "window.h"
 #include "timer.h"
 #include "measurement.cuh"
-
+#include "data_helper.h"
 
 int main()
 {
     const bool use_kinect = false;
-
-	// Hardcoded camera intrinsics.
-	// Todo: Use an external configuration file to store and load the intrinsics (and any other configureations).
-	glm::mat3 camera_intrinsics(glm::vec3(525.0f, 0.0f, 0.0f), glm::vec3(0.0f, 525.0f, 0.0f), glm::vec3(319.5f, 239.5f, 1.0f));
-	glm::mat3 inv_camera_intrinsics = glm::inverse(camera_intrinsics);
+    
+    // Hardcoded camera intrinsics.
+    // Todo: Use an external configuration file to store and load the intrinsics (and any other configureations).
+    const glm::mat3 camera_intrinsics(glm::vec3(525.0f, 0.0f, 0.0f), glm::vec3(0.0f, 525.0f, 0.0f), glm::vec3(319.5f, 239.5f, 1.0f));
+    const glm::mat3 inv_camera_intrinsics = glm::inverse(camera_intrinsics);
 
 	DepthFrame depth_frame;
-	VectorMap vertex_map;
-	VectorMap normal_map;
-	
-	Window window = Window(use_kinect);
-
-    if (!use_kinect) 
+    if (!use_kinect)
     {
         // Load some example depth map.
         const std::string depth_frame_path = "frame.png";
         depth_frame.update(depth_frame_path);
     }
 
+    const unsigned int frame_width = 640;
+    const unsigned int frame_height = 480;
+    cudaChannelFormatDesc vertex_and_normal_desc = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
+
+    // This doesn't work!?
+    //auto vertex_map_pyramid = CudaGridMap::create3LayerPyramid(frame_width, frame_height, vertex_and_normal_desc);
+    //auto normal_map_pyramid = CudaGridMap::create3LayerPyramid(frame_width, frame_height, vertex_and_normal_desc);
+
+    // This does work!?
+    // ==>
+    CudaGridMap vertex_map_high(frame_width, frame_height, vertex_and_normal_desc);
+    CudaGridMap vertex_map_med(frame_width / 2, frame_height / 2, vertex_and_normal_desc);
+    CudaGridMap vertex_map_low(frame_width / 4, frame_height / 4, vertex_and_normal_desc);
+    
+    std::array<CudaGridMap, 3> vertex_map_pyramid = { vertex_map_high, vertex_map_med, vertex_map_low };
+    
+    CudaGridMap normal_map_high(frame_width, frame_height, vertex_and_normal_desc);
+    CudaGridMap normal_map_med(frame_width / 2, frame_height / 2, vertex_and_normal_desc);
+    CudaGridMap normal_map_low(frame_width / 4, frame_height / 4, vertex_and_normal_desc);
+    
+    std::array<CudaGridMap, 3> normal_map_pyramid = { normal_map_high, normal_map_med, normal_map_low };
+    // <==
+
+	Window window = Window(use_kinect);
+
 	auto depth_pyramid = depth_frame.getPyramid();
-	auto vertex_map_pyramid = vertex_map.getPyramid();
-	auto normal_map_pyramid = normal_map.getPyramid();
 
 	Timer timer;
     float total_execution_time = 0.0;
@@ -50,13 +68,13 @@ int main()
 		total_kernel_time += kernel::downSample(depth_pyramid[0], depth_pyramid[1], 320, 240);
 		total_kernel_time += kernel::downSample(depth_pyramid[1], depth_pyramid[2], 160, 120);
 
-		total_kernel_time += kernel::createVertexMap(depth_pyramid[0], vertex_map_pyramid[0], inv_camera_intrinsics, 640, 480);
-		total_kernel_time += kernel::createVertexMap(depth_pyramid[1], vertex_map_pyramid[1], inv_camera_intrinsics, 320, 240);
-		total_kernel_time += kernel::createVertexMap(depth_pyramid[2], vertex_map_pyramid[2], inv_camera_intrinsics, 160, 120);
+		total_kernel_time += kernel::createVertexMap(depth_pyramid[0], vertex_map_pyramid[0].getCudaSurfaceObject(), inv_camera_intrinsics, 640, 480);
+		total_kernel_time += kernel::createVertexMap(depth_pyramid[1], vertex_map_pyramid[1].getCudaSurfaceObject(), inv_camera_intrinsics, 320, 240);
+		total_kernel_time += kernel::createVertexMap(depth_pyramid[2], vertex_map_pyramid[2].getCudaSurfaceObject(), inv_camera_intrinsics, 160, 120);
 
-		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[0], normal_map_pyramid[0], 640, 480);
-		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[1], normal_map_pyramid[1], 320, 240);
-		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[2], normal_map_pyramid[2], 160, 120);
+		total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[0].getCudaSurfaceObject(), normal_map_pyramid[0].getCudaSurfaceObject(), 640, 480);
+        total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[1].getCudaSurfaceObject(), normal_map_pyramid[1].getCudaSurfaceObject(), 320, 240);
+        total_kernel_time += kernel::createNormalMap(vertex_map_pyramid[2].getCudaSurfaceObject(), normal_map_pyramid[2].getCudaSurfaceObject(), 160, 120);
 		
 		total_kernel_time += kernel::oneFloatChannelToWindowContent(depth_pyramid[0], window.get_content(), 0.01f);
 		window.draw();

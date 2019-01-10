@@ -19,11 +19,14 @@
     <ClInclude Include="src\window.h">
       <Filter>Display</Filter>
     </ClInclude>
-    <ClInclude Include="src\vector_map.h">
+    <ClInclude Include="src\data_helper.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
-    <ClInclude Include="data_helper.h">
+    <ClInclude Include="src\cuda_grid_map.h">
       <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\general_helpers.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -45,7 +48,7 @@
     <ClCompile Include="src\window.cpp">
       <Filter>Display</Filter>
     </ClCompile>
-    <ClCompile Include="src\vector_map.cpp">
+    <ClCompile Include="src\cuda_grid_map.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
   </ItemGroup>
