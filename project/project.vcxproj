@@ -12,13 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp" />
-    <CudaCompile Include="src\depth_frame.cpp" />
+    <CudaCompile Include="src\depth_map.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cuda_event.h" />
     <ClInclude Include="src\cuda_utils.h" />
     <ClInclude Include="src\data_helper.h" />
-    <ClInclude Include="src\depth_frame.h" />
+    <ClInclude Include="src\depth_map.h" />
     <ClInclude Include="src\general_helpers.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />

@@ -19,6 +19,7 @@ public:
     std::array<unsigned int, 2> getGridDims() const;
     cudaSurfaceObject_t getCudaSurfaceObject() const;
     cudaArray* getCudaArray() const;
+
     static std::array<CudaGridMap*, 3> create3LayerPyramid(unsigned int width, unsigned int height, cudaChannelFormatDesc channel_description);
 
 
@@ -26,5 +27,5 @@ protected:
     unsigned int m_width;
     unsigned int m_height;
     cudaChannelFormatDesc m_channel_description;
-    cuda_surface m_vectors;
+    cuda_surface m_grid_elems;
 };

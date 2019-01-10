@@ -13,7 +13,7 @@ CudaGridMap::CudaGridMap(unsigned int width, unsigned int height, cudaChannelFor
     m_channel_description = channel_description;
 
 	//Allocate arrays.
-	HANDLE_ERROR(cudaMallocArray(&m_vectors.cuda_array, &channel_description, width, height, cudaArraySurfaceLoadStore));
+	HANDLE_ERROR(cudaMallocArray(&m_grid_elems.cuda_array, &channel_description, width, height, cudaArraySurfaceLoadStore));
 
 	//Create resource descriptions.
 	cudaResourceDesc res_desc;
@@ -21,14 +21,14 @@ CudaGridMap::CudaGridMap(unsigned int width, unsigned int height, cudaChannelFor
 	res_desc.resType = cudaResourceTypeArray;
 
 	//Create CUDA Surface objects
-	res_desc.res.array.array = m_vectors.cuda_array;
-	HANDLE_ERROR(cudaCreateSurfaceObject(&m_vectors.surface_object, &res_desc));
+	res_desc.res.array.array = m_grid_elems.cuda_array;
+	HANDLE_ERROR(cudaCreateSurfaceObject(&m_grid_elems.surface_object, &res_desc));
 }
 
 CudaGridMap::~CudaGridMap()
 {
-	HANDLE_ERROR(cudaDestroySurfaceObject(m_vectors.surface_object));
-	HANDLE_ERROR(cudaFreeArray(m_vectors.cuda_array));
+	HANDLE_ERROR(cudaDestroySurfaceObject(m_grid_elems.surface_object));
+	HANDLE_ERROR(cudaFreeArray(m_grid_elems.cuda_array));
 }
 
 std::array<unsigned int, 2> CudaGridMap::getGridDims() const
@@ -38,12 +38,12 @@ std::array<unsigned int, 2> CudaGridMap::getGridDims() const
 
 cudaSurfaceObject_t CudaGridMap::getCudaSurfaceObject() const
 {
-    return m_vectors.surface_object;
+    return m_grid_elems.surface_object;
 }
 
 cudaArray* CudaGridMap::getCudaArray() const
 {
-    return m_vectors.cuda_array;
+    return m_grid_elems.cuda_array;
 }
 
 std::array<CudaGridMap*, 3> CudaGridMap::create3LayerPyramid(unsigned int width, unsigned int height, cudaChannelFormatDesc channel_description)

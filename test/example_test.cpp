@@ -2,7 +2,6 @@
 // Include the .cpp file instead of just the header. 
 // Otherwise we have to explicitly link to each .obj file. 
 // Alternatively we could add the .cpp files to the test project but this gives conflicts with precompiled headers.
-#include "depth_frame.cpp"
 
 // A test fixture is a class to collect multiple related tests.
 class ExampleTestFixture : public ::testing::Test
@@ -37,11 +36,4 @@ TEST_F(ExampleTestFixture, ExampleTest)
 {
     ASSERT_EQ(42, example_constant);
     ASSERT_DOUBLE_EQ(1.5, some_value);
-}
-
-TEST_F(ExampleTestFixture, TestDepthFrame)
-{
-    DepthFrame depth_frame;
-    const std::string depth_frame_path = "../../frame.png";
-    depth_frame.update(depth_frame_path);
 }

@@ -6,7 +6,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <cuda_runtime.h>
-#include "depth_frame.h"
+#include "depth_map.h"
 
 struct INuiSensor;
 
@@ -16,7 +16,7 @@ public:
 	Window(const bool use_kinect);
 	~Window();
 
-	void getKinectData(DepthFrame& depth_frame) const;
+	void getKinectData(DepthMap& depth_frame) const;
 	void draw();
 	void setWindowTitle(const std::string& str) const;
 	cudaSurfaceObject_t get_content() const { return m_content; }

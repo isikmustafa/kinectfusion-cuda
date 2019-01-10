@@ -10,9 +10,6 @@
     <ClInclude Include="src\measurement.cuh">
       <Filter>CudaStuff</Filter>
     </ClInclude>
-    <ClInclude Include="src\depth_frame.h">
-      <Filter>DataStructures</Filter>
-    </ClInclude>
     <ClInclude Include="src\timer.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -28,6 +25,9 @@
     <ClInclude Include="src\general_helpers.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\depth_map.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -36,7 +36,7 @@
     <CudaCompile Include="src\measurement.cu">
       <Filter>CudaStuff</Filter>
     </CudaCompile>
-    <CudaCompile Include="src\depth_frame.cpp">
+    <CudaCompile Include="src\depth_map.cpp">
       <Filter>DataStructures</Filter>
     </CudaCompile>
   </ItemGroup>

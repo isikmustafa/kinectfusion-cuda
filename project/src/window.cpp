@@ -108,7 +108,7 @@ Window::~Window()
 	SDL_Quit();
 }
 
-void Window::getKinectData(DepthFrame& depth_frame) const
+void Window::getKinectData(DepthMap& depth_frame) const
 {
 	NUI_IMAGE_FRAME image_frame;
 	NUI_LOCKED_RECT locked_rect;
