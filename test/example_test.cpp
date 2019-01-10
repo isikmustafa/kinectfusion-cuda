@@ -18,13 +18,15 @@ protected:
 
     // This function is called before each test.
     // Use it for common setup code.
-    virtual void SetUp() {
+    virtual void SetUp() 
+    {
         some_value = 1.5;
     }
 
     // This function is called after each test.
     // Use it to free ressources, delete temporary files, etc.
-    virtual void TearDown() {
+    virtual void TearDown() 
+    {
 
     }
 };

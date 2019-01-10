@@ -46,7 +46,7 @@ cudaArray* CudaGridMap::getCudaArray() const
     return m_vectors.cuda_array;
 }
 
-std::array<CudaGridMap, 3> CudaGridMap::create3LayerPyramid(unsigned int width, unsigned int height, cudaChannelFormatDesc channel_description)
+std::array<CudaGridMap*, 3> CudaGridMap::create3LayerPyramid(unsigned int width, unsigned int height, cudaChannelFormatDesc channel_description)
 {
     bool cannot_construct_pyramid = ((width % 4) != 0) || ((height % 4) != 0);
     if (cannot_construct_pyramid)
@@ -54,9 +54,9 @@ std::array<CudaGridMap, 3> CudaGridMap::create3LayerPyramid(unsigned int width, 
         throw std::runtime_error{ "Can't construct pyramid. Dimensions must be divisible by 4." };
     }
 
-    CudaGridMap high_resolution_map(width, height, channel_description);
-    CudaGridMap medium_resolution_map(width / 2, height / 2, channel_description);
-    CudaGridMap low_resolution_map(width / 4, height / 4, channel_description);
+    CudaGridMap *high_resolution_map = new CudaGridMap(width, height, channel_description);
+    CudaGridMap *medium_resolution_map = new CudaGridMap(width / 2, height / 2, channel_description);
+    CudaGridMap *low_resolution_map = new CudaGridMap(width / 4, height / 4, channel_description);
     
     return { high_resolution_map, medium_resolution_map, low_resolution_map };
 }
