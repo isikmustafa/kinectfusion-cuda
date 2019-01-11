@@ -5,6 +5,7 @@
 #include "cuda_utils.h"
 #include <stb_image_write.h>
 
+/////////////// DEBUG FUNCTIONS /////////////////////////
 void writeSurface1x32(std::string file_name, cudaArray* gpu_source, int width, int height)
 {
 	std::unique_ptr<float[]> float_data(new float[width * height]);
