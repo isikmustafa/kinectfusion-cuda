@@ -1,5 +1,7 @@
 #include "pch.h"
-// Include the .cpp file instead of just the header. 
+#include <glm/glm.hpp>
+
+// Include the .cpp file instead of just the header for the functions to test.
 // Otherwise we have to explicitly link to each .obj file. 
 // Alternatively we could add the .cpp files to the test project but this gives conflicts with precompiled headers.
 
@@ -36,4 +38,15 @@ TEST_F(ExampleTestFixture, ExampleTest)
 {
     ASSERT_EQ(42, example_constant);
     ASSERT_DOUBLE_EQ(1.5, some_value);
+}
+
+TEST_F(ExampleTestFixture, TestGlmToArray)
+{
+    glm::mat3x3 true_rot_mat = glm::mat3x3(
+        glm::vec3(0.0, 1.0, 0.0),
+        glm::vec3(-1.0, 42.0, 0.0),
+        glm::vec3(0.0, 0.0, 1.0));
+
+    float* flat = &true_rot_mat[0][0];
+    ASSERT_FLOAT_EQ(42.0, flat[4]);
 }
