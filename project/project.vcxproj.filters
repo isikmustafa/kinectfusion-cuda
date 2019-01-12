@@ -63,9 +63,6 @@
     <ClCompile Include="src\rigid_transform_3d.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
-    <ClCompile Include="src\grid_map_pyramid.cpp">
-      <Filter>DataStructures</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DataStructures">

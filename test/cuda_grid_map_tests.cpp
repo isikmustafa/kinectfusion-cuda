@@ -2,7 +2,7 @@
 
 #include "cuda_grid_map.cpp"
 #include "depth_map.cpp"
-#include "grid_map_pyramid.cpp"
+#include "grid_map_pyramid.h"
 
 class CudaGridMapTests : public ::testing::Test
 {
@@ -18,8 +18,8 @@ protected:
 
 TEST_F(CudaGridMapTests, TestCreate3LayerPyramid)
 {
-    GridMapPyramid pyramid1(frame_width_small, frame_height_small, vector_description);
-    GridMapPyramid pyramid2(frame_width_small, frame_height_small, vector_description);
+    GridMapPyramid<CudaGridMap> pyramid1(frame_width_small, frame_height_small, vector_description);
+    GridMapPyramid<CudaGridMap> pyramid2(frame_width_small, frame_height_small, vector_description);
 
     ASSERT_NE(pyramid1[0].getCudaSurfaceObject(), pyramid1[1].getCudaSurfaceObject());
     ASSERT_NE(pyramid1[0].getCudaSurfaceObject(), pyramid2[0].getCudaSurfaceObject());
