@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-
 #include <cuda_runtime.h>
 
 static void handleError(cudaError_t err, const char* file, int line)
@@ -13,20 +12,12 @@ static void handleError(cudaError_t err, const char* file, int line)
 	}
 }
 
-
 static bool isDeviceMemory(void* ptr)
 {
     cudaPointerAttributes pointer_attributes;
     cudaPointerGetAttributes(&pointer_attributes, ptr);
-    if (pointer_attributes.type == cudaMemoryTypeDevice)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
 
+	return pointer_attributes.type == cudaMemoryTypeDevice;
+}
 
 #define HANDLE_ERROR( err ) (handleError( err, __FILE__, __LINE__ ))

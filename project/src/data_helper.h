@@ -1,4 +1,5 @@
 #pragma once
+
 #include "glm_macro.h"
 #include <cuda_runtime.h>
 #include <glm/mat3x3.hpp>

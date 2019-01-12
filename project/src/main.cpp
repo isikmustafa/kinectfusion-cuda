@@ -8,9 +8,9 @@
 
 int main()
 {
-    const bool use_kinect = false;
-    const unsigned int frame_width = 640;
-    const unsigned int frame_height = 480;
+    constexpr bool use_kinect = false;
+	constexpr unsigned int frame_width = 640;
+	constexpr unsigned int frame_height = 480;
 
     cudaChannelFormatDesc raw_depth_desc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc depth_desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);

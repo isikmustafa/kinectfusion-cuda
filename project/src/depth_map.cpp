@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -7,6 +6,10 @@
 #include <stb_image_write.h>
 #include "depth_map.h"
 #include "cuda_utils.h"
+
+DepthMap::DepthMap(unsigned int width, unsigned int height, cudaChannelFormatDesc channel_description)
+	: CudaGridMap(width, height, channel_description)
+{};
 
 void DepthMap::update(const std::string& path)
 {

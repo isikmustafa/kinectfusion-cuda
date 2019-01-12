@@ -1,9 +1,9 @@
 #pragma once
 
-#include <array>
-
-#include <cuda_runtime.h>
 #include "data_helper.h"
+
+#include <array>
+#include <cuda_runtime.h>
 
 /*
     Base class containing common functionality for any vector maps, e.g. vertex maps or normal maps.
@@ -22,8 +22,8 @@ public:
     cudaChannelFormatDesc getChannelDescription() const;
 
 protected:
+	cudaChannelFormatDesc m_channel_description;
+	CudaSurface m_grid_elems;
     unsigned int m_width;
     unsigned int m_height;
-    cudaChannelFormatDesc m_channel_description;
-    CudaSurface m_grid_elems;
 };
