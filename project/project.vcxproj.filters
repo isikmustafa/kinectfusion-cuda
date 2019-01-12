@@ -38,7 +38,7 @@
       <Filter>DataStructures</Filter>
     </ClInclude>
     <ClInclude Include="src\icp.h">
-      <Filter>Fusion</Filter>
+      <Filter>PoseEstimation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -67,7 +67,7 @@
       <Filter>DataStructures</Filter>
     </ClCompile>
     <ClCompile Include="src\icp.cpp">
-      <Filter>Fusion</Filter>
+      <Filter>PoseEstimation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -85,6 +85,9 @@
     </Filter>
     <Filter Include="Fusion">
       <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PoseEstimation">
+      <UniqueIdentifier>{02989829-3f4e-4b08-9189-03ee15d04c51}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

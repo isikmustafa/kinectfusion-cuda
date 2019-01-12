@@ -7,7 +7,6 @@
     Container class for grid map pyramids. 
     Main purpose is the convenient creation of such pyramids, common operatinos on pyramids and capsuled memory management.
 */
-
 template<class T, unsigned int tNumLayers = 3>
 class GridMapPyramid
 {
@@ -25,22 +24,27 @@ public:
         }
     }
 
-    virtual T& GridMapPyramid::operator[](int i)
+	T& operator[](int i)
     {
         return *(m_pyramid[i]);
     }
+
+	const T& operator[](int i) const
+	{
+		return *(m_pyramid[i]);
+	}
     
-    cudaChannelFormatDesc getChannelDescription()
+    cudaChannelFormatDesc getChannelDescription() const
     {
         return m_channel_description;
     }
 
-    unsigned int getBaseWidth()
+    unsigned int getBaseWidth() const
     {
         return m_base_width;
     }
 
-    unsigned int getBaseHeight()
+    unsigned int getBaseHeight() const
     {
         return m_base_height;
     }
