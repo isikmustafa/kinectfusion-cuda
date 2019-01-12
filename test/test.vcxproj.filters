@@ -2,14 +2,23 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="example_test.cpp" />
-    <ClCompile Include="pch.cpp" />
     <ClCompile Include="cuda_grid_map_tests.cpp" />
     <ClCompile Include="transformation_tests.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="pch.h" />
+    <ClCompile Include="pch.cpp">
+      <Filter>pch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="pch">
+      <UniqueIdentifier>{1bda126e-9c1b-4eee-9e33-c418d1fe8368}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>pch</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

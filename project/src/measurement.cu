@@ -226,13 +226,15 @@ namespace kernel
 		return CudaEvent::calculateElapsedTime(start, end);
 	}
 
-	float createNormalMap(cudaSurfaceObject_t input_vertex, cudaSurfaceObject_t output_normal, int width, int height)
+	float computeNormalMap(CudaGridMap &vertex_map, CudaGridMap &normal_map)
 	{
+        auto dims = vertex_map.getGridDims();
+
 		CudaEvent start, end;
 		dim3 threads(8, 8);
-		dim3 blocks(width / threads.x, height / threads.y);
+        dim3 blocks(dims[0] / threads.x, dims[1] / threads.y);
 		start.record();
-		createNormalMapKernel << <blocks, threads >> > (input_vertex, output_normal);
+		createNormalMapKernel << <blocks, threads >> > (vertex_map.getCudaSurfaceObject(), normal_map.getCudaSurfaceObject());
 		end.record();
 		end.synchronize();
 

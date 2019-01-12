@@ -21,6 +21,7 @@
     <ClInclude Include="src\depth_map.h" />
     <ClInclude Include="src\general_helpers.h" />
     <ClInclude Include="src\glm_macro.h" />
+    <ClInclude Include="src\grid_map_pyramid.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
     <ClInclude Include="src\rigid_transform_3d.h" />
@@ -31,6 +32,7 @@
     <CudaCompile Include="src\measurement.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\grid_map_pyramid.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
     <ClCompile Include="src\rigid_transform_3d.cpp" />

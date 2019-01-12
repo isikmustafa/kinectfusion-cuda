@@ -2,6 +2,7 @@
 
 #include "cuda_grid_map.cpp"
 #include "depth_map.cpp"
+#include "grid_map_pyramid.cpp"
 
 class CudaGridMapTests : public ::testing::Test
 {
@@ -13,33 +14,15 @@ protected:
     cudaChannelFormatDesc vector_description = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc depth_description = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc raw_description = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
-
-    std::array<CudaGridMap*, 3> pyramid1 = { nullptr };
-    std::array<CudaGridMap*, 3> pyramid2 = { nullptr };
-
-    virtual void TearDown() 
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            if (pyramid1[i] != nullptr)
-            {
-                delete pyramid1[i];
-            }
-            if (pyramid2[i] != nullptr)
-            {
-                delete pyramid2[i];
-            }
-        }
-    }
 };
 
 TEST_F(CudaGridMapTests, TestCreate3LayerPyramid)
 {
-    pyramid1 = CudaGridMap::create3LayerPyramid(frame_width_small, frame_height_small, vector_description);
-    pyramid2 = CudaGridMap::create3LayerPyramid(frame_width_small, frame_height_small, vector_description);
+    GridMapPyramid pyramid1(frame_width_small, frame_height_small, vector_description);
+    GridMapPyramid pyramid2(frame_width_small, frame_height_small, vector_description);
 
-    ASSERT_NE(pyramid1[0]->getCudaSurfaceObject(), pyramid1[1]->getCudaSurfaceObject());
-    ASSERT_NE(pyramid1[0]->getCudaSurfaceObject(), pyramid2[0]->getCudaSurfaceObject());
+    ASSERT_NE(pyramid1[0].getCudaSurfaceObject(), pyramid1[1].getCudaSurfaceObject());
+    ASSERT_NE(pyramid1[0].getCudaSurfaceObject(), pyramid2[0].getCudaSurfaceObject());
 }
 
 // For this test, place some depth image called frame.png in the "project" directory

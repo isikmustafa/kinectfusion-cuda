@@ -17,7 +17,10 @@ RigidTransform3D::~RigidTransform3D()
 
 glm::mat4x4 *RigidTransform3D::getHomoMat()
 {
-    return m_homo_mat;
+    glm::mat4x4 *new_mat;
+    cudaMalloc((void**)&new_mat, sizeof(glm::mat4x4));
+    cudaMemcpy(new_mat, m_homo_mat, sizeof(glm::mat4x4), cudaMemcpyDeviceToDevice);
+    return new_mat;
 }
 
 void RigidTransform3D::setHomoMat(glm::mat4x4 *mat)

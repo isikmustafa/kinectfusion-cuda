@@ -7,14 +7,11 @@
     <ClInclude Include="src\cuda_utils.h">
       <Filter>CudaStuff</Filter>
     </ClInclude>
-    <ClInclude Include="src\measurement.cuh">
-      <Filter>CudaStuff</Filter>
-    </ClInclude>
     <ClInclude Include="src\timer.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="src\window.h">
-      <Filter>Display</Filter>
+      <Filter>I/O</Filter>
     </ClInclude>
     <ClInclude Include="src\data_helper.h">
       <Filter>DataStructures</Filter>
@@ -34,16 +31,22 @@
     <ClInclude Include="src\glm_macro.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\measurement.cuh">
+      <Filter>I/O</Filter>
+    </ClInclude>
+    <ClInclude Include="src\grid_map_pyramid.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
       <Filter>CudaStuff</Filter>
     </CudaCompile>
-    <CudaCompile Include="src\measurement.cu">
-      <Filter>CudaStuff</Filter>
-    </CudaCompile>
     <CudaCompile Include="src\depth_map.cpp">
       <Filter>DataStructures</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\measurement.cu">
+      <Filter>I/O</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -52,12 +55,15 @@
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\window.cpp">
-      <Filter>Display</Filter>
+      <Filter>I/O</Filter>
     </ClCompile>
     <ClCompile Include="src\cuda_grid_map.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
     <ClCompile Include="src\rigid_transform_3d.cpp">
+      <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grid_map_pyramid.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
   </ItemGroup>
@@ -71,8 +77,11 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{91af19ec-0fe7-44ab-bf18-d5aa0d911d73}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Display">
+    <Filter Include="I/O">
       <UniqueIdentifier>{1d56c85f-6d20-4e83-9da7-63ef3dfff869}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fusion">
+      <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
