@@ -1,8 +1,6 @@
 #pragma once
 #include <array>
 
-#include "cuda_grid_map.h"
-
 /*
     Container class for grid map pyramids. 
     Main purpose is the convenient creation of such pyramids, common operatinos on pyramids and capsuled memory management.
@@ -40,12 +38,20 @@ public:
         return *(m_pyramid[i]);
     }
     
-    cudaChannelFormatDesc get_channel_description()
+    cudaChannelFormatDesc getChannelDescription()
     {
         return m_channel_description;
     }
 
-    void foo();
+    unsigned int getBaseWidth()
+    {
+        return m_base_width;
+    }
+
+    unsigned int getBaseHeight()
+    {
+        return m_base_height;
+    }
 
 private:
     const unsigned int m_n_layers = 3;

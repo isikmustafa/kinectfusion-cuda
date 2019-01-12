@@ -1,3 +1,4 @@
+#pragma once
 #include "cuda_grid_map.h"
 
 #include <string>

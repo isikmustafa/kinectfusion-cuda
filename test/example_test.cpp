@@ -1,5 +1,4 @@
 #include "pch.h"
-#include <glm/glm.hpp>
 
 // Include the .cpp file instead of just the header for the functions to test.
 // Otherwise we have to explicitly link to each .obj file. 

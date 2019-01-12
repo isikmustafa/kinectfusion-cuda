@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="example_test.cpp" />
+    <ClCompile Include="icp_tests.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -59,6 +60,9 @@
     <ProjectReference Include="..\project\project.vcxproj">
       <Project>{fe52d5f8-e568-4e1d-9a0f-5502bd6ff4fd}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="pch.cu" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

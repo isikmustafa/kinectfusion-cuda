@@ -1,3 +1,4 @@
+#pragma once
 #include "rigid_transform_3d.h"
 
 #include <cuda_runtime.h>

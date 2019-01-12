@@ -7,6 +7,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>pch</Filter>
     </ClCompile>
+    <ClCompile Include="icp_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -20,5 +21,10 @@
     <ClInclude Include="pch.h">
       <Filter>pch</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="pch.cu">
+      <Filter>pch</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

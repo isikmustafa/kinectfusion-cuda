@@ -37,6 +37,9 @@
     <ClInclude Include="src\grid_map_pyramid.h">
       <Filter>DataStructures</Filter>
     </ClInclude>
+    <ClInclude Include="src\icp.h">
+      <Filter>Fusion</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -62,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="src\rigid_transform_3d.cpp">
       <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\icp.cpp">
+      <Filter>Fusion</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

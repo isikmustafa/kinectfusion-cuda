@@ -1,12 +1,5 @@
 #include "pch.h"
 
-#include <cuda_runtime.h>
-#include "glm_macro.h"
-#include "glm/glm.hpp"
-
-#include "rigid_transform_3d.cpp"
-#include "cuda_utils.h"
-
 class TransformationTests : public ::testing::Test
 {
 protected:

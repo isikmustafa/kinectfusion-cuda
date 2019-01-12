@@ -1,9 +1,5 @@
 #include "pch.h"
 
-#include "cuda_grid_map.cpp"
-#include "depth_map.cpp"
-#include "grid_map_pyramid.h"
-
 class CudaGridMapTests : public ::testing::Test
 {
 protected:
