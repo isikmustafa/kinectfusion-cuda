@@ -11,3 +11,4 @@ project/*.png
 */SDL2-2.0.9/lib/
 *.vcxproj.user
 project/packages
+*.editorconfig

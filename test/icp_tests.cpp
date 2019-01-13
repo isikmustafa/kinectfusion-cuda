@@ -8,15 +8,11 @@ protected:
     int n_iterations = 2;
     float distance_thresh = 1.0;
     float angle_thresh = 1.0;
+    cudaChannelFormatDesc format_description = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+    std::vector<unsigned int> iters_per_layer = { 1, 2, 3 };
 };
 
 TEST_F(IcpTests, TestInitialization)
 {
-    cudaChannelFormatDesc depth_description = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
-    cudaChannelFormatDesc vertex_description = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
-    GridMapPyramid<DepthMap> depth_map_pyramid(width, height, depth_description);
-    GridMapPyramid<CudaGridMap> vertex_map_pyramid(width, height, vertex_description);
-    RigidTransform3D previous_pose;
-
-    ICP icp(vertex_map_pyramid, depth_map_pyramid, previous_pose, n_iterations, distance_thresh, angle_thresh);
+    ICP icp(width, height, format_description, iters_per_layer, distance_thresh, angle_thresh);
 }

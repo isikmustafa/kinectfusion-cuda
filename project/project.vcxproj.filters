@@ -40,6 +40,9 @@
     <ClInclude Include="src\icp.h">
       <Filter>PoseEstimation</Filter>
     </ClInclude>
+    <ClInclude Include="src\validity_mask.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -68,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="src\icp.cpp">
       <Filter>PoseEstimation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\validity_mask.cpp">
+      <Filter>DataStructures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -27,6 +27,7 @@
     <ClInclude Include="src\cuda_grid_map.h" />
     <ClInclude Include="src\rigid_transform_3d.h" />
     <ClInclude Include="src\timer.h" />
+    <ClInclude Include="src\validity_mask.h" />
     <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -38,6 +39,7 @@
     <ClCompile Include="src\cuda_grid_map.cpp" />
     <ClCompile Include="src\rigid_transform_3d.cpp" />
     <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\validity_mask.cpp" />
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
