@@ -7,6 +7,7 @@ protected:
     const unsigned int frame_height = 480;
     const unsigned int frame_width_small = 4;
     const unsigned int frame_height_small = 4;
+    const unsigned int n_pyramid_layers = 3;
     cudaChannelFormatDesc vector_description = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc depth_description = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc raw_description = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
@@ -14,8 +15,8 @@ protected:
 
 TEST_F(CudaGridMapTests, TestCreate3LayerPyramid)
 {
-    GridMapPyramid<CudaGridMap> pyramid1(frame_width_small, frame_height_small, vector_description);
-    GridMapPyramid<CudaGridMap> pyramid2(frame_width_small, frame_height_small, vector_description);
+    GridMapPyramid<CudaGridMap> pyramid1(frame_width_small, frame_height_small, n_pyramid_layers, vector_description);
+    GridMapPyramid<CudaGridMap> pyramid2(frame_width_small, frame_height_small, n_pyramid_layers, vector_description);
 
     ASSERT_NE(pyramid1[0].getCudaSurfaceObject(), pyramid1[1].getCudaSurfaceObject());
     ASSERT_NE(pyramid1[0].getCudaSurfaceObject(), pyramid2[0].getCudaSurfaceObject());

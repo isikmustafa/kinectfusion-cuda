@@ -16,48 +16,18 @@ protected:
         glm::vec4(1.0, 2.0, 3.0, 1.0));
 };
 
-TEST_F(TransformationTests, TestSetFromHost)
+TEST_F(TransformationTests, TestSetGet)
 {
     RigidTransform3D transform;
 
-    transform.setHomoMat(&true_full_transform);
-    glm::mat4x4 *homo_mat = transform.getHomoMat();
-    
-    ASSERT_TRUE(isDeviceMemory(homo_mat));
-
-    glm::mat4x4 *host_homo_mat = (glm::mat4x4*)malloc(sizeof(glm::mat4x4));
-    cudaMemcpy(host_homo_mat, homo_mat, sizeof(glm::mat4x4), cudaMemcpyDeviceToHost);
+    transform.setHomoMat(true_full_transform);
+    glm::mat4x4 homo_mat = transform.getHomoMat();
 
     for (int col = 0; col < 4; col++)
     {
         for (int row = 0; row < 4; row++)
         {
-            ASSERT_FLOAT_EQ((*host_homo_mat)[col][row], true_full_transform[col][row]);
-        }
-    }
-}
-
-TEST_F(TransformationTests, TestSetFromDevice)
-{
-    glm::mat4x4 *device_true_mat;
-    cudaMalloc((void**) &device_true_mat, sizeof(glm::mat4x4));
-    cudaMemcpy(device_true_mat, &true_full_transform, sizeof(glm::mat4x4), cudaMemcpyHostToDevice);
-    
-    RigidTransform3D transform;
-
-    transform.setHomoMat(device_true_mat);
-    glm::mat4x4 *homo_mat = transform.getHomoMat();
-
-    ASSERT_TRUE(isDeviceMemory(homo_mat));
-
-    glm::mat4x4 *host_homo_mat = (glm::mat4x4*)malloc(sizeof(glm::mat4x4));
-    cudaMemcpy(host_homo_mat, homo_mat, sizeof(glm::mat4x4), cudaMemcpyDeviceToHost);
-
-    for (int col = 0; col < 4; col++)
-    {
-        for (int row = 0; row < 4; row++)
-        {
-            ASSERT_FLOAT_EQ((*host_homo_mat)[col][row], true_full_transform[col][row]);
+            ASSERT_FLOAT_EQ(homo_mat[col][row], true_full_transform[col][row]);
         }
     }
 }

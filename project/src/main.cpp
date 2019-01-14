@@ -11,15 +11,16 @@ int main()
     constexpr bool use_kinect = false;
 	constexpr unsigned int frame_width = 640;
 	constexpr unsigned int frame_height = 480;
+    constexpr unsigned int n_pyramid_layers = 3;
 
     cudaChannelFormatDesc raw_depth_desc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc depth_desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc vertex_and_normal_desc = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
 
     DepthMap raw_depth_map(frame_width, frame_height, raw_depth_desc);
-    GridMapPyramid<DepthMap> depth_map_pyramid(frame_width, frame_height, depth_desc);
-    GridMapPyramid<CudaGridMap> vertex_map_pyramid(frame_width, frame_height, vertex_and_normal_desc);
-    GridMapPyramid<CudaGridMap> normal_map_pyramid(frame_width, frame_height, vertex_and_normal_desc);
+    GridMapPyramid<DepthMap> depth_map_pyramid(frame_width, frame_height, n_pyramid_layers, depth_desc);
+    GridMapPyramid<CudaGridMap> vertex_map_pyramid(frame_width, frame_height, n_pyramid_layers, vertex_and_normal_desc);
+    GridMapPyramid<CudaGridMap> normal_map_pyramid(frame_width, frame_height, n_pyramid_layers, vertex_and_normal_desc);
 
     if (!use_kinect)
     {
