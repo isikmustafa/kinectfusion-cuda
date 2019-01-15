@@ -14,5 +14,5 @@ protected:
 
 TEST_F(IcpTests, TestInitialization)
 {
-    ICP icp(width, height, format_description, iters_per_layer, distance_thresh, angle_thresh);
+    ICP icp(iters_per_layer, distance_thresh, angle_thresh);
 }

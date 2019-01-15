@@ -9,7 +9,8 @@ CudaGridMap::CudaGridMap(unsigned int width, unsigned int height, cudaChannelFor
 	, m_channel_description(channel_description)
 {
 	//Allocate arrays.
-	HANDLE_ERROR(cudaMallocArray(&m_grid_elems.cuda_array, &m_channel_description, m_width, m_height, cudaArraySurfaceLoadStore));
+	HANDLE_ERROR(cudaMallocArray(&m_grid_elems.cuda_array, &m_channel_description, 
+        m_width, m_height, cudaArraySurfaceLoadStore));
 
 	//Create resource descriptions.
 	cudaResourceDesc res_desc;

@@ -4,9 +4,6 @@
     <ClInclude Include="src\cuda_event.h">
       <Filter>CudaStuff</Filter>
     </ClInclude>
-    <ClInclude Include="src\cuda_utils.h">
-      <Filter>CudaStuff</Filter>
-    </ClInclude>
     <ClInclude Include="src\timer.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -40,8 +37,11 @@
     <ClInclude Include="src\icp.h">
       <Filter>PoseEstimation</Filter>
     </ClInclude>
-    <ClInclude Include="src\validity_mask.h">
-      <Filter>DataStructures</Filter>
+    <ClInclude Include="src\cuda_utils.h">
+      <Filter>CudaStuff</Filter>
+    </ClInclude>
+    <ClInclude Include="src\device_helper.cuh">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -53,6 +53,9 @@
     </CudaCompile>
     <CudaCompile Include="src\measurement.cu">
       <Filter>I/O</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\device_helper.cu">
+      <Filter>Utils</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -71,9 +74,6 @@
     </ClCompile>
     <ClCompile Include="src\icp.cpp">
       <Filter>PoseEstimation</Filter>
-    </ClCompile>
-    <ClCompile Include="src\validity_mask.cpp">
-      <Filter>DataStructures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

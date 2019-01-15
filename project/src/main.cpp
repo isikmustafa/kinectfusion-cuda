@@ -32,7 +32,7 @@ int main()
 	Window window = Window(use_kinect);
 	Timer timer;
     float total_execution_time = 0.0;
-	while (total_execution_time < 1e4)
+	while (total_execution_time < 3e3)
 	{
         if (use_kinect)
         {

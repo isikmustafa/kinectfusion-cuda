@@ -1,4 +1,5 @@
 #include <cuda_runtime.h>
+#include "glm_macro.h"
 #include <glm/mat3x3.hpp>
 
 #include "cuda_grid_map.h"

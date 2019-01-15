@@ -29,5 +29,6 @@ void DepthMap::update(const std::string& path)
 void DepthMap::update(void* data_ptr)
 {
     int n_bytes = m_channel_description.x / 8;
-	HANDLE_ERROR(cudaMemcpyToArray(m_grid_elems.cuda_array, 0, 0, data_ptr, m_width * m_height * n_bytes, cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemcpyToArray(m_grid_elems.cuda_array, 0, 0, 
+        data_ptr, m_width * m_height * n_bytes, cudaMemcpyHostToDevice));
 }
