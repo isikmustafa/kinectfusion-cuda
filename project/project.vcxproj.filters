@@ -52,6 +52,9 @@
     <ClInclude Include="src\sensor.h">
       <Filter>I/O</Filter>
     </ClInclude>
+    <ClInclude Include="src\icp.cuh">
+      <Filter>PoseEstimation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -68,6 +71,9 @@
     </CudaCompile>
     <CudaCompile Include="src\tsdf.cu">
       <Filter>Fusion</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\icp.cu">
+      <Filter>PoseEstimation</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>

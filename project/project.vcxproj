@@ -13,6 +13,7 @@
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp" />
     <CudaCompile Include="src\depth_map.cpp" />
+    <CudaCompile Include="src\icp.cu" />
     <CudaCompile Include="src\tsdf.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -24,6 +25,7 @@
     <ClInclude Include="src\general_helpers.h" />
     <ClInclude Include="src\glm_macro.h" />
     <ClInclude Include="src\grid_map_pyramid.h" />
+    <ClInclude Include="src\icp.cuh" />
     <ClInclude Include="src\icp.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
