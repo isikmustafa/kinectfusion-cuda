@@ -43,6 +43,15 @@
     <ClInclude Include="src\device_helper.cuh">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\voxel_grid.h">
+      <Filter>DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tsdf.cuh">
+      <Filter>Fusion</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sensor.h">
+      <Filter>I/O</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -56,6 +65,9 @@
     </CudaCompile>
     <CudaCompile Include="src\device_helper.cu">
       <Filter>Utils</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\tsdf.cu">
+      <Filter>Fusion</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +86,12 @@
     </ClCompile>
     <ClCompile Include="src\icp.cpp">
       <Filter>PoseEstimation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\voxel_grid.cpp">
+      <Filter>DataStructures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sensor.cpp">
+      <Filter>I/O</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

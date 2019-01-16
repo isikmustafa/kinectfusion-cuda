@@ -1,4 +1,3 @@
-#define GLM_FORCE_PURE
 #include "measurement.cuh"
 
 #include <iostream>

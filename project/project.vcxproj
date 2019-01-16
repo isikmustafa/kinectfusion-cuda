@@ -13,6 +13,7 @@
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp" />
     <CudaCompile Include="src\depth_map.cpp" />
+    <CudaCompile Include="src\tsdf.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\cuda_event.h" />
@@ -27,7 +28,10 @@
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
     <ClInclude Include="src\rigid_transform_3d.h" />
+    <ClInclude Include="src\sensor.h" />
     <ClInclude Include="src\timer.h" />
+    <ClInclude Include="src\tsdf.cuh" />
+    <ClInclude Include="src\voxel_grid.h" />
     <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -39,7 +43,9 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
     <ClCompile Include="src\rigid_transform_3d.cpp" />
+    <ClCompile Include="src\sensor.cpp" />
     <ClCompile Include="src\timer.cpp" />
+    <ClCompile Include="src\voxel_grid.cpp" />
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

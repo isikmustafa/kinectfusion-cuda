@@ -1,13 +1,18 @@
 #include "data_helper.h"
+#include "sensor.h"
 #include "depth_map.h"
 #include "cuda_grid_map.h"
 #include "window.h"
 #include "timer.h"
 #include "measurement.cuh"
 #include "grid_map_pyramid.h"
+#include "voxel_grid.h"
 
 int main()
 {
+	Sensor depth_sensor;
+	//VoxelGrid voxel_grid(5000.0f, 512);
+
     constexpr bool use_kinect = false;
 	constexpr unsigned int frame_width = 640;
 	constexpr unsigned int frame_height = 480;
@@ -47,9 +52,9 @@ int main()
 		total_kernel_time += kernel::downSample(depth_map_pyramid[0].getCudaSurfaceObject(), depth_map_pyramid[1].getCudaSurfaceObject(), 320, 240);
 		total_kernel_time += kernel::downSample(depth_map_pyramid[1].getCudaSurfaceObject(), depth_map_pyramid[2].getCudaSurfaceObject(), 160, 120);
 
-		total_kernel_time += kernel::createVertexMap(depth_map_pyramid[0].getCudaSurfaceObject(), vertex_map_pyramid[0].getCudaSurfaceObject(), SensorIntrinsics::getInvMat(), 640, 480);
-        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[1].getCudaSurfaceObject(), vertex_map_pyramid[1].getCudaSurfaceObject(), SensorIntrinsics::getInvMat(), 320, 240);
-        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[2].getCudaSurfaceObject(), vertex_map_pyramid[2].getCudaSurfaceObject(), SensorIntrinsics::getInvMat(), 160, 120);
+		total_kernel_time += kernel::createVertexMap(depth_map_pyramid[0].getCudaSurfaceObject(), vertex_map_pyramid[0].getCudaSurfaceObject(), depth_sensor.getInverseIntr(), 640, 480);
+        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[1].getCudaSurfaceObject(), vertex_map_pyramid[1].getCudaSurfaceObject(), depth_sensor.getInverseIntr(), 320, 240);
+        total_kernel_time += kernel::createVertexMap(depth_map_pyramid[2].getCudaSurfaceObject(), vertex_map_pyramid[2].getCudaSurfaceObject(), depth_sensor.getInverseIntr(), 160, 120);
 
 		total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[0], normal_map_pyramid[0]);
         total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[1], normal_map_pyramid[1]);
