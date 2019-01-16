@@ -24,7 +24,7 @@
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -35,10 +35,11 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\project\src;G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\3rd\stb;G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\3rd\SDL2-2.0.9\include;$(KINECTSDK10_DIR)\inc;G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\3rd\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(KINECTSDK10_DIR)\lib\amd64;G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\project\x64\Debug;G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\3rd\SDL2-2.0.9\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\project\src;..\3rd\stb;..\3rd\SDL2-2.0.9\include;$(KINECTSDK10_DIR)\inc;..\3rd\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>$(KINECTSDK10_DIR)\lib\amd64;..project\src\x64\Debug;..\3rd\SDL2-2.0.9\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemGroup>
+    <ClInclude Include="cuda_wrapper.cuh" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -62,6 +63,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="cuda_wrapper.cu" />
     <CudaCompile Include="pch.cu" />
   </ItemGroup>
   <ItemDefinitionGroup />
@@ -88,10 +90,10 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>X64;_DEBUG;_CONSOLE;CUDA_VERSION=10000;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);CUDA_VERSION=10000</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -104,6 +106,10 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Kinect10.lib;OpenGL32.lib;cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

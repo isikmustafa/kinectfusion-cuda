@@ -3,8 +3,8 @@
 #include "device_helper.cuh"
 
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
-    glm::mat3x3 &previous_rotation_mat, glm::vec3 &previous_translation_vec, unsigned int width, 
-    unsigned int height, float mat_A[][6], float vec_b[])
+    glm::mat3x3 &previous_rotation_mat, glm::vec3 &previous_translation_vec, glm::mat3x3 &sensor_intrinsics, 
+    unsigned int width, unsigned int height, float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
 {
     /* TODO:
         1. Compute indices (u, v) from kernel identifier
@@ -17,4 +17,10 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
         8. Compute the parameters for A and write them into the array using computeAndFillA()
         9. Compute the value for b and write it into the array using computeAndFillB()
     */
+}
+
+__device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &sensor_intrinsics)
+{
+    // TODO: Implement
+    return std::array<int, 2>();
 }

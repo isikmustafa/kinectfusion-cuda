@@ -5,3 +5,4 @@
 #include "pch.h"
 
 #include "measurement.cu"
+#include "icp.cu"

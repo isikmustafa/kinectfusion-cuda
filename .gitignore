@@ -12,3 +12,4 @@ project/*.png
 *.vcxproj.user
 project/packages
 *.editorconfig
+*.pdb

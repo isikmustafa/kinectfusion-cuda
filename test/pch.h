@@ -21,4 +21,5 @@
 #include "icp.h"
 #include "measurement.cuh"
 #include "cuda_event.h"
+#include "icp.cuh"
 

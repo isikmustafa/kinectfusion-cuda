@@ -21,10 +21,12 @@
     <ClInclude Include="pch.h">
       <Filter>pch</Filter>
     </ClInclude>
+    <ClInclude Include="cuda_wrapper.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="pch.cu">
       <Filter>pch</Filter>
     </CudaCompile>
+    <CudaCompile Include="cuda_wrapper.cu" />
   </ItemGroup>
 </Project>
