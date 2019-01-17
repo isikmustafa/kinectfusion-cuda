@@ -1,5 +1,6 @@
 #include "tsdf.cuh"
 #include "cuda_event.h"
+#include "device_helper.cuh"
 
 #include <cuda_fp16.h>
 
@@ -37,7 +38,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map, VoxelGridStruct vo
 		auto depth = __half2float(h_depth);
 
 		//If depth value is invalid, continue with the next voxel.
-		if (!(depth > 0.0f && isfinite(depth)))
+		if (!device_helper::isDepthValid(depth))
 		{
 			continue;
 		}
