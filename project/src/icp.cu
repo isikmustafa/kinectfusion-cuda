@@ -34,7 +34,10 @@ __device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, gl
     glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
 {
     // TODO: Implement
-    return std::array<int, 2>();
+
+	auto point = sensor_intrinsics*glm::inverse(prev_rot_mat)*(vertex_global - prev_transl_vec);
+
+	std::array<int, 2>{ { point.x/point.z, point.y/point.z } };
 }
 
 __device__ void writeDummyResidual(float vec_a[], float *scalar_b) 
