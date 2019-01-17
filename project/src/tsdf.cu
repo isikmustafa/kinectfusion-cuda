@@ -26,7 +26,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map, VoxelGridStruct vo
 		pixel /= pixel.z;
 
 		//2-Check if it is in the view frustum. If not, don't do anything.
-		if (!(pixel.x >= 0.0f && pixel.x < 640.0f && pixel.y >= 0.0f && pixel.y < 480.0f))
+		if (!(point_eye.z > 0.0f && pixel.x >= 0.0f && pixel.x < 640.0f && pixel.y >= 0.0f && pixel.y < 480.0f))
 		{
 			continue;
 		}
