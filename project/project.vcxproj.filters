@@ -66,9 +66,6 @@
     <CudaCompile Include="src\measurement.cu">
       <Filter>I/O</Filter>
     </CudaCompile>
-    <CudaCompile Include="src\device_helper.cu">
-      <Filter>Utils</Filter>
-    </CudaCompile>
     <CudaCompile Include="src\tsdf.cu">
       <Filter>Fusion</Filter>
     </CudaCompile>

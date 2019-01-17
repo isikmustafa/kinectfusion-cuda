@@ -37,7 +37,6 @@
     <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\device_helper.cu" />
     <CudaCompile Include="src\measurement.cu" />
   </ItemGroup>
   <ItemGroup>
