@@ -11,7 +11,7 @@ struct Voxel
 	float w;
 };
 
-struct VoxelGrid
+struct VoxelGridStruct
 {
 	//This is the total width, in millimeters, of the environment you want to capture.
 	//So, this variable decides on voxel resolution together with variable 'n' below.
@@ -25,6 +25,20 @@ struct VoxelGrid
 	//Pointer to allocated memory on GPU for voxels.
 	cudaPitchedPtr pointer;
 
+	VoxelGridStruct(float p_total_width_in_millimeters, int p_n)
+		: total_width_in_millimeters(p_total_width_in_millimeters)
+		, n(p_n)
+	{}
+};
+
+class VoxelGrid
+{
+public:
 	VoxelGrid(float p_total_width_in_millimeters, int p_n);
 	~VoxelGrid();
+
+	const VoxelGridStruct& getStruct() const { return m_struct; }
+
+private:
+	VoxelGridStruct m_struct;
 };

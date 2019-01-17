@@ -96,9 +96,6 @@
     <ClCompile Include="src\voxel_grid.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
-    <ClCompile Include="src\sensor.cpp">
-      <Filter>I/O</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DataStructures">
