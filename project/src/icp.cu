@@ -3,7 +3,8 @@
 #include "device_helper.cuh"
 
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
-    glm::mat3x3 &previous_rotation_mat, glm::vec3 &previous_translation_vec, glm::mat3x3 &sensor_intrinsics, 
+    cudaSurfaceObject_t &target_normal_map, glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec, 
+    glm::mat3x3 &curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 &sensor_intrinsics, 
     unsigned int width, unsigned int height, float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
 {
     /* TODO:
@@ -19,40 +20,49 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
     */
 }
 
-__device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &sensor_intrinsics)
+namespace kernel
+{
+    float constructIcpResiduals(CudaGridMap vertex_map, CudaGridMap target_vertex_map, CudaGridMap target_normal_map, 
+        RigidTransform3D & previous_pose, RigidTransform3D current_pose_estimate, glm::mat3x3 & sensor_intrinsics, 
+        float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
+    {
+        return 0.0f;
+    }
+}
+
+__device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat, 
+    glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
 {
     // TODO: Implement
     return std::array<int, 2>();
 }
 
-// TODO: Test if it does work as intented
-__device__ void writeDummyResidual(float vec_a[], float *scalar_b) {
+__device__ void writeDummyResidual(float vec_a[], float *scalar_b) 
+{
 	*scalar_b = 0.0f;
 	for (int i = 0; i < 6; i++)
 		vec_a[i] = 0.0f;
 }
 
-__device__ bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, float distance_thresh) {
-	if (glm::distance(vertex_1, vertex_2) > distance_thresh)
-		return true;
-	else
-		return false;
-
+__device__ bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, float distance_thresh) 
+{
+    return glm::distance(vertex_1, vertex_2) > distance_thresh;
 }
+
 //TODO: couldn't find an angle function in glm, should check again
 __device__ bool normalsAreTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3x3 &rotation_mat,
-	float angle_thresh) {
+	float angle_thresh) 
+{
 	glm::vec3 new_normal = normal * rotation_mat;
 	glm::vec3 da = glm::normalize(new_normal);
 	glm::vec3 db = glm::normalize(target_normal);
 	float angle= glm::acos(glm::dot(da, db));
-	if (angle > angle_thresh)
-		return true;
-	else
-		return false;
+	
+    return angle > angle_thresh;
 }
 
-__device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::vec3 &target_normal) {
+__device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::vec3 &target_normal) 
+{
 	const auto& s = vertex_global;
 	const auto& n = target_normal;
 	vec_a[0] = n.z*s.y - n.y*s.z;
@@ -65,7 +75,8 @@ __device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::ve
 }
 
 __device__ void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global, glm::vec3 &target_vertex,
-	glm::vec3 &target_normal) {
+glm::vec3 &target_normal) 
+{
 	const auto& s = vertex_global;
 	const auto& n = target_normal;
 	const auto& d = target_vertex;

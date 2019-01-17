@@ -41,6 +41,8 @@ TEST_F(IcpTests, TestComputeCorrespondence)
                                                                    { 1, 1 },
                                                                    { 0, 1 },
                                                                    { -1, -1 } } };
+    glm::mat3x3 rotation_mat(1.0);
+    glm::vec3 translation_vec(0.0);
 
     CudaGridMap vertex_map(width, height, format_description);
     int n_bytes = width * height * 16;
@@ -50,7 +52,7 @@ TEST_F(IcpTests, TestComputeCorrespondence)
     HANDLE_ERROR(cudaMalloc(&result, 4 * 8));
     cuda_pointers_to_free.push_back(result);
     
-    computeCorrespondenceTestWrapper(result, vertex_map, sensor_intrinsics);
+    computeCorrespondenceTestWrapper(result, vertex_map, rotation_mat, translation_vec, sensor_intrinsics);
     
     std::array<std::array<int, 2>, 4> coordinates;
     HANDLE_ERROR(cudaMemcpy(&coordinates, result, 4 * 8, cudaMemcpyDeviceToHost));
