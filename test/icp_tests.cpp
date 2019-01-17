@@ -3,14 +3,19 @@
 class IcpTests : public ::testing::Test
 {
 protected:
+    const double pi = 3.14159265358979323846;
     int width = 2;
     int height = 2;
     int n_iterations = 2;
-    float distance_thresh = 1.0;
-    float angle_thresh = 1.0;
     cudaChannelFormatDesc format_description = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
     std::vector<unsigned int> iters_per_layer = { 1, 2, 3 };
     std::vector<void *> cuda_pointers_to_free;
+    
+    // 90 degree turn to the right
+    glm::mat3x3 rotation_mat = glm::mat3x3(
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f));
 
     virtual void TearDown()
     {
@@ -23,7 +28,7 @@ protected:
 
 TEST_F(IcpTests, TestInitialization)
 {
-    ICP icp(iters_per_layer, distance_thresh, angle_thresh);
+    ICP icp(iters_per_layer, 1.0, 1.0);
 }
 
 TEST_F(IcpTests, TestComputeCorrespondence)
@@ -36,13 +41,13 @@ TEST_F(IcpTests, TestComputeCorrespondence)
         glm::vec3(2.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 2.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f));
-
-    std::array<std::array<int, 2>, 4> true_pixel_coordinates = { { { 1, 1 },
-                                                                   { 1, 1 },
-                                                                   { 0, 1 },
-                                                                   { -1, -1 } } };
-    glm::mat3x3 rotation_mat(1.0);
+    
     glm::vec3 translation_vec(0.0);
+    
+    std::array<std::array<int, 2>, 4> true_pixel_coordinates = { { { 0,  1 },
+                                                                   { 0,  1 },
+                                                                   { 0,  0 },
+                                                                   { 2, -1 } } };
 
     CudaGridMap vertex_map(width, height, format_description);
     int n_bytes = width * height * 16;
@@ -62,4 +67,22 @@ TEST_F(IcpTests, TestComputeCorrespondence)
         ASSERT_EQ(true_pixel_coordinates[i][0], coordinates[i][0]);
         ASSERT_EQ(true_pixel_coordinates[i][1], coordinates[i][1]);
     }
+}
+
+TEST_F(IcpTests, TestNormalsAreTooDifferent)
+{
+    // Vectors in x-y-plane
+    glm::vec3 target_normal(1.0, 0.0, 0.0);
+
+    // The following vectors will be turned by 90 degrees to the right
+    glm::vec3 normal_close_enough(0.0, 1.0, 0.0);
+    glm::vec3 normal_too_different(0.0, -1.0, 0.0);
+    
+    float angle_thresh = pi / 2;
+
+    bool close = normalsAreTooDifferentTestWrapper(normal_close_enough, target_normal, rotation_mat, angle_thresh);
+    bool far_off = normalsAreTooDifferentTestWrapper(normal_too_different, target_normal, rotation_mat, angle_thresh);
+
+    ASSERT_FALSE(close);
+    ASSERT_TRUE(far_off);
 }

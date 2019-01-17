@@ -14,17 +14,19 @@ __global__ void computeCorrespondenceTestKernel(std::array<int, 2> *result_coord
     result_coords[i * 2 + j] = computeCorrespondence(vertex_global, rotation_mat, translation_vec, sensor_intrinsics);
 }
 
-__global__ void cumputeNormalTestKernel(glm::vec3 *normal, cudaSurfaceObject_t vertices, unsigned int u, unsigned int v)
-{
-    *normal = computeNormal(vertices, u, v);
-}
-
-
 void computeCorrespondenceTestWrapper(std::array<int, 2> *result, CudaGridMap &vertex_map, glm::mat3x3 &rotation_mat,
     glm::vec3 &translation_vec, glm::mat3x3 &intrinsics)
 {
     cudaSurfaceObject_t vertices = vertex_map.getCudaSurfaceObject();
     computeCorrespondenceTestKernel<<<1, dim3(2, 2)>>>(result, vertices, rotation_mat, translation_vec, intrinsics);
+    HANDLE_ERROR(cudaPeekAtLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+}
+
+
+__global__ void cumputeNormalTestKernel(glm::vec3 *normal, cudaSurfaceObject_t vertices, unsigned int u, unsigned int v)
+{
+    *normal = computeNormal(vertices, u, v);
 }
 
 glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsigned int v)
@@ -34,10 +36,35 @@ glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsi
     HANDLE_ERROR(cudaMalloc(&normal_device, size));
 
     cumputeNormalTestKernel<<<1, 1>>>(normal_device, vertex_map.getCudaSurfaceObject(), u, v);
-    
+    HANDLE_ERROR(cudaPeekAtLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+
     glm::vec3 normal_host;
     HANDLE_ERROR(cudaMemcpy(&normal_host, normal_device, size, cudaMemcpyDeviceToHost));
     
     return normal_host;
 
+}
+
+
+__global__ void normalsAreTooDifferentTestKernel(bool *result, glm::vec3 normal, glm::vec3 target_normal, 
+    glm::mat3x3 rotation_mat, float angle_thresh)
+{
+    *result = normalsAreTooDifferent(normal, target_normal, rotation_mat, angle_thresh);
+}
+
+bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal, glm::mat3x3 rotation_mat, 
+    float angle_thresh)
+{
+    bool *result_device;
+    HANDLE_ERROR(cudaMalloc(&result_device, sizeof(bool)));
+
+    normalsAreTooDifferentTestKernel<<<1, 1>>>(result_device, normal, target_normal, rotation_mat, angle_thresh);
+    HANDLE_ERROR(cudaPeekAtLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+
+    bool result_host;
+    HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(bool), cudaMemcpyDeviceToHost));
+
+    return result_host;
 }

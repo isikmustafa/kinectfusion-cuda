@@ -5,3 +5,6 @@ void computeCorrespondenceTestWrapper(std::array<int, 2> *result, CudaGridMap &v
     glm::vec3 &translation_vec, glm::mat3x3 &intrinsics);
 
 glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsigned int v);
+
+bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal, glm::mat3x3 rotation_mat,
+    float angle_thresh);
