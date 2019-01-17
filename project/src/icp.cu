@@ -35,39 +35,7 @@ __device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, gl
 {
     // TODO: Implement
 
-	//delete these comments if you dont need them
-
-	/*glm::mat4x4 camera_position;
-	glm::vec4 vertex_global_4;
-	camera_position[0][0] = prev_rot_mat[0][0];
-	camera_position[0][1] = prev_rot_mat[0][1];
-	camera_position[0][2] = prev_rot_mat[0][2];
-	camera_position[1][0] = prev_rot_mat[1][0];
-	camera_position[1][1] = prev_rot_mat[1][1];
-	camera_position[1][2] = prev_rot_mat[1][2];
-	camera_position[2][0] = prev_rot_mat[2][0];
-	camera_position[2][1] = prev_rot_mat[2][1];
-	camera_position[2][2] = prev_rot_mat[2][2];
-
-	camera_position[0][3] = prev_transl_vec[0];
-	camera_position[1][3] = prev_transl_vec[1];
-	camera_position[2][3] = prev_transl_vec[2];
-	camera_position[3][3] = 1;
-
-	camera_position[3][0] = 0.0f;
-	camera_position[3][1] = 0.0f;
-	camera_position[3][2] = 0.0f;
-
-	vertex_global_4[0] = vertex_global[0];
-	vertex_global_4[1] = vertex_global[1];
-	vertex_global_4[2] = vertex_global[2];
-	vertex_global_4[3] = 1;
-
-	//take inverse of camera position
-	camera_position = glm::inverse(camera_position);
-	camera_position = sensor_intrinsics *glm::vec4(1,1,1,0)* camera_position*vertex_global_4;*/
-
-	auto point = sensor_intrinsics*glm::inverse(prev_rot_mat)*-(prev_transl_vec)*vertex_global;
+	auto point = sensor_intrinsics*glm::inverse(prev_rot_mat)*(vertex_global - prev_transl_vec);
 
 	std::array<int, 2>{ { point.x/point.z, point.y/point.z } };
 }
