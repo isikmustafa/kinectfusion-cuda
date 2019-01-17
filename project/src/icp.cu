@@ -24,3 +24,50 @@ __device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, gl
     // TODO: Implement
     return std::array<int, 2>();
 }
+
+// TODO: Test if it does work as intented
+__device__ void writeDummyResidual(float vec_a[], float *scalar_b) {
+	*scalar_b = 0.0f;
+	for (int i = 0; i < 6; i++)
+		vec_a[i] = 0.0f;
+}
+
+__device__ bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, float distance_thresh) {
+	if (glm::distance(vertex_1, vertex_2) > distance_thresh)
+		return true;
+	else
+		return false;
+
+}
+//TODO: couldn't find an angle function in glm, should check again
+__device__ bool normalsAreTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3x3 &rotation_mat,
+	float angle_thresh) {
+	glm::vec3 new_normal = normal * rotation_mat;
+	glm::vec3 da = glm::normalize(new_normal);
+	glm::vec3 db = glm::normalize(target_normal);
+	float angle= glm::acos(glm::dot(da, db));
+	if (angle > angle_thresh)
+		return true;
+	else
+		return false;
+}
+
+__device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::vec3 &target_normal) {
+	const auto& s = vertex_global;
+	const auto& n = target_normal;
+	vec_a[0] = n.z*s.y - n.y*s.z;
+	vec_a[1] = n.x*s.z - n.z*s.x;
+	vec_a[2] = n.y*s.x - n.x*s.y;
+	vec_a[3] = n.x;
+	vec_a[4] = n.y;
+	vec_a[5] = n.z;
+
+}
+
+__device__ void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global, glm::vec3 &target_vertex,
+	glm::vec3 &target_normal) {
+	const auto& s = vertex_global;
+	const auto& n = target_normal;
+	const auto& d = target_vertex;
+	*scalar_b = n.x*d.x + n.y*d.y + n.z*d.z - n.x*s.x - n.y*s.y - n.z*s.z;
+}
