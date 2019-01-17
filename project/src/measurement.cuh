@@ -1,6 +1,6 @@
 #include <cuda_runtime.h>
 #include "glm_macro.h"
-#include <glm/mat3x3.hpp>
+#include <glm/glm.hpp>
 
 #include "cuda_grid_map.h"
 
@@ -17,3 +17,5 @@ namespace kernel
 	float oneFloatChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale);
 	float fourFloatChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale);
 }
+
+__device__ glm::vec3 computeNormal(cudaSurfaceObject_t  vertex_map, unsigned int u, unsigned int v);

@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "cuda_wrapper.cuh"
 
 class IcpTests : public ::testing::Test
 {
@@ -43,18 +42,18 @@ TEST_F(IcpTests, TestComputeCorrespondence)
                                                                    { 0, 1 },
                                                                    { -1, -1 } } };
 
-    CudaGridMap vertex_map(4, 4, format_description);
-    int n_bytes = width * height * 4;
+    CudaGridMap vertex_map(width, height, format_description);
+    int n_bytes = width * height * 16;
     HANDLE_ERROR(cudaMemcpyToArray(vertex_map.getCudaArray(), 0, 0, &vertices, n_bytes, cudaMemcpyHostToDevice));
     
     std::array<int, 2> *result;
-    HANDLE_ERROR(cudaMalloc(&result, 4 * 4));
+    HANDLE_ERROR(cudaMalloc(&result, 4 * 8));
     cuda_pointers_to_free.push_back(result);
     
     computeCorrespondenceTestWrapper(result, vertex_map, sensor_intrinsics);
     
-    std::array<std::array< int, 2>, 4> coordinates;
-    HANDLE_ERROR(cudaMemcpy(&coordinates, result, 4 * 4, cudaMemcpyDeviceToHost));
+    std::array<std::array<int, 2>, 4> coordinates;
+    HANDLE_ERROR(cudaMemcpy(&coordinates, result, 4 * 8, cudaMemcpyDeviceToHost));
 
     for (int i = 0; i < 4; i++)
     {

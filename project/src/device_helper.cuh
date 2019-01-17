@@ -14,5 +14,5 @@ namespace device_helpers
 
     // Check whether the element (u, v) of a grid map is valid. The function expects a gridmap with 4D vectors as 
     //elements, where the 4th element has to be unused.
-    __device__ bool is_invalid(cudaSurfaceObject_t grid_map, unsigned int u, unsigned int v);
+    __device__ bool isInvalid(cudaSurfaceObject_t grid_map, unsigned int u, unsigned int v);
 }

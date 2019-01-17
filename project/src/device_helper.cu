@@ -10,7 +10,7 @@ namespace device_helpers
         surf2Dwrite(INVALID_VAL, grid_map, elem_4_index, v);
     }
     
-    __device__ bool is_invalid(cudaSurfaceObject_t grid_map, unsigned int u, unsigned int v)
+    __device__ bool isInvalid(cudaSurfaceObject_t grid_map, unsigned int u, unsigned int v)
     {
         float validity_indicator;
         unsigned int elem_4_index = u * 16 + 12;
