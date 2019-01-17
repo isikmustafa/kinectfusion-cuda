@@ -1,26 +1,25 @@
 #include "cuda_wrapper.cuh"
 
-__global__ void computeCorrespondenceTestKernel(std::array<int, 2> *result_coords, cudaSurfaceObject_t vertices, 
-    glm::mat3x3 &rotation_mat, glm::vec3 &translation_vec, glm::mat3x3 &sensor_intrinsics)
+__global__ void computeCorrespondenceTestKernel(std::array<int, 2> *result_coords, glm::vec3 vertex_global, 
+    glm::mat3x3 rotation_mat, glm::vec3 translation_vec, glm::mat3x3 sensor_intrinsics)
 {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    int j = threadIdx.y + blockIdx.y * blockDim.y;
-    
-    glm::vec3 vertex_global;
-    int idx = i * 16;
-    surf2Dread(&(vertex_global.x), vertices, idx, j);
-    surf2Dread(&(vertex_global.y), vertices, idx + 4, j);
-    surf2Dread(&(vertex_global.z), vertices, idx + 8, j);
-    result_coords[i * 2 + j] = computeCorrespondence(vertex_global, rotation_mat, translation_vec, sensor_intrinsics);
+    *result_coords = computeCorrespondence(vertex_global, rotation_mat, translation_vec, sensor_intrinsics);
 }
 
-void computeCorrespondenceTestWrapper(std::array<int, 2> *result, CudaGridMap &vertex_map, glm::mat3x3 &rotation_mat,
-    glm::vec3 &translation_vec, glm::mat3x3 &intrinsics)
+std::array<int, 2> computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x3 rotation_mat, 
+    glm::vec3 translation_vec, glm::mat3x3 intrinsics)
 {
-    cudaSurfaceObject_t vertices = vertex_map.getCudaSurfaceObject();
-    computeCorrespondenceTestKernel<<<1, dim3(2, 2)>>>(result, vertices, rotation_mat, translation_vec, intrinsics);
+    std::array<int, 2> *result_device;
+    HANDLE_ERROR(cudaMalloc(&result_device, sizeof(std::array<int, 2>)));
+
+    computeCorrespondenceTestKernel<<<1, 1>>> (result_device, vertex, rotation_mat, translation_vec, intrinsics);
     HANDLE_ERROR(cudaPeekAtLastError());
     HANDLE_ERROR(cudaDeviceSynchronize());
+
+    std::array<int, 2> result_host;
+    HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(std::array<int, 2>), cudaMemcpyDeviceToHost));
+
+    return result_host;
 }
 
 

@@ -33,11 +33,10 @@ namespace kernel
 __device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat, 
     glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
 {
-    // TODO: Implement
-
-	auto point = sensor_intrinsics*glm::inverse(prev_rot_mat)*(vertex_global - prev_transl_vec);
-
-	std::array<int, 2>{ { point.x/point.z, point.y/point.z } };
+	auto point = sensor_intrinsics * glm::transpose(prev_rot_mat) * (vertex_global - prev_transl_vec);
+    int u = glm::floor(point.x / point.z);
+    int v = glm::floor(point.y / point.z);
+    return std::array<int, 2>{ { u, v } };
 }
 
 __device__ void writeDummyResidual(float vec_a[], float *scalar_b) 
@@ -56,10 +55,9 @@ __device__ bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, 
 __device__ bool normalsAreTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3x3 &rotation_mat,
 	float angle_thresh) 
 {
-	glm::vec3 new_normal = normal * rotation_mat;
-	glm::vec3 da = glm::normalize(new_normal);
-	glm::vec3 db = glm::normalize(target_normal);
-	float angle= glm::acos(glm::dot(da, db));
+	glm::vec3 new_normal = rotation_mat * normal;
+	new_normal = glm::normalize(new_normal);
+	float angle = glm::acos(glm::dot(new_normal, target_normal));
 	
     return angle > angle_thresh;
 }
@@ -83,5 +81,6 @@ glm::vec3 &target_normal)
 	const auto& s = vertex_global;
 	const auto& n = target_normal;
 	const auto& d = target_vertex;
+
 	*scalar_b = n.x*d.x + n.y*d.y + n.z*d.z - n.x*s.x - n.y*s.y - n.z*s.z;
 }

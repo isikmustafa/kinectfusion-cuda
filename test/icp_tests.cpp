@@ -13,9 +13,9 @@ protected:
     
     // 90 degree turn to the right
     glm::mat3x3 rotation_mat = glm::mat3x3(
-        glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec3(-1.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::vec3(0.0f, -1.0f, 0.0f),
+        glm::vec3(1.0f,  0.0f, 0.0f),
+        glm::vec3(0.0f,  0.0f, 1.0f));
 
     virtual void TearDown()
     {
@@ -33,11 +33,11 @@ TEST_F(IcpTests, TestInitialization)
 
 TEST_F(IcpTests, TestComputeCorrespondence)
 {
-    std::array<std::array<float, 4>, 4> vertices = { { { 1.0,  1.0, 3.0, 0.0 },
-                                                       { 2.0,  2.0, 6.0, 0.0 },
-                                                       {-1.0,  1.0, 3.0, 0.0 },
-                                                       {-3.0, -3.0, 4.0, 0.0 } } };
-    glm::mat3x3 sensor_intrinsics(
+    std::array<glm::vec3, 4> vertices = { { { 1.0,  1.0, 3.0 },
+                                            { 2.0,  2.0, 6.0 },
+                                            {-1.0,  1.0, 3.0 },
+                                            {-3.0, -3.0, 4.0 } } };
+    glm::mat3x3 intrinsics(
         glm::vec3(2.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 2.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f));
@@ -48,19 +48,12 @@ TEST_F(IcpTests, TestComputeCorrespondence)
                                                                    { 0,  1 },
                                                                    { 0,  0 },
                                                                    { 2, -1 } } };
-
-    CudaGridMap vertex_map(width, height, format_description);
-    int n_bytes = width * height * 16;
-    HANDLE_ERROR(cudaMemcpyToArray(vertex_map.getCudaArray(), 0, 0, &vertices, n_bytes, cudaMemcpyHostToDevice));
-    
-    std::array<int, 2> *result;
-    HANDLE_ERROR(cudaMalloc(&result, 4 * 8));
-    cuda_pointers_to_free.push_back(result);
-    
-    computeCorrespondenceTestWrapper(result, vertex_map, rotation_mat, translation_vec, sensor_intrinsics);
     
     std::array<std::array<int, 2>, 4> coordinates;
-    HANDLE_ERROR(cudaMemcpy(&coordinates, result, 4 * 8, cudaMemcpyDeviceToHost));
+    for (int i = 0; i < 4; i++)
+    {
+        coordinates[i] = computeCorrespondenceTestWrapper(vertices[i], rotation_mat, translation_vec, intrinsics);
+    }
 
     for (int i = 0; i < 4; i++)
     {
