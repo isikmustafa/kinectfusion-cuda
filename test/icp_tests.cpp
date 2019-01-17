@@ -86,3 +86,32 @@ TEST_F(IcpTests, TestNormalsAreTooDifferent)
     ASSERT_FALSE(close);
     ASSERT_TRUE(far_off);
 }
+
+TEST_F(IcpTests, TestComputeAndFillA)
+{
+    glm::vec3 vertex(2.0f, 3.0f, 1.0f);
+    glm::vec3 normal(1.0f, 4.0f, 2.0f);
+
+    std::array<float, 6> true_mat_a = { -2, 3, -5, 1, 4, 2 };
+
+    std::array<float, 6> mat_a;
+    computeAndFillATestWrapper(&mat_a, vertex, normal);
+
+    for (int i = 0; i < 6; i++)
+    {
+        ASSERT_FLOAT_EQ(true_mat_a[i], mat_a[i]);
+    }
+}
+
+TEST_F(IcpTests, TestComputeAndFillB)
+{
+    glm::vec3 vertex(2.0f, 3.0f, 1.0f);
+    glm::vec3 target_normal(1.0f, 4.0f, 2.0f);
+    glm::vec3 target_vertex(1.0f, 2.0f, 0.0f);
+
+    float true_b = -7.0;
+
+    float b = computeAndFillBTestWrapper(vertex, target_vertex, target_normal);
+
+    ASSERT_FLOAT_EQ(true_b, b);
+}

@@ -8,3 +8,7 @@ glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsi
 
 bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal, glm::mat3x3 rotation_mat,
     float angle_thresh);
+
+void computeAndFillATestWrapper(std::array<float, 6> *result, glm::vec3 vertex, glm::vec3 normal);
+
+float computeAndFillBTestWrapper(glm::vec3 vertex, glm::vec3 target_vertex, glm::vec3 target_normal);

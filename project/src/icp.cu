@@ -65,9 +65,9 @@ __device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::ve
 {
 	const auto& s = vertex_global;
 	const auto& n = target_normal;
-	vec_a[0] = n.z*s.y - n.y*s.z;
-	vec_a[1] = n.x*s.z - n.z*s.x;
-	vec_a[2] = n.y*s.x - n.x*s.y;
+	vec_a[0] = n.y*s.z - n.z*s.y;
+	vec_a[1] = n.z*s.x - n.x*s.z;
+	vec_a[2] = n.x*s.y - n.y*s.x;
 	vec_a[3] = n.x;
 	vec_a[4] = n.y;
 	vec_a[5] = n.z;

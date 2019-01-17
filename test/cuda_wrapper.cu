@@ -68,3 +68,43 @@ bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal
 
     return result_host;
 }
+
+
+__global__ void computeAndFillATestKernel(float *mat_a, glm::vec3 vertex, glm::vec3 normal)
+{
+    computeAndFillA(mat_a, vertex, normal);
+}
+
+void computeAndFillATestWrapper(std::array<float, 6> *result, glm::vec3 vertex, glm::vec3 normal)
+{
+    float *result_device;
+    HANDLE_ERROR(cudaMalloc(&result_device, sizeof(float) * 6));
+
+    computeAndFillATestKernel<<<1, 1>>>(result_device, vertex, normal);
+    HANDLE_ERROR(cudaPeekAtLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+
+    HANDLE_ERROR(cudaMemcpy(result, result_device, sizeof(float) * 6, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaDeviceSynchronize());
+}
+
+
+__global__ void computeAndFillBTestKernel(float *scalar_b, glm::vec3 vertex, glm::vec3 target_vertex, 
+    glm::vec3 target_normal)
+{
+    computeAndFillB(scalar_b, vertex, target_vertex, target_normal);
+}
+
+float computeAndFillBTestWrapper(glm::vec3 vertex, glm::vec3 target_vertex, glm::vec3 target_normal)
+{
+    float *result_device;
+    HANDLE_ERROR(cudaMalloc(&result_device, sizeof(float)));
+
+    computeAndFillBTestKernel<<<1, 1>>> (result_device, vertex, target_vertex, target_normal);
+    HANDLE_ERROR(cudaPeekAtLastError());
+    HANDLE_ERROR(cudaDeviceSynchronize());
+
+    float result_host;
+    HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(float), cudaMemcpyDeviceToHost));
+    return result_host;
+}
