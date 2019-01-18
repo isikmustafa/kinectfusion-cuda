@@ -6,3 +6,4 @@
 
 #include "measurement.cu"
 #include "icp.cu"
+#include "device_helper.cu"

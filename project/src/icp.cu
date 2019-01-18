@@ -1,6 +1,9 @@
 #include "icp.cuh"
 
+#include <cusolverDn.h>
+
 #include "device_helper.cuh"
+#include "cuda_utils.h"
 
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
     cudaSurfaceObject_t target_normal_map, glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec, 
@@ -84,4 +87,18 @@ glm::vec3 &target_normal)
 	const auto& d = target_vertex;
 
 	*scalar_b = n.x*d.x + n.y*d.y + n.z*d.z - n.x*s.x - n.y*s.y - n.z*s.z;
+}
+
+void solveLinearSystem(std::array<float, 6> *mat_a, float *vec_b, unsigned int n_equations,
+    std::array<float, 6> *result_x)
+{
+    /*
+        Variant A: Solve with SVD (probably slowest) as in exercise
+        Variant B: Solve with cholesky decomposition, see: http://www.math.iit.edu/~fa
+            general instructions (note that in their notation, A* is the transpose, I thi
+        More examples and references: 
+            https://docs.nvidia.com/cuda/cusolver/index.html
+            https://developer.nvidia.com/sites/default/files/akamai/cuda/files/Misc/mygpu.pdf
+            https://devtalk.nvidia.com/default/topic/865359/solve-ax-b-with-cusolver/
+    */
 }

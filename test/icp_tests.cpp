@@ -28,7 +28,9 @@ protected:
 
 TEST_F(IcpTests, TestInitialization)
 {
-    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0);
+    RigidTransform3D transform;
+
+    ICP icp(transform, iters_per_layer, 4, 4, 1.0, 1.0);
 }
 
 TEST_F(IcpTests, TestComputeCorrespondence)
@@ -107,4 +109,25 @@ TEST_F(IcpTests, TestComputeAndFillB)
     float b = computeAndFillBTestWrapper(vertex, target_vertex, target_normal);
 
     ASSERT_FLOAT_EQ(true_b, b);
+}
+
+TEST_F(IcpTests, TestSolveLinearSystem)
+{
+    std::array<std::array<float, 6>, 7> mat_a = { { { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+                                                    { 0.0, 2.0, 0.0, 0.0, 0.0, 0.0 },
+                                                    { 0.0, 0.0, 3.0, 0.0, 0.0, 0.0 },
+                                                    { 0.0, 0.0, 0.0, 4.0, 0.0, 0.0 },
+                                                    { 0.0, 0.0, 0.0, 0.0, 5.0, 0.0 },
+                                                    { 0.0, 0.0, 0.0, 0.0, 0.0, 6.0 },
+                                                    { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 } } };
+    std::array<float, 7> vec_b = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 21.0 };
+
+    std::array<float, 6> result_x = { 0 };
+
+    solveLinearSystem(&mat_a[0], &vec_b[0], 7, &result_x);
+
+    for (int i = 0; i < 6; i ++)
+    {
+        ASSERT_FLOAT_EQ((float)i, result_x[i]);
+    }
 }

@@ -13,6 +13,7 @@
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp" />
     <CudaCompile Include="src\depth_map.cpp" />
+    <CudaCompile Include="src\device_helper.cu" />
     <CudaCompile Include="src\icp.cu" />
     <CudaCompile Include="src\raycast.cu" />
     <CudaCompile Include="src\tsdf.cu" />
@@ -23,7 +24,7 @@
     <ClInclude Include="src\cuda_utils.h" />
     <ClInclude Include="src\data_helper.h" />
     <ClInclude Include="src\depth_map.h" />
-    <ClInclude Include="src\general_helpers.h" />
+    <ClInclude Include="src\general_helper.h" />
     <ClInclude Include="src\glm_macro.h" />
     <ClInclude Include="src\grid_map_pyramid.h" />
     <ClInclude Include="src\icp.cuh" />
@@ -42,6 +43,7 @@
     <CudaCompile Include="src\measurement.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\general_helper.cpp" />
     <ClCompile Include="src\icp.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
@@ -98,7 +100,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Kinect10.lib;OpenGL32.lib;SDL2main.lib;SDL2.lib;cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Kinect10.lib;OpenGL32.lib;SDL2main.lib;SDL2.lib;cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;cusolver.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>

@@ -23,4 +23,5 @@
 #include "cuda_event.h"
 #include "icp.cuh"
 #include "cuda_wrapper.cuh"
+#include "device_helper.cuh"
 

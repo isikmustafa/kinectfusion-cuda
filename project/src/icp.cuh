@@ -55,3 +55,6 @@ __device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::ve
 // The function computes the value for b and writes it into the array.
 __device__ void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global, glm::vec3 &target_vertex, 
     glm::vec3 &target_normal);
+
+void solveLinearSystem(std::array<float, 6> *mat_a, float *vec_b, unsigned int n_equations,
+    std::array<float, 6> *result_x);

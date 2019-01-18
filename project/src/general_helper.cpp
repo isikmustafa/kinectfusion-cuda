@@ -1,29 +1,27 @@
-#pragma once
-#include <string>
+#include "general_helper.h"
 
-#include "cuda_grid_map.h"
-#include "cuda_utils.h"
 #include <stb_image_write.h>
 
-/////////////// DEBUG FUNCTIONS /////////////////////////
+#include "cuda_utils.h"
+
 void writeSurface1x32(std::string file_name, cudaArray* gpu_source, int width, int height)
 {
-	std::unique_ptr<float[]> float_data(new float[width * height]);
-	auto float_data_ptr = float_data.get();
+    std::unique_ptr<float[]> float_data(new float[width * height]);
+    auto float_data_ptr = float_data.get();
 
-	HANDLE_ERROR(cudaMemcpyFromArray(float_data_ptr, gpu_source, 0, 0, width * height * 4, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpyFromArray(float_data_ptr, gpu_source, 0, 0, width * height * 4, cudaMemcpyDeviceToHost));
 
-	std::unique_ptr<unsigned char[]> byte_data(new unsigned char[width * height]);
-	auto byte_data_ptr = byte_data.get();
+    std::unique_ptr<unsigned char[]> byte_data(new unsigned char[width * height]);
+    auto byte_data_ptr = byte_data.get();
 
-	int size = width * height;
-	for (int i = 0; i < size; ++i)
-	{
-		byte_data_ptr[i] = static_cast<unsigned char>(float_data_ptr[i] / 200);
-	}
+    int size = width * height;
+    for (int i = 0; i < size; ++i)
+    {
+        byte_data_ptr[i] = static_cast<unsigned char>(float_data_ptr[i] / 200);
+    }
 
-	auto final_path = std::to_string(width) + "x" + std::to_string(height) + ".png";
-	stbi_write_png(final_path.c_str(), width, height, 1, byte_data_ptr, width);
+    auto final_path = std::to_string(width) + "x" + std::to_string(height) + ".png";
+    stbi_write_png(final_path.c_str(), width, height, 1, byte_data_ptr, width);
 }
 
 void writeSurface4x32(std::string file_name, cudaArray* gpu_source, int width, int height)
@@ -67,4 +65,3 @@ void writeVectorPyramidToFile(std::string file_name, std::array<CudaGridMap, 3> 
         writeSurface4x32(file_name, map.getCudaArray(), dims[0], dims[1]);
     }
 }
-

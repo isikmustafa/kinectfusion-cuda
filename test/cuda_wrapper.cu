@@ -25,7 +25,7 @@ std::array<int, 2> computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x
 
 __global__ void cumputeNormalTestKernel(glm::vec3 *normal, cudaSurfaceObject_t vertices, unsigned int u, unsigned int v)
 {
-    *normal = computeNormal(vertices, u, v);
+    *normal = device_helper::computeNormal(vertices, u, v);
 }
 
 glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsigned int v)
