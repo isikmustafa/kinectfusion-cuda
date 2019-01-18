@@ -3,20 +3,21 @@
 #include "device_helper.cuh"
 
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
-    cudaSurfaceObject_t &target_normal_map, glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec, 
+    cudaSurfaceObject_t target_normal_map, glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec, 
     glm::mat3x3 &curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 &sensor_intrinsics, 
     unsigned int width, unsigned int height, float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
 {
     /* TODO:
-        1. Compute indices (u, v) from kernel identifier
+        1. Compute indices (u, v) from thread index
         2. Check using device_helpers::is_valid() whether the vertex is valid, else writeDummyResidual() and return
-        3. Transform the vertex into the global frame using the previous pose
+        3. Transform the vertex into the global frame using the current pose estimate
         4. Run computeCorrespondence() to get the coordinates of the corresponding element of the target vertex map
-        5. Check for the distance constraint using verticesAreTooFarAway(), else writeDummyResidual() and return
-        6. Compute normals for both, the current vertex map and the predicted vertex map
-        7. Check for the angle constraint using normalsAreTooDifferent(), else writeDummyResidual() and return
-        8. Compute the parameters for A and write them into the array using computeAndFillA()
-        9. Compute the value for b and write it into the array using computeAndFillB()
+        5. Check for validity of the coordinates (not negative, not larger or equal than height/width)
+        6. Check for the distance constraint using verticesAreTooFarAway(), else writeDummyResidual() and return
+        7. Compute the normal for the vertex (in global frame) using computeNormal() from measurement.cuh
+        8. Check for the angle constraint using normalsAreTooDifferent(), else writeDummyResidual() and return
+        9. Compute the parameters for A and write them into the array using computeAndFillA()
+        10. Compute the value for b and write it into the array using computeAndFillB()
     */
 }
 

@@ -28,7 +28,7 @@ protected:
 
 TEST_F(IcpTests, TestInitialization)
 {
-    ICP icp(iters_per_layer, 1.0, 1.0);
+    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0);
 }
 
 TEST_F(IcpTests, TestComputeCorrespondence)

@@ -15,16 +15,20 @@
 class ICP
 {
 public:
-    ICP(std::vector<unsigned int> iters_per_layer, float distance_thresh, float angle_thresh);
+    ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh, 
+        float angle_thresh);
     ~ICP();
 
-    RigidTransform3D computePose(
-        GridMapPyramid<CudaGridMap> &vertex_pyramid, GridMapPyramid<CudaGridMap> &target_vertex_pyramid, 
-        RigidTransform3D &previous_pose);
+    RigidTransform3D computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid, 
+        GridMapPyramid<CudaGridMap> &target_vertex_pyramid, RigidTransform3D &previous_pose);
 
 private:
+    // Buffer for the target normals, allocated once
+    GridMapPyramid<CudaGridMap> m_target_normal_pyramid;
+    cudaChannelFormatDesc m_normal_format_description;
+
     std::vector<unsigned int> m_iters_per_layer;
     float m_distance_thresh;
-    float m_angle_thresh;
+    float m_angle_thresh;    
 };
 
