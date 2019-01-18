@@ -5,13 +5,14 @@
 #include "window.h"
 #include "timer.h"
 #include "measurement.cuh"
+#include "tsdf.cuh"
 #include "grid_map_pyramid.h"
 #include "voxel_grid.h"
 
 int main()
 {
 	Sensor depth_sensor;
-	//VoxelGrid voxel_grid(5000.0f, 512);
+	VoxelGrid voxel_grid(5000.0f, 512);
 
     constexpr bool use_kinect = false;
 	constexpr unsigned int frame_width = 640;
@@ -37,7 +38,7 @@ int main()
 	Window window = Window(use_kinect);
 	Timer timer;
     float total_execution_time = 0.0;
-	while (total_execution_time < 3e3)
+	while (total_execution_time < 3e5)
 	{
         if (use_kinect)
         {
@@ -59,6 +60,7 @@ int main()
 		total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[0], normal_map_pyramid[0]);
         total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[1], normal_map_pyramid[1]);
         total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[2], normal_map_pyramid[2]);
+		total_kernel_time += kernel::fuse(raw_depth_map.getCudaSurfaceObject(), voxel_grid.getStruct(), depth_sensor);
 		
         total_kernel_time += kernel::oneFloatChannelToWindowContent(depth_map_pyramid[0].getCudaSurfaceObject() , window.get_content(), 0.01f);
 		window.draw();

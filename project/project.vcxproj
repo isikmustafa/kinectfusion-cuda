@@ -14,6 +14,7 @@
     <CudaCompile Include="src\cuda_event.cpp" />
     <CudaCompile Include="src\depth_map.cpp" />
     <CudaCompile Include="src\icp.cu" />
+    <CudaCompile Include="src\raycast.cu" />
     <CudaCompile Include="src\tsdf.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="src\icp.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
+    <ClInclude Include="src\raycast.cuh" />
     <ClInclude Include="src\rigid_transform_3d.h" />
     <ClInclude Include="src\sensor.h" />
     <ClInclude Include="src\timer.h" />
@@ -37,7 +39,6 @@
     <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="src\device_helper.cu" />
     <CudaCompile Include="src\measurement.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -45,7 +46,6 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
     <ClCompile Include="src\rigid_transform_3d.cpp" />
-    <ClCompile Include="src\sensor.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\voxel_grid.cpp" />
     <ClCompile Include="src\window.cpp" />
@@ -123,7 +123,8 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_35,sm_35</CodeGeneration>
-      <AdditionalOptions>-use_fast_math %(AdditionalOptions)</AdditionalOptions>
+      <FastMath>true</FastMath>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

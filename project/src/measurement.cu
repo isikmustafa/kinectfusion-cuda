@@ -1,4 +1,5 @@
 #include "measurement.cuh"
+#include "device_helper.cuh"
 
 #include <iostream>
 
@@ -52,7 +53,6 @@ __global__ void downSampleKernel(cudaSurfaceObject_t source, cudaSurfaceObject_t
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-	//Just average for now. Do the same as in the paper later on.
 	int idx_i = i * 8;
 	int idx_j = j * 2;
 	float f1, f2, f3, f4;
@@ -92,16 +92,21 @@ __global__ void createVertexMapKernel(cudaSurfaceObject_t depth_frame, cudaSurfa
 	float depth;
 	surf2Dread(&depth, depth_frame, i * 4, j);
 
-	glm::vec3 p(i + 0.5f, j + 0.5f, 1.0f);
-	p.x *= scale;
-	p.y *= scale;
-	p = inv_cam_k * p;
-	p *= depth;
+	if (device_helper::isDepthValid(depth))
+	{
+		glm::vec3 p(i + 0.5f, j + 0.5f, 1.0f);
+		p.x *= scale;
+		p.y *= scale;
+		p = inv_cam_k * p;
+		p *= depth;
 
-	int idx = i * 16;
-	surf2Dwrite(p.x, vertex_map, idx, j);
-	surf2Dwrite(p.y, vertex_map, idx + 4, j);
-	surf2Dwrite(p.z, vertex_map, idx + 8, j);
+		device_helper::writeVec3(p, vertex_map, i, j);
+		device_helper::validate(vertex_map, i, j);
+	}
+	else
+	{
+		device_helper::invalidate(vertex_map, i, j);
+	}
 }
 
 __global__ void createNormalMapKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t normal_map)
@@ -109,12 +114,8 @@ __global__ void createNormalMapKernel(cudaSurfaceObject_t vertex_map, cudaSurfac
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-
-    glm::vec3 normal = computeNormal(vertex_map, i, j);
-	int idx = i * 16;
-	surf2Dwrite(normal.x, normal_map, idx, j);
-	surf2Dwrite(normal.y, normal_map, idx + 4, j);
-	surf2Dwrite(normal.z, normal_map, idx + 8, j);
+    auto normal = device_helper::computeNormal(vertex_map, i, j);
+	device_helper::writeVec3(normal, normal_map, i, j);
 }
 
 __global__ void oneHalfChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale)
@@ -170,25 +171,6 @@ __global__ void fourFloatChannelToWindowContentKernel(cudaSurfaceObject_t surfac
 	pixel_w = (pixel_w | static_cast<unsigned char>(r * scale));
 
 	surf2Dwrite(pixel_w, window_content, i * 4, j);
-}
-
-__device__ glm::vec3 computeNormal(cudaSurfaceObject_t vertex_map, unsigned int u, unsigned int v)
-{
-    glm::vec3 central_vertex, next_in_row, next_in_column;
-    int idx = u * 16;
-    surf2Dread(&central_vertex.x, vertex_map, idx, v);
-    surf2Dread(&central_vertex.y, vertex_map, idx + 4, v);
-    surf2Dread(&central_vertex.z, vertex_map, idx + 8, v);
-
-    surf2Dread(&next_in_row.x, vertex_map, idx + 16, v, cudaBoundaryModeClamp);
-    surf2Dread(&next_in_row.y, vertex_map, idx + 20, v, cudaBoundaryModeClamp);
-    surf2Dread(&next_in_row.z, vertex_map, idx + 24, v, cudaBoundaryModeClamp);
-
-    surf2Dread(&next_in_column.x, vertex_map, idx, v + 1, cudaBoundaryModeClamp);
-    surf2Dread(&next_in_column.y, vertex_map, idx + 4, v + 1, cudaBoundaryModeClamp);
-    surf2Dread(&next_in_column.z, vertex_map, idx + 8, v + 1, cudaBoundaryModeClamp);
-
-    return glm::normalize(glm::cross(next_in_row - central_vertex, next_in_column - central_vertex));
 }
 
 namespace kernel

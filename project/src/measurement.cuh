@@ -17,5 +17,3 @@ namespace kernel
 	float oneFloatChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale);
 	float fourFloatChannelToWindowContent(cudaSurfaceObject_t surface, cudaSurfaceObject_t window_content, float scale);
 }
-
-__device__ glm::vec3 computeNormal(cudaSurfaceObject_t  vertex_map, unsigned int u, unsigned int v);

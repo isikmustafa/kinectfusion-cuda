@@ -9,7 +9,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 {
     /* TODO:
         1. Compute indices (u, v) from thread index
-        2. Check using device_helpers::is_valid() whether the vertex is valid, else writeDummyResidual() and return
+        2. Check using device_helper::is_valid() whether the vertex is valid, else writeDummyResidual() and return
         3. Transform the vertex into the global frame using the current pose estimate
         4. Run computeCorrespondence() to get the coordinates of the corresponding element of the target vertex map
         5. Check for validity of the coordinates (not negative, not larger or equal than height/width)
