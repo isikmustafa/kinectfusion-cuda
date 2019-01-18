@@ -1,6 +1,8 @@
+#pragma once
+
+#include "glm_macro.h"
 #include <array>
 #include <cuda_runtime.h>
-#include "glm_macro.h"
 #include <glm/glm.hpp>
 
 #include "cuda_grid_map.h"
@@ -33,28 +35,60 @@ namespace kernel
         float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[]);
 }
 
-// Function that fills the given vector and the given scalar with zeroes.
-__device__ void writeDummyResidual(float vec_a[], float *scalar_b);
+__device__ inline std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
+	glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
+{
+	auto point = sensor_intrinsics * glm::transpose(prev_rot_mat) * (vertex_global - prev_transl_vec);
+	int u = glm::floor(point.x / point.z);
+	int v = glm::floor(point.y / point.z);
+	return std::array<int, 2>{ { u, v } };
+}
 
-// Function that performs projective data association and returns the coordinates of the correspondence.
-__device__ std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat, 
-    glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics);
+__device__ inline void writeDummyResidual(float vec_a[], float *scalar_b)
+{
+	*scalar_b = 0.0f;
+	for (int i = 0; i < 6; i++)
+		vec_a[i] = 0.0f;
+}
 
-// Returns true if the distance between the vertices is above the specified threshold. Both vertices are expected in the
-// same frame
-__device__ bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, float distance_thresh);
+__device__ inline bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, float distance_thresh)
+{
+	return glm::distance(vertex_1, vertex_2) > distance_thresh;
+}
 
-// Returns true if the angle between the normals is above the specified threshold. It is expected that the rotation
-// matrix transforms the first normal into the frame of the 2nd normal
-__device__ bool normalsAreTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3x3 &rotation_mat,
-    float angle_thresh);
+//TODO: couldn't find an angle function in glm, should check again
+__device__ inline bool normalsAreTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3x3 &rotation_mat,
+	float angle_thresh)
+{
+	glm::vec3 new_normal = rotation_mat * normal;
+	new_normal = glm::normalize(new_normal);
+	float angle = glm::acos(glm::dot(new_normal, target_normal));
 
-// The function computes the 6 parameters that make one row of A and write them into the array.
-__device__ void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::vec3 &target_normal);
+	return angle > angle_thresh;
+}
 
-// The function computes the value for b and writes it into the array.
-__device__ void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global, glm::vec3 &target_vertex, 
-    glm::vec3 &target_normal);
+__device__ inline void computeAndFillA(float vec_a[], glm::vec3 &vertex_global, glm::vec3 &target_normal)
+{
+	const auto& s = vertex_global;
+	const auto& n = target_normal;
+	vec_a[0] = n.y*s.z - n.z*s.y;
+	vec_a[1] = n.z*s.x - n.x*s.z;
+	vec_a[2] = n.x*s.y - n.y*s.x;
+	vec_a[3] = n.x;
+	vec_a[4] = n.y;
+	vec_a[5] = n.z;
+
+}
+
+__device__ inline void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global, glm::vec3 &target_vertex,
+	glm::vec3 &target_normal)
+{
+	const auto& s = vertex_global;
+	const auto& n = target_normal;
+	const auto& d = target_vertex;
+
+	*scalar_b = n.x*d.x + n.y*d.y + n.z*d.z - n.x*s.x - n.y*s.y - n.z*s.z;
+}
 
 void solveLinearSystem(std::array<float, 6> *mat_a, float *vec_b, unsigned int n_equations,
     std::array<float, 6> *result_x);

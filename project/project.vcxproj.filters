@@ -78,9 +78,6 @@
     <CudaCompile Include="src\raycast.cu">
       <Filter>Fusion&amp;Raycast</Filter>
     </CudaCompile>
-    <CudaCompile Include="src\device_helper.cu">
-      <Filter>Utils</Filter>
-    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
