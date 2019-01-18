@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <glm/vec3.hpp>
+#include <glm/geometric.hpp>
 
 struct Voxel
 {
@@ -29,6 +31,15 @@ struct VoxelGridStruct
 		: total_width_in_millimeters(p_total_width_in_millimeters)
 		, n(p_n)
 	{}
+
+	//Checks if the point (world coordinate) is inside the voxel.
+	__device__ bool isPointIn(const glm::vec3& point) const
+	{
+		auto half_total_width = total_width_in_millimeters * 0.5f;
+		auto abs_point = glm::abs(point);
+
+		return abs_point.x < half_total_width && abs_point.y < half_total_width && abs_point.z < half_total_width;
+	}
 };
 
 class VoxelGrid

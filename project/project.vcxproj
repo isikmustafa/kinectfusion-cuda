@@ -14,6 +14,7 @@
     <CudaCompile Include="src\cuda_event.cpp" />
     <CudaCompile Include="src\depth_map.cpp" />
     <CudaCompile Include="src\icp.cu" />
+    <CudaCompile Include="src\raycast.cu" />
     <CudaCompile Include="src\tsdf.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="src\icp.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
+    <ClInclude Include="src\raycast.cuh" />
     <ClInclude Include="src\rigid_transform_3d.h" />
     <ClInclude Include="src\sensor.h" />
     <ClInclude Include="src\timer.h" />

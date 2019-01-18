@@ -47,13 +47,16 @@
       <Filter>DataStructures</Filter>
     </ClInclude>
     <ClInclude Include="src\tsdf.cuh">
-      <Filter>Fusion</Filter>
+      <Filter>Fusion&amp;Raycast</Filter>
     </ClInclude>
     <ClInclude Include="src\sensor.h">
       <Filter>I/O</Filter>
     </ClInclude>
     <ClInclude Include="src\icp.cuh">
       <Filter>PoseEstimation</Filter>
+    </ClInclude>
+    <ClInclude Include="src\raycast.cuh">
+      <Filter>Fusion&amp;Raycast</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -67,10 +70,13 @@
       <Filter>I/O</Filter>
     </CudaCompile>
     <CudaCompile Include="src\tsdf.cu">
-      <Filter>Fusion</Filter>
+      <Filter>Fusion&amp;Raycast</Filter>
     </CudaCompile>
     <CudaCompile Include="src\icp.cu">
       <Filter>PoseEstimation</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\raycast.cu">
+      <Filter>Fusion&amp;Raycast</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,11 +113,11 @@
     <Filter Include="I/O">
       <UniqueIdentifier>{1d56c85f-6d20-4e83-9da7-63ef3dfff869}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Fusion">
-      <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
-    </Filter>
     <Filter Include="PoseEstimation">
       <UniqueIdentifier>{02989829-3f4e-4b08-9189-03ee15d04c51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fusion&amp;Raycast">
+      <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
