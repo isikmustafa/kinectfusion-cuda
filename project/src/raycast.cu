@@ -33,13 +33,13 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 
 namespace kernel
 {
-	float raycast(const VoxelGridStruct& voxel_grid, const Sensor& sensor, cudaSurfaceObject_t output_vertex, cudaSurfaceObject_t output_normal)
+	float raycast(const VoxelGridStruct& voxel_grid, const Sensor& sensor, const CudaGridMap& output_vertex, const CudaGridMap& output_normal)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(640 / threads.x, 480 / threads.y);
 		start.record();
-		raycastKernel << <blocks, threads >> > (voxel_grid, sensor, output_vertex, output_normal);
+		raycastKernel << <blocks, threads >> > (voxel_grid, sensor, output_vertex.getCudaSurfaceObject(), output_normal.getCudaSurfaceObject());
 		end.record();
 		end.synchronize();
 

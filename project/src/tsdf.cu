@@ -60,13 +60,13 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 
 namespace kernel
 {
-	float fuse(cudaSurfaceObject_t raw_depth_map, const VoxelGridStruct& voxel_grid, const Sensor& sensor)
+	float fuse(const CudaGridMap& raw_depth_map_meters, const VoxelGridStruct& voxel_grid, const Sensor& sensor)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(voxel_grid.n / threads.x, voxel_grid.n / threads.y);
 		start.record();
-		fuseKernel <<<blocks, threads>>> (raw_depth_map, voxel_grid, sensor);
+		fuseKernel <<<blocks, threads>>> (raw_depth_map_meters.getCudaSurfaceObject(), voxel_grid, sensor);
 		end.record();
 		end.synchronize();
 
