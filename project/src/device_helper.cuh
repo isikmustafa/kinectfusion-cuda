@@ -51,6 +51,17 @@ namespace device_helper
 		surf2Dwrite(vec3.y, grid_map, idx + 4, j);
 		surf2Dwrite(vec3.z, grid_map, idx + 8, j);
 	}
+	// Reads vec3 with float members from grid_map. The function expects a gridmap with 4D vectors as 
+	// elements, where the 4th element has to be unused.
+	__device__ inline glm::vec3 readVec3(cudaSurfaceObject_t grid_map, int i, int j)
+	{
+		int idx = i * 16;
+		glm::vec3 vec3;
+		surf2Dread(&vec3.x, grid_map, idx, j);
+		surf2Dread(&vec3.y, grid_map, idx + 4, j);
+		surf2Dread(&vec3.z, grid_map, idx + 8, j);
+		return vec3;
+	}
 
 	// Computes the normal of surface corresponding to (i, j) with finite difference method. The function
 	// expects a gridmap with 4D vectors as elements, where the 4th element has to be unused.

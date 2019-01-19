@@ -32,17 +32,17 @@ namespace kernel
 */
     float constructIcpResiduals(CudaGridMap vertex_map, CudaGridMap target_vertex_map, CudaGridMap target_normal_map,
 		glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec,
-		glm::mat3x3 &curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 &sensor_intrinsics,
+		glm::mat3x3 curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 &sensor_intrinsics,
         float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[]);
 }
 
-__device__ inline std::array<int, 2> computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
+__device__ inline glm::vec2 computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
 	glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
 {
 	auto point = sensor_intrinsics * glm::transpose(prev_rot_mat) * (vertex_global - prev_transl_vec);
 	int u = glm::floor(point.x / point.z);
 	int v = glm::floor(point.y / point.z);
-	return std::array<int, 2>{ { u, v } };
+	return glm::vec2(  u, v  );
 }
 
 __device__ inline void writeDummyResidual(float vec_a[], float *scalar_b)
