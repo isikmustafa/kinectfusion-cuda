@@ -30,8 +30,12 @@ struct VoxelGridStruct
 	//Constant in the paper for TSDF calculations.
 	const float mue;
 
-	//Pointer to allocated memory on GPU for voxels.
-	cudaPitchedPtr pointer;
+	//cuda_array is the single data source for both surface_object and texture_object.
+	//surface_object is used when tsdf since it allows both reading and writing.
+	//texture_object is used when raycasting since it allows auto trilinear interpolation.
+	cudaArray* cuda_array;
+	cudaSurfaceObject_t surface_object;
+	cudaTextureObject_t texture_object;
 
 	VoxelGridStruct(float p_total_width_in_meters, int p_n)
 		: total_width_in_meters(p_total_width_in_meters)
@@ -39,15 +43,6 @@ struct VoxelGridStruct
 		, resolution(p_total_width_in_meters / p_n)
 		, mue(2.0f * resolution)
 	{}
-
-	//Checks if the point (world coordinate) is inside the voxel.
-	__device__ bool isPointIn(const glm::vec3& point) const
-	{
-		auto half_total_width = total_width_in_meters * 0.5f;
-		auto abs_point = glm::abs(point);
-
-		return abs_point.x < half_total_width && abs_point.y < half_total_width && abs_point.z < half_total_width;
-	}
 };
 
 class VoxelGrid
