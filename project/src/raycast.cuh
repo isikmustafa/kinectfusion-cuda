@@ -1,3 +1,5 @@
+#pragma once
+
 #include "glm_macro.h"
 #include "voxel_grid.h"
 #include "sensor.h"

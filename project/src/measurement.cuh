@@ -7,6 +7,7 @@
 namespace kernel
 {
 	//All kernel wrapper functions returns the time it takes to execute them in milliseconds.
+	float convertToDepthMeters(cudaSurfaceObject_t input, cudaSurfaceObject_t output);
 	float applyBilateralFilter(cudaSurfaceObject_t input, cudaSurfaceObject_t output);
 	float downSample(cudaSurfaceObject_t input, cudaSurfaceObject_t output, int output_width, int output_height);
 	float createVertexMap(cudaSurfaceObject_t input_depth, cudaSurfaceObject_t output_vertex, const glm::mat3& inv_cam_k, int width, int height);

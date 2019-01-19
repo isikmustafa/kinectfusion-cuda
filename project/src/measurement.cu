@@ -11,6 +11,19 @@
 constexpr float cSigmaS = 4.0f;
 constexpr float cSigmaR = 0.25f;
 
+__global__ void convertToDepthMetersKernel(cudaSurfaceObject_t raw, cudaSurfaceObject_t raw_meters)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+	unsigned short h_depth;
+	surf2Dread(&h_depth, raw, i * 2, j);
+	auto depth = __half2float(h_depth);
+
+	//Convert depth value to value in meters
+	surf2Dwrite(depth, raw_meters, i * 4, j);
+}
+
 __global__ void applyBilateralFilterKernel(cudaSurfaceObject_t raw, cudaSurfaceObject_t filtered)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -23,17 +36,15 @@ __global__ void applyBilateralFilterKernel(cudaSurfaceObject_t raw, cudaSurfaceO
 	constexpr float one_over_sigmasqr_s = 1.0f / (cSigmaS * cSigmaS);
 	constexpr float one_over_sigmasqr_r = 1.0f / (cSigmaR * cSigmaR);
 
-	unsigned short h_center, h_current;
-	surf2Dread(&h_center, raw, i * 2, j);
-	auto center = __half2float(h_center);
+	float center, current;
+	surf2Dread(&center, raw, i * 4, j);
 	auto normalization = 0.0f;
 	auto acc = 0.0f;
 	for (int x = -half_w_size; x <= half_w_size; ++x)
 	{
 		for (int y = -half_w_size; y <= half_w_size; ++y)
 		{
-			surf2Dread(&h_current, raw, (i + x) * 2, j + y, cudaBoundaryModeClamp);
-			auto current = __half2float(h_current);
+			surf2Dread(&current, raw, (i + x) * 4, j + y, cudaBoundaryModeClamp);
 
 			auto s_dist_sqr = static_cast<float>(x * x + y * y);
 			auto i_dist_sqr = (center - current);
@@ -175,6 +186,19 @@ __global__ void fourFloatChannelToWindowContentKernel(cudaSurfaceObject_t surfac
 
 namespace kernel
 {
+	float convertToDepthMeters(cudaSurfaceObject_t input, cudaSurfaceObject_t output)
+	{
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(640 / threads.x, 480 / threads.y);
+		start.record();
+		convertToDepthMetersKernel << <blocks, threads >> > (input, output);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
+	}
+
 	float applyBilateralFilter(cudaSurfaceObject_t input, cudaSurfaceObject_t output)
 	{
 		CudaEvent start, end;

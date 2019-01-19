@@ -24,7 +24,8 @@ int main()
     cudaChannelFormatDesc vertex_and_normal_desc = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
 
     DepthMap raw_depth_map(frame_width, frame_height, raw_depth_desc);
-    GridMapPyramid<DepthMap> depth_map_pyramid(frame_width, frame_height, n_pyramid_layers, depth_desc);
+	CudaGridMap raw_depth_map_meters(frame_width, frame_height, depth_desc);
+    GridMapPyramid<CudaGridMap> depth_map_pyramid(frame_width, frame_height, n_pyramid_layers, depth_desc);
     GridMapPyramid<CudaGridMap> vertex_map_pyramid(frame_width, frame_height, n_pyramid_layers, vertex_and_normal_desc);
     GridMapPyramid<CudaGridMap> normal_map_pyramid(frame_width, frame_height, n_pyramid_layers, vertex_and_normal_desc);
 
@@ -49,7 +50,8 @@ int main()
 		auto total_kernel_time = 0.0f;
 		timer.start();
 
-		total_kernel_time += kernel::applyBilateralFilter(raw_depth_map.getCudaSurfaceObject(), depth_map_pyramid[0].getCudaSurfaceObject());
+		total_kernel_time += kernel::convertToDepthMeters(raw_depth_map.getCudaSurfaceObject(), raw_depth_map_meters.getCudaSurfaceObject());
+		total_kernel_time += kernel::applyBilateralFilter(raw_depth_map_meters.getCudaSurfaceObject(), depth_map_pyramid[0].getCudaSurfaceObject());
 		total_kernel_time += kernel::downSample(depth_map_pyramid[0].getCudaSurfaceObject(), depth_map_pyramid[1].getCudaSurfaceObject(), 320, 240);
 		total_kernel_time += kernel::downSample(depth_map_pyramid[1].getCudaSurfaceObject(), depth_map_pyramid[2].getCudaSurfaceObject(), 160, 120);
 
@@ -60,7 +62,7 @@ int main()
 		total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[0], normal_map_pyramid[0]);
         total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[1], normal_map_pyramid[1]);
         total_kernel_time += kernel::computeNormalMap(vertex_map_pyramid[2], normal_map_pyramid[2]);
-		total_kernel_time += kernel::fuse(raw_depth_map.getCudaSurfaceObject(), voxel_grid.getStruct(), depth_sensor);
+		total_kernel_time += kernel::fuse(raw_depth_map_meters.getCudaSurfaceObject(), voxel_grid.getStruct(), depth_sensor);
 		
         total_kernel_time += kernel::oneFloatChannelToWindowContent(depth_map_pyramid[0].getCudaSurfaceObject() , window.get_content(), 0.01f);
 		window.draw();

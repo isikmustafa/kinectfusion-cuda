@@ -36,24 +36,24 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 			return;
 		}
 		glm::vec3 vertex_map_current;
-		surf2Dread(&vertex_map_current, vertex_map, idx, v);
+		//surf2Dread(&vertex_map_current, vertex_map, idx, v);
 		device_helper::writeVec3(vertex_map_current,vertex_map,u,v);
 
 
 		glm::vec3 vertex_global = curr_rot_mat_estimate * vertex_map_current+ current_transl_vec_estimate; // 3. Transform the vertex into the global frame
 		std::array<int, 2> cor_point = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, sensor_intrinsics); // 4. Run computeCorrespondence()
 
-		if (cor_point[0] >= 0 && cor_point[1] >= 0 && cor_point[0] < width && cor_point[1] < height) //5. Check for validity of the coordinates 
+		/*if (cor_point[0] >= 0 && cor_point[1] >= 0 && cor_point[0] < width && cor_point[1] < height) //5. Check for validity of the coordinates 
 		{
 			glm::vec3 vertex_map_target;
-			surf2Dread(&vertex_map_target, target_vertex_map, idx+4, v);//TODO: CHECK
+			//surf2Dread(&vertex_map_target, target_vertex_map, idx+4, v);//TODO: CHECK
 			if(verticesAreTooFarAway(vertex_map_current, vertex_map_target, distance_thresh) ){ // 6. Check for the distance constraint
 				writeDummyResidual(mat_A[u], &vec_b[v]);
 				return;
 			}
 			else {
 				glm::vec3 target_normal;
-				surf2Dread(&target_normal, target_normal_map, idx+8, v); //TODO: CHECK
+				//surf2Dread(&target_normal, target_normal_map, idx+8, v); //TODO: CHECK
 				glm::vec3 normal = device_helper::computeNormal(vertex_map, u, v); //7. Compute the normal for the vertex
 				if (normalsAreTooDifferent(normal, target_normal, curr_rot_mat_estimate, angle_thresh))//8. Check for the angle constraint
 				{
@@ -69,7 +69,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 
 			
 
-		}
+		}*/
 
 	}
 	
@@ -91,10 +91,10 @@ namespace kernel
 		dim3 threads(8, 8);
 		dim3 blocks(dims[0] / threads.x, dims[1] / threads.y);
 		start.record();
-		constructIcpResidualsKernel << <blocks, threads >> > (vertex_map.getCudaSurfaceObject(),  target_vertex_map.getCudaSurfaceObject(),
+		/*constructIcpResidualsKernel << <blocks, threads >> > (vertex_map.getCudaSurfaceObject(),  target_vertex_map.getCudaSurfaceObject(),
 			target_normal_map.getCudaSurfaceObject(),  prev_rot_mat,  prev_transl_vec,
 		    curr_rot_mat_estimate, current_transl_vec_estimate,  sensor_intrinsics,
-			dims[0], dims[1], distance_thresh,  angle_thresh,  mat_A[][6], vec_b[]);
+			dims[0], dims[1], distance_thresh,  angle_thresh,  mat_A[][6], vec_b[]);*/
 		end.record();
 		end.synchronize();
 

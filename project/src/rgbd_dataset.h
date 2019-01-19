@@ -14,6 +14,7 @@ class RgbdDataset
 public:
 	void load(const std::string& path);
 	std::pair<std::string, glm::mat4> nextDepthAndPose();
+	bool isFinished() const;
 
 private:
 	std::vector<std::pair<std::string, glm::mat4>> m_depth_pose_pairs;

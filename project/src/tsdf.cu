@@ -4,7 +4,7 @@
 
 #include <cuda_fp16.h>
 
-__global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map, VoxelGridStruct voxel_grid, Sensor sensor)
+__global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridStruct voxel_grid, Sensor sensor)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
@@ -34,9 +34,8 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map, VoxelGridStruct vo
 		}
 
 		//3-Take depth value by nearest neighbour lookup.
-		unsigned short h_depth;
-		surf2Dread(&h_depth, raw_depth_map, static_cast<int>(pixel.x) * 2, static_cast<int>(pixel.y));
-		auto depth = __half2float(h_depth);
+		float depth;
+		surf2Dread(&depth, raw_depth_map_meters, static_cast<int>(pixel.x) * 4, static_cast<int>(pixel.y));
 
 		//If depth value is invalid, continue with the next voxel.
 		if (!device_helper::isDepthValid(depth))
