@@ -9,9 +9,6 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-	auto* char_ptr = static_cast<char*>(voxel_grid.pointer.ptr);
-	auto* ptr = reinterpret_cast<Voxel*>(char_ptr + voxel_grid.pointer.pitch * (voxel_grid.n * i + j));
-
 	const auto resolution = voxel_grid.resolution;
 	const auto mue = voxel_grid.mue;
 	auto start_coord = (-voxel_grid.total_width_in_meters + resolution) * 0.5f;
@@ -50,10 +47,17 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 			auto f = glm::min(1.0f, diff / mue) * glm::sign(diff);
 			auto w = 1.0f;
 
-			//5-Update voxel.f and voxel.w
-			auto& voxel = ptr[k];
+			//5-Update voxel.
+			int idx = i * sizeof(Voxel);
+			Voxel voxel;
+			surf3Dread(&voxel.f, voxel_grid.surface_object, idx, j, k);
+			surf3Dread(&voxel.w, voxel_grid.surface_object, idx + 4, j, k);
+
 			voxel.f = (voxel.f * voxel.w + f * w) / (voxel.w + w);
 			voxel.w += w;
+
+			surf3Dwrite(voxel.f, voxel_grid.surface_object, idx, j, k);
+			surf3Dwrite(voxel.w, voxel_grid.surface_object, idx + 4, j, k);
 		}
 	}
 }

@@ -59,18 +59,54 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 	}
 
 	auto distance_increase = mue * 0.99f;
-	for (auto current_distance = near_distance + resolution * 0.1f; current_distance < far_distance; current_distance += distance_increase)
+	auto previous_tsdf = 0.0f;
+	auto precise_distance = 0.0f;
+	for (auto current_distance = near_distance; current_distance < far_distance; current_distance += distance_increase)
 	{
+		//1-Find the current point on the ray.
 		auto current_point = ray_origin + ray_direction * current_distance;
 
-		//1-Check which voxel contains the current_position.
-		//2-Check f value of the voxel.
-		//3-Update distance_increase based on the f value.
-		//After zero crossing
-		//4-Determine if it is backfacing or front facing. That is, is it + to - or - to +
-		//5-Find surface normal
-		//6-Use formula (15) for interpolation.
-		//7-Write vertices and normals.
+		//2-Find trilinearly interpolated TSDF value of the current_point.
+		auto uvw = current_point / voxel_grid.total_width_in_meters + glm::vec3(0.5f);
+		auto tsdf = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z).x;
+
+		//3-Check TSDF value of the voxel and determine if this is a zero crossing or not.
+		if (tsdf < 0.0f)
+		{
+			//If this is the first iteration, it means the ray intersects the backfacing surface.
+			//No need to continue from -ve to +ve.
+			if (current_distance == near_distance)
+			{
+				break;
+			}
+			//If not, it means this is a zero crossing.
+			else
+			{
+				//Formula(15) to compute more precise distance of intersection.
+				precise_distance = current_distance - distance_increase * previous_tsdf / (tsdf - previous_tsdf);
+			}
+		}
+		//4-Update distance_increase if it is the region of uncertainty.
+		else if (tsdf < 1.0f)
+		{
+			distance_increase = mue * 0.1f;
+		}
+		previous_tsdf = tsdf;
+	}
+
+	//Backfacing surface is found or ray did not intersect any surface.
+	if (precise_distance == 0.0f)
+	{
+		device_helper::invalidate(output_vertex, i, j);
+	}
+	else
+	{
+		auto vertex = ray_origin + ray_direction * precise_distance;
+		device_helper::writeVec3(vertex, output_vertex, i, j);
+		device_helper::validate(output_vertex, i, j);
+
+		//auto normal = 
+		//device_helper::writeVec3(normal, output_normal, i, j);
 	}
 }
 

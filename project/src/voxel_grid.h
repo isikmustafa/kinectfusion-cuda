@@ -30,8 +30,12 @@ struct VoxelGridStruct
 	//Constant in the paper for TSDF calculations.
 	const float mue;
 
-	//Pointer to allocated memory on GPU for voxels.
-	cudaPitchedPtr pointer;
+	//cuda_array is the single data source for both surface_object and texture_object.
+	//surface_object is used when tsdf since it allows both reading and writing.
+	//texture_object is used when raycasting since it allows auto trilinear interpolation.
+	cudaArray* cuda_array;
+	cudaSurfaceObject_t surface_object;
+	cudaTextureObject_t texture_object;
 
 	VoxelGridStruct(float p_total_width_in_meters, int p_n)
 		: total_width_in_meters(p_total_width_in_meters)
