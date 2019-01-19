@@ -58,6 +58,9 @@
     <ClInclude Include="src\general_helper.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\rgbd_dataset.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -100,6 +103,9 @@
       <Filter>DataStructures</Filter>
     </ClCompile>
     <ClCompile Include="src\general_helper.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rgbd_dataset.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>

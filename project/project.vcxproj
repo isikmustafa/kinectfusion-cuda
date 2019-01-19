@@ -31,6 +31,7 @@
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
     <ClInclude Include="src\raycast.cuh" />
+    <ClInclude Include="src\rgbd_dataset.h" />
     <ClInclude Include="src\rigid_transform_3d.h" />
     <ClInclude Include="src\sensor.h" />
     <ClInclude Include="src\timer.h" />
@@ -46,6 +47,7 @@
     <ClCompile Include="src\icp.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
+    <ClCompile Include="src\rgbd_dataset.cpp" />
     <ClCompile Include="src\rigid_transform_3d.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\voxel_grid.cpp" />
