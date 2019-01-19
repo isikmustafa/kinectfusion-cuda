@@ -7,14 +7,12 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-	constexpr float min_distance = 0.4f; //Paper suggests this constant.
-	auto resolution = voxel_grid.total_width_in_millimeters / voxel_grid.n;
-	const float mue = 1.5f * resolution;
+	const auto resolution = voxel_grid.resolution;
+	const auto mue = voxel_grid.mue;
 
-	//Parametric ray. ray * d gives the world coordinate position of the d distance from ray's origin.
 	glm::vec3 ray = sensor.getPose() * glm::vec4(sensor.getInverseIntr() * glm::vec3(i + 0.5f, j + 0.5f, 1.0f), 1.0f);
 	auto distance_increase = mue * 0.99f;
-	auto current_distance = min_distance;
+	auto current_distance = kernel::cMinDistance;
 	auto current_point = ray * current_distance;
 
 	while (voxel_grid.isPointIn(current_point))
@@ -31,7 +29,6 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 		current_distance += distance_increase;
 		current_point = ray * current_distance;
 	}
-
 }
 
 namespace kernel

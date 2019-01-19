@@ -15,27 +15,35 @@ struct Voxel
 
 struct VoxelGridStruct
 {
-	//This is the total width, in millimeters, of the environment you want to capture.
+	//This is the total width, in meters, of the environment you want to capture.
 	//So, this variable decides on voxel resolution together with variable 'n' below.
-	float total_width_in_millimeters;
+	const float total_width_in_meters;
 
 	//This defines the number of voxels in the grid.
 	//There will be n^3 voxels in the grid.
-	//One voxel will be of volume resolution^3 where resolution=(total_width_in_meters/n)
-	int n;
+	const int n;
+
+	//Defines the resolution of a single voxel.
+	//One voxel will be of volume resolution^3 where resolution=(total_width_in_meters/n).
+	const float resolution;
+
+	//Constant in the paper for TSDF calculations.
+	const float mue;
 
 	//Pointer to allocated memory on GPU for voxels.
 	cudaPitchedPtr pointer;
 
-	VoxelGridStruct(float p_total_width_in_millimeters, int p_n)
-		: total_width_in_millimeters(p_total_width_in_millimeters)
+	VoxelGridStruct(float p_total_width_in_meters, int p_n)
+		: total_width_in_meters(p_total_width_in_meters)
 		, n(p_n)
+		, resolution(p_total_width_in_meters / p_n)
+		, mue(2.0f * resolution)
 	{}
 
 	//Checks if the point (world coordinate) is inside the voxel.
 	__device__ bool isPointIn(const glm::vec3& point) const
 	{
-		auto half_total_width = total_width_in_millimeters * 0.5f;
+		auto half_total_width = total_width_in_meters * 0.5f;
 		auto abs_point = glm::abs(point);
 
 		return abs_point.x < half_total_width && abs_point.y < half_total_width && abs_point.z < half_total_width;
@@ -45,7 +53,7 @@ struct VoxelGridStruct
 class VoxelGrid
 {
 public:
-	VoxelGrid(float p_total_width_in_millimeters, int p_n);
+	VoxelGrid(float p_total_width_in_meters, int p_n);
 	~VoxelGrid();
 
 	const VoxelGridStruct& getStruct() const { return m_struct; }

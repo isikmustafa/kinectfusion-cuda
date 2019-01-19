@@ -12,9 +12,9 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map, VoxelGridStruct vo
 	auto* char_ptr = static_cast<char*>(voxel_grid.pointer.ptr);
 	auto* ptr = reinterpret_cast<Voxel*>(char_ptr + voxel_grid.pointer.pitch * (voxel_grid.n * i + j));
 
-	auto resolution = voxel_grid.total_width_in_millimeters / voxel_grid.n;
-	const float mue = 1.5f * resolution;
-	auto start_coord = (-voxel_grid.total_width_in_millimeters + resolution) * 0.5f;
+	const auto resolution = voxel_grid.resolution;
+	const auto mue = voxel_grid.mue;
+	auto start_coord = (-voxel_grid.total_width_in_meters + resolution) * 0.5f;
 	glm::vec3 point(start_coord + i * resolution, start_coord + j * resolution, start_coord - resolution);
 	for (int k = 0; k < voxel_grid.n; ++k)
 	{
@@ -27,7 +27,8 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map, VoxelGridStruct vo
 		pixel /= pixel.z;
 
 		//2-Check if it is in the view frustum. If not, don't do anything.
-		if (!(point_eye.z > 0.0f && pixel.x >= 0.0f && pixel.x < 640.0f && pixel.y >= 0.0f && pixel.y < 480.0f))
+		if (!(point_eye.z >= kernel::cMinDistance && point_eye.z < kernel::cMaxDistance &&
+			pixel.x >= 0.0f && pixel.x < 640.0f && pixel.y >= 0.0f && pixel.y < 480.0f))
 		{
 			continue;
 		}

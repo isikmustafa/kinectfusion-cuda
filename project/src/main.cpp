@@ -12,7 +12,7 @@
 int main()
 {
 	Sensor depth_sensor;
-	VoxelGrid voxel_grid(5000.0f, 512);
+	VoxelGrid voxel_grid(5.0f, 512);
 
     constexpr bool use_kinect = false;
 	constexpr unsigned int frame_width = 640;
