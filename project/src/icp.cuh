@@ -31,7 +31,8 @@ namespace kernel
         - vec_b: 1D float array of length (width * height) representing the vector b
 */
     float constructIcpResiduals(CudaGridMap vertex_map, CudaGridMap target_vertex_map, CudaGridMap target_normal_map,
-        RigidTransform3D &previous_pose, RigidTransform3D current_pose_estimate, glm::mat3x3 &sensor_intrinsics,
+		glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec,
+		glm::mat3x3 &curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 &sensor_intrinsics,
         float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[]);
 }
 

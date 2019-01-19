@@ -4,6 +4,7 @@
 
 #include "device_helper.cuh"
 #include "cuda_utils.h"
+#include "cuda_event.h"
 
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
     cudaSurfaceObject_t target_normal_map, glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec, 
@@ -36,6 +37,8 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 		}
 		glm::vec3 vertex_map_current;
 		surf2Dread(&vertex_map_current, vertex_map, idx, v);
+		device_helper::writeVec3(vertex_map_current,vertex_map,u,v);
+
 
 		glm::vec3 vertex_global = curr_rot_mat_estimate * vertex_map_current+ current_transl_vec_estimate; // 3. Transform the vertex into the global frame
 		std::array<int, 2> cor_point = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, sensor_intrinsics); // 4. Run computeCorrespondence()
@@ -59,7 +62,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 				}
 				else {
 					computeAndFillA(mat_A[u], vertex_global, target_normal);//9. Compute the parameters for A 
-					computeAndFillB(&vec_b[v], vertex_global, vertex_map_target, target_normal);//10. Compute the parameters for A 
+					computeAndFillB(&vec_b[v], vertex_global, vertex_map_target, target_normal);//10. Compute the parameters for B 
 				}
 				
 			}
@@ -78,10 +81,24 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 namespace kernel
 {
     float constructIcpResiduals(CudaGridMap vertex_map, CudaGridMap target_vertex_map, CudaGridMap target_normal_map, 
-        RigidTransform3D & previous_pose, RigidTransform3D current_pose_estimate, glm::mat3x3 & sensor_intrinsics, 
+		glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec,
+		glm::mat3x3 &curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 & sensor_intrinsics,
         float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
     {
-        return 0.0f;
+		auto dims = vertex_map.getGridDims();
+
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(dims[0] / threads.x, dims[1] / threads.y);
+		start.record();
+		constructIcpResidualsKernel << <blocks, threads >> > (vertex_map.getCudaSurfaceObject(),  target_vertex_map.getCudaSurfaceObject(),
+			target_normal_map.getCudaSurfaceObject(),  prev_rot_mat,  prev_transl_vec,
+		    curr_rot_mat_estimate, current_transl_vec_estimate,  sensor_intrinsics,
+			dims[0], dims[1], distance_thresh,  angle_thresh,  mat_A[][6], vec_b[]);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
     }
 }
 
