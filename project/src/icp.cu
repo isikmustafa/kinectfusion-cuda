@@ -22,6 +22,57 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
         9. Compute the parameters for A and write them into the array using computeAndFillA()
         10. Compute the value for b and write it into the array using computeAndFillB()
     */
+
+	/* 1. Compute indices (u, v) from thread index*/
+	int u = blockIdx.x * blockDim.x + threadIdx.x;
+	int v = blockIdx.y * blockDim.y + threadIdx.y;
+
+	int idx = u * 16; //TODO: CHECK IF THIS IS RIGHT
+	
+	if (u < width && v < height) {
+		if (device_helper::isValid(vertex_map, u, v)) { //2. Check whether the vertex is valid
+			writeDummyResidual(mat_A[u], &vec_b[v]);
+			return;
+		}
+		glm::vec3 vertex_map_current;
+		surf2Dread(&vertex_map_current, vertex_map, idx, v);
+
+		glm::vec3 vertex_global = curr_rot_mat_estimate * vertex_map_current+ current_transl_vec_estimate; // 3. Transform the vertex into the global frame
+		std::array<int, 2> cor_point = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, sensor_intrinsics); // 4. Run computeCorrespondence()
+
+		if (cor_point[0] >= 0 && cor_point[1] >= 0 && cor_point[0] < width && cor_point[1] < height) //5. Check for validity of the coordinates 
+		{
+			glm::vec3 vertex_map_target;
+			surf2Dread(&vertex_map_target, target_vertex_map, idx+4, v);//TODO: CHECK
+			if(verticesAreTooFarAway(vertex_map_current, vertex_map_target, distance_thresh) ){ // 6. Check for the distance constraint
+				writeDummyResidual(mat_A[u], &vec_b[v]);
+				return;
+			}
+			else {
+				glm::vec3 target_normal;
+				surf2Dread(&target_normal, target_normal_map, idx+8, v); //TODO: CHECK
+				glm::vec3 normal = device_helper::computeNormal(vertex_map, u, v); //7. Compute the normal for the vertex
+				if (normalsAreTooDifferent(normal, target_normal, curr_rot_mat_estimate, angle_thresh))//8. Check for the angle constraint
+				{
+					writeDummyResidual(mat_A[u], &vec_b[v]);
+					return;
+				}
+				else {
+					computeAndFillA(mat_A[u], vertex_global, target_normal);//9. Compute the parameters for A 
+					computeAndFillB(&vec_b[v], vertex_global, vertex_map_target, target_normal);//10. Compute the parameters for A 
+				}
+				
+			}
+
+			
+
+		}
+
+	}
+	
+
+
+	
 }
 
 namespace kernel
