@@ -39,15 +39,6 @@ struct VoxelGridStruct
 		, resolution(p_total_width_in_meters / p_n)
 		, mue(2.0f * resolution)
 	{}
-
-	//Checks if the point (world coordinate) is inside the voxel.
-	__device__ bool isPointIn(const glm::vec3& point) const
-	{
-		auto half_total_width = total_width_in_meters * 0.5f;
-		auto abs_point = glm::abs(point);
-
-		return abs_point.x < half_total_width && abs_point.y < half_total_width && abs_point.z < half_total_width;
-	}
 };
 
 class VoxelGrid
