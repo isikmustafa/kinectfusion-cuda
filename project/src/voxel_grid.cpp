@@ -20,11 +20,11 @@ VoxelGrid::VoxelGrid(float p_total_width_in_millimeters, int p_n)
 
 	cudaTextureDesc tex_desc;
 	memset(&tex_desc, 0, sizeof(tex_desc));
-	tex_desc.addressMode[0] = cudaTextureAddressMode(cudaAddressModeClamp);
-	tex_desc.addressMode[1] = cudaTextureAddressMode(cudaAddressModeClamp);
-	tex_desc.addressMode[2] = cudaTextureAddressMode(cudaAddressModeClamp);
-	tex_desc.filterMode = cudaTextureFilterMode(cudaFilterModeLinear);
-	tex_desc.normalizedCoords = true;
+	tex_desc.addressMode[0] = cudaAddressModeClamp;
+	tex_desc.addressMode[1] = cudaAddressModeClamp;
+	tex_desc.addressMode[2] = cudaAddressModeClamp;
+	tex_desc.filterMode = cudaFilterModeLinear;
+	tex_desc.normalizedCoords = 1;
 
 	//Create CUDA texture object.
 	HANDLE_ERROR(cudaCreateTextureObject(&m_struct.texture_object, &res_desc, &tex_desc, nullptr));

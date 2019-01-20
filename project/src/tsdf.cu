@@ -4,6 +4,19 @@
 
 #include <cuda_fp16.h>
 
+__global__ void initializeGridKernel(VoxelGridStruct voxel_grid, Voxel value)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+	int idx = i * sizeof(Voxel);
+	for (int k = 0; k < voxel_grid.n; ++k)
+	{
+		surf3Dwrite(value.f, voxel_grid.surface_object, idx, j, k);
+		surf3Dwrite(value.w, voxel_grid.surface_object, idx + 4, j, k);
+	}
+}
+
 __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridStruct voxel_grid, Sensor sensor)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -12,7 +25,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 	const auto resolution = voxel_grid.resolution;
 	const auto mue = voxel_grid.mue;
 	auto start_coord = (-voxel_grid.total_width_in_meters + resolution) * 0.5f;
-	glm::vec3 point(start_coord + i * resolution, start_coord + j * resolution, start_coord - resolution);
+	auto point = glm::vec3(start_coord) + glm::vec3(i * resolution, j * resolution, -resolution);
 	for (int k = 0; k < voxel_grid.n; ++k)
 	{
 		//Update the point to the center of the next voxel.
@@ -44,7 +57,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 		if (diff >= -mue)
 		{
 			//4-Compute TSDF and weight;
-			auto f = glm::min(1.0f, diff / mue) * glm::sign(diff);
+			auto f = glm::min(1.0f, diff / mue);
 			auto w = 1.0f;
 
 			//5-Update voxel.
@@ -64,13 +77,26 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 
 namespace kernel
 {
+	float initializeGrid(const VoxelGridStruct& voxel_grid, const Voxel& value)
+	{
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(voxel_grid.n / threads.x, voxel_grid.n / threads.y);
+		start.record();
+		initializeGridKernel << <blocks, threads >> > (voxel_grid, value);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
+	}
+
 	float fuse(const CudaGridMap& raw_depth_map_meters, const VoxelGridStruct& voxel_grid, const Sensor& sensor)
 	{
 		CudaEvent start, end;
 		dim3 threads(8, 8);
 		dim3 blocks(voxel_grid.n / threads.x, voxel_grid.n / threads.y);
 		start.record();
-		fuseKernel <<<blocks, threads>>> (raw_depth_map_meters.getCudaSurfaceObject(), voxel_grid, sensor);
+		fuseKernel << <blocks, threads >> > (raw_depth_map_meters.getCudaSurfaceObject(), voxel_grid, sensor);
 		end.record();
 		end.synchronize();
 

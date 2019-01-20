@@ -7,10 +7,10 @@
 struct Voxel
 {
 	//The current truncated signed distance value.
-	float f;
+	float f{ 0.0f };
 
 	//The current weight;
-	float w;
+	float w{ 0.0f };
 };
 
 struct VoxelGridStruct

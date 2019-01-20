@@ -26,6 +26,19 @@ __device__ glm::vec2 intersectBBox(const glm::vec3& origin, const glm::vec3& inv
 	return glm::vec2(tmin, tmax);
 }
 
+__device__ glm::vec3 computeGradient(const glm::vec3& point, const VoxelGridStruct& voxel_grid)
+{
+	auto uvw_resolution = 1.0f / voxel_grid.n;
+	auto uvw = point / voxel_grid.total_width_in_meters + glm::vec3(0.5f);
+
+	auto f = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z).x;
+	auto f_x = tex3D<float2>(voxel_grid.texture_object, uvw.x + uvw_resolution, uvw.y, uvw.z).x;
+	auto f_y = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y + uvw_resolution, uvw.z).x;
+	auto f_z = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z + uvw_resolution).x;
+
+	return (glm::vec3(f_x, f_y, f_z) - glm::vec3(f)) / uvw_resolution;
+}
+
 __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSurfaceObject_t output_vertex, cudaSurfaceObject_t output_normal)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -73,18 +86,14 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 		//3-Check TSDF value of the voxel and determine if this is a zero crossing or not.
 		if (tsdf < 0.0f)
 		{
-			//If this is the first iteration, it means the ray intersects the backfacing surface.
-			//No need to continue from -ve to +ve.
-			if (current_distance == near_distance)
-			{
-				break;
-			}
-			//If not, it means this is a zero crossing.
-			else
+			//If this is not the first iteration, it means the ray does not intersect a backfacing surface
+			//and continued from +ve to -ve.
+			if (current_distance != near_distance)
 			{
 				//Formula(15) to compute more precise distance of intersection.
 				precise_distance = current_distance - distance_increase * previous_tsdf / (tsdf - previous_tsdf);
 			}
+			break;
 		}
 		//4-Update distance_increase if it is the region of uncertainty.
 		else if (tsdf < 1.0f)
@@ -94,20 +103,28 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 		previous_tsdf = tsdf;
 	}
 
-	//Backfacing surface is found or ray did not intersect any surface.
-	if (precise_distance == 0.0f)
-	{
-		device_helper::invalidate(output_vertex, i, j);
-	}
-	else
+	//Ray intersected a surface and no backfacing surface is found.
+	if (precise_distance != 0.0f)
 	{
 		auto vertex = ray_origin + ray_direction * precise_distance;
-		device_helper::writeVec3(vertex, output_vertex, i, j);
-		device_helper::validate(output_vertex, i, j);
+		auto normal = computeGradient(vertex, voxel_grid);
+		auto normal_norm = glm::length(normal);
 
-		//auto normal = 
-		//device_helper::writeVec3(normal, output_normal, i, j);
+		if (device_helper::isDepthValid(normal_norm))
+		{
+			//Write vertex.
+			device_helper::writeVec3(vertex, output_vertex, i, j);
+			device_helper::validate(output_vertex, i, j);
+
+			//Write normal.
+			normal /= normal_norm;
+			device_helper::writeVec3(normal, output_normal, i, j);
+
+			return;
+		}
 	}
+
+	device_helper::invalidate(output_vertex, i, j);
 }
 
 namespace kernel
