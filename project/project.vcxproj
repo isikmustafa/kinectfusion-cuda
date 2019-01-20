@@ -15,6 +15,7 @@
     <CudaCompile Include="src\depth_map.cpp" />
     <CudaCompile Include="src\icp.cu" />
     <CudaCompile Include="src\raycast.cu" />
+    <CudaCompile Include="src\display.cu" />
     <CudaCompile Include="src\tsdf.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +35,7 @@
     <ClInclude Include="src\rgbd_dataset.h" />
     <ClInclude Include="src\rigid_transform_3d.h" />
     <ClInclude Include="src\sensor.h" />
+    <ClInclude Include="src\display.cuh" />
     <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\tsdf.cuh" />
     <ClInclude Include="src\voxel_grid.h" />

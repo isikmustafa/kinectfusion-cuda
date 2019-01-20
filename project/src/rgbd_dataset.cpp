@@ -70,7 +70,7 @@ void RgbdDataset::load(const std::string& path)
 		auto pose = glm::mat4_cast(quats[min_index]);
 		pose[3] = glm::vec4(translations[min_index], 1.0f);
 
-		m_depth_pose_pairs.emplace_back(depth_image_path, pose);
+		m_depth_pose_pairs.emplace_back(path + "/" + depth_image_path, pose);
 	}
 }
 

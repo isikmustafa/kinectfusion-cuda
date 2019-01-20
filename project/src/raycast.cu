@@ -108,6 +108,11 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 	{
 		auto vertex = ray_origin + ray_direction * precise_distance;
 		auto normal = computeGradient(vertex, voxel_grid);
+
+		//Convert normal and the vertex back to eye space.
+		//Because the normals and vertices in measurement stage are in eye space.
+		vertex = sensor.getInversePose() * glm::vec4(vertex, 1.0f);
+		normal = glm::mat3(sensor.getInversePose()) * normal;
 		auto normal_norm = glm::length(normal);
 
 		if (device_helper::isDepthValid(normal_norm))
@@ -124,7 +129,9 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 		}
 	}
 
+	device_helper::writeVec3(glm::vec3(0.0f), output_vertex, i, j);
 	device_helper::invalidate(output_vertex, i, j);
+	device_helper::writeVec3(glm::vec3(0.0f), output_normal, i, j);
 }
 
 namespace kernel

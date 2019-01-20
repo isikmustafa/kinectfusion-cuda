@@ -61,6 +61,9 @@
     <ClInclude Include="src\rgbd_dataset.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\display.cuh">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -80,6 +83,9 @@
     </CudaCompile>
     <CudaCompile Include="src\raycast.cu">
       <Filter>Fusion&amp;Raycast</Filter>
+    </CudaCompile>
+    <CudaCompile Include="src\display.cu">
+      <Filter>Display</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +133,9 @@
     </Filter>
     <Filter Include="Fusion&amp;Raycast">
       <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display">
+      <UniqueIdentifier>{5bdcac15-b061-4f87-8d29-4a48e10601b3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -129,61 +129,6 @@ __global__ void createNormalMapKernel(cudaSurfaceObject_t vertex_map, cudaSurfac
 	device_helper::writeVec3(normal, normal_map, i, j);
 }
 
-__global__ void oneHalfChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window, float scale)
-{
-	int i = threadIdx.x + blockIdx.x * blockDim.x;
-	int j = threadIdx.y + blockIdx.y * blockDim.y;
-
-	unsigned short h_pixel;
-	surf2Dread(&h_pixel, surface, i * 2, j);
-
-	auto pixel = static_cast<unsigned char>(__half2float(h_pixel) * scale);
-
-	unsigned int pixel_w = (255) << 8;
-	pixel_w = (pixel_w | pixel) << 8;
-	pixel_w = (pixel_w | pixel) << 8;
-	pixel_w = (pixel_w | pixel);
-
-	surf2Dwrite(pixel_w, window, i * 4, j);
-}
-
-__global__ void oneFloatChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window, float scale)
-{
-	int i = threadIdx.x + blockIdx.x * blockDim.x;
-	int j = threadIdx.y + blockIdx.y * blockDim.y;
-
-	float f_pixel;
-	surf2Dread(&f_pixel, surface, i * 4, j);
-
-	auto pixel = static_cast<unsigned char>(f_pixel * scale);
-
-	unsigned int pixel_w = (255) << 8;
-	pixel_w = (pixel_w | pixel) << 8;
-	pixel_w = (pixel_w | pixel) << 8;
-	pixel_w = (pixel_w | pixel);
-
-	surf2Dwrite(pixel_w, window, i * 4, j);
-}
-
-__global__ void fourFloatChannelToWindowContentKernel(cudaSurfaceObject_t surface, cudaSurfaceObject_t window, float scale)
-{
-	int i = threadIdx.x + blockIdx.x * blockDim.x;
-	int j = threadIdx.y + blockIdx.y * blockDim.y;
-
-	float r, g, b;
-	int idx = i * 16;
-	surf2Dread(&r, surface, idx, j);
-	surf2Dread(&g, surface, idx + 4, j);
-	surf2Dread(&b, surface, idx + 8, j);
-
-	unsigned int pixel_w = (255) << 8;
-	pixel_w = (pixel_w | static_cast<unsigned char>(b * scale)) << 8;
-	pixel_w = (pixel_w | static_cast<unsigned char>(g * scale)) << 8;
-	pixel_w = (pixel_w | static_cast<unsigned char>(r * scale));
-
-	surf2Dwrite(pixel_w, window, i * 4, j);
-}
-
 namespace kernel
 {
 	float convertToDepthMeters(const DepthMap& raw_depth_map, const CudaGridMap& raw_depth_map_meters, float scale)
@@ -285,45 +230,6 @@ namespace kernel
         dim3 blocks(dims_input[0] / threads.x, dims_input[1] / threads.y);
 		start.record();
 		createNormalMapKernel << <blocks, threads >> > (vertex_map.getCudaSurfaceObject(), normal_map.getCudaSurfaceObject());
-		end.record();
-		end.synchronize();
-
-		return CudaEvent::calculateElapsedTime(start, end);
-	}
-
-	float oneHalfChannelToWindowContent(cudaSurfaceObject_t surface, const Window& window, float scale)
-	{
-		CudaEvent start, end;
-		dim3 threads(8, 8);
-		dim3 blocks(640 / threads.x, 480 / threads.y);
-		start.record();
-		oneHalfChannelToWindowContentKernel << <blocks, threads >> > (surface, window.get_content(), scale);
-		end.record();
-		end.synchronize();
-
-		return CudaEvent::calculateElapsedTime(start, end);
-	}
-
-	float oneFloatChannelToWindowContent(cudaSurfaceObject_t surface, const Window& window, float scale)
-	{
-		CudaEvent start, end;
-		dim3 threads(8, 8);
-		dim3 blocks(640 / threads.x, 480 / threads.y);
-		start.record();
-		oneFloatChannelToWindowContentKernel << <blocks, threads >> > (surface, window.get_content(), scale);
-		end.record();
-		end.synchronize();
-
-		return CudaEvent::calculateElapsedTime(start, end);
-	}
-
-	float fourFloatChannelToWindowContent(cudaSurfaceObject_t surface, const Window& window, float scale)
-	{
-		CudaEvent start, end;
-		dim3 threads(8, 8);
-		dim3 blocks(640 / threads.x, 480 / threads.y);
-		start.record();
-		fourFloatChannelToWindowContentKernel <<<blocks, threads >>> (surface, window.get_content(), scale);
 		end.record();
 		end.synchronize();
 
