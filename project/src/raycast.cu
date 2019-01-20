@@ -32,9 +32,9 @@ __device__ glm::vec3 computeGradient(const glm::vec3& point, const VoxelGridStru
 	auto uvw = point / voxel_grid.total_width_in_meters + glm::vec3(0.5f);
 
 	auto f = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z).x;
-	auto f_x = tex3D<float2>(voxel_grid.texture_object, uvw.x + uvw_resolution, uvw.y, uvw.z).x;
-	auto f_y = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y + uvw_resolution, uvw.z).x;
-	auto f_z = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z + uvw_resolution).x;
+	auto f_x = tex3D<float2>(voxel_grid.texture_object, uvw.x - uvw_resolution, uvw.y, uvw.z).x;
+	auto f_y = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y - uvw_resolution, uvw.z).x;
+	auto f_z = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z - uvw_resolution).x;
 
 	return (glm::vec3(f_x, f_y, f_z) - glm::vec3(f)) / uvw_resolution;
 }
@@ -96,9 +96,9 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 			break;
 		}
 		//4-Update distance_increase if it is the region of uncertainty.
-		else if (tsdf < 1.0f)
+		else if (tsdf < 0.99f)
 		{
-			distance_increase = mue * 0.1f;
+			distance_increase = mue * 0.125f;
 		}
 		previous_tsdf = tsdf;
 	}
