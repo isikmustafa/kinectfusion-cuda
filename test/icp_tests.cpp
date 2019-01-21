@@ -1,9 +1,13 @@
 #include "pch.h"
+
 #include <cuda_runtime.h>
+
 #include "rigid_transform_3d.h"
 #include "icp.h"
 #include "cuda_wrapper.cuh"
 #include "icp.cuh"
+#include "cuda_utils.h"
+
 
 class IcpTests : public ::testing::Test
 {
@@ -15,6 +19,7 @@ protected:
     cudaChannelFormatDesc format_description = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
     std::vector<unsigned int> iters_per_layer = { 1, 2, 3 };
     std::vector<void *> cuda_pointers_to_free;
+    std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
     
     // 90 degree turn to the right
     glm::mat3x3 rotation_mat = glm::mat3x3(
@@ -28,6 +33,8 @@ protected:
         {
             cudaFree(ptr);
         }
+
+        std::cout.rdbuf(oldCoutStreamBuf);
     }
 };
 
@@ -134,5 +141,79 @@ TEST_F(IcpTests, TestSolveLinearSystem)
     for (int i = 0; i < 6; i ++)
     {
         ASSERT_FLOAT_EQ((float)i, result_x[i]);
+    }
+}
+
+TEST_F(IcpTests, TestConstructIcpResiduals)
+{
+    std::array<std::array<float, 4>, 4> target_vertices = { { { 1.0,  1.0, 3.0, -1.0 },
+                                                              { 1.0, -1.0, 3.0, -2.0 },
+                                                              {-1.0,  1.0, 3.0, -2.0 },
+                                                              {-1.0, -1.0, 3.0, -2.0 } } };
+    CudaGridMap target_vertex_map(2, 2, format_description);
+    int n_bytes = 16 * 2 * 2;
+    HANDLE_ERROR(cudaMemcpyToArray(target_vertex_map.getCudaArray(), 0, 0, &target_vertices[0][0], n_bytes,
+        cudaMemcpyHostToDevice));
+
+    std::array<std::array<float, 4>, 4> target_normals = { { { 0.0,  0.0, -1.0, 0.0 },
+                                                             { 0.0,  0.0, -1.0, 0.0 },
+                                                             { 0.0,  0.0, -1.0, 0.0 },
+                                                             { 0.0,  0.0, -1.0, 0.0 } } };
+    CudaGridMap target_normal_map(2, 2, format_description);
+    HANDLE_ERROR(cudaMemcpyToArray(target_normal_map.getCudaArray(), 0, 0, &target_normals[0][0], n_bytes,
+        cudaMemcpyHostToDevice));
+
+    std::array<std::array<float, 4>, 4> vertices = { { { 1.0,  1.0, 4.0, -1.0 },
+                                                       { 1.0, -1.0, 4.0, -2.0 },
+                                                       {-1.0,  1.0, 5.0, -2.0 },
+                                                       {-1.0, -1.0, 4.0, -2.0 } } };
+    CudaGridMap vertex_map(2, 2, format_description);
+    HANDLE_ERROR(cudaMemcpyToArray(vertex_map.getCudaArray(), 0, 0, &vertices[0][0], n_bytes, cudaMemcpyHostToDevice));
+
+    glm::mat3x3 no_rotation(
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::vec3 no_translation(0.0);
+
+    glm::mat3x3 intrinsics(
+        glm::vec3(2.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 2.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f));
+
+    float distance_threshold = 1.5;
+    float angle_threshold = pi;
+
+    std::array<std::array<float, 6>, 4> *mat_a_device;
+    std::array<float, 4> *vec_b_device;
+    HANDLE_ERROR(cudaMalloc(&mat_a_device, sizeof(std::array<std::array<float, 6>, 4>)));
+    HANDLE_ERROR(cudaMalloc(&vec_b_device, sizeof(std::array<float, 4>)));
+
+    std::array<std::array<float, 6>, 4> true_mat_a = { { { 1.0, -1.0,  0.0, 0.0, 0.0, -1.0 },
+                                                         { 0.0,  0.0,  0.0, 0.0, 0.0,  0.0 },
+                                                         { 0.0,  0.0,  0.0, 0.0, 0.0,  0.0 },
+                                                         { 0.0,  0.0,  0.0, 0.0, 0.0,  0.0 } } };
+    std::array<float, 4> true_vec_b = { 1.0, 0.0, 0.0, 0.0 };
+
+    std::cout.rdbuf(std::cerr.rdbuf());
+
+    kernel::constructIcpResiduals(vertex_map, target_vertex_map, target_normal_map, no_rotation, no_translation,
+        no_rotation, no_translation, intrinsics, distance_threshold, angle_threshold, &(*mat_a_device)[0],
+        (float*)vec_b_device);
+
+    HANDLE_ERROR(cudaDeviceSynchronize());
+
+    std::array<std::array<float, 6>, 4> mat_a;
+    std::array<float, 4> vec_b;
+    HANDLE_ERROR(cudaMemcpy(&mat_a, mat_a_device, sizeof(std::array<std::array<float, 6>, 4>), cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(&vec_b, vec_b_device, sizeof(std::array<float, 4>), cudaMemcpyDeviceToHost));
+    
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 6; j++)
+        {
+            ASSERT_FLOAT_EQ(true_mat_a[i][j], mat_a[i][j]);
+        }
+        ASSERT_FLOAT_EQ(true_vec_b[i], vec_b[i]);
     }
 }

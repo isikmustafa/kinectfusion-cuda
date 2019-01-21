@@ -30,10 +30,10 @@ namespace kernel
         - mat_A: 2D float array of size (width * height) x 6, representing the matrix A
         - vec_b: 1D float array of length (width * height) representing the vector b
 */
-    float constructIcpResiduals(CudaGridMap vertex_map, CudaGridMap target_vertex_map, CudaGridMap target_normal_map,
-		glm::mat3x3 &prev_rot_mat, glm::vec3 &prev_transl_vec,
-		glm::mat3x3 curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 &sensor_intrinsics,
-        float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[]);
+    float constructIcpResiduals(CudaGridMap &vertex_map, CudaGridMap &target_vertex_map, CudaGridMap &target_normal_map,
+		glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3x3 curr_rot_mat_estimate, 
+        glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, float distance_thresh, float angle_thresh, 
+        std::array<float, 6> mat_A[], float vec_b[]);
 }
 
 __device__ inline glm::vec2 computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
@@ -49,7 +49,7 @@ __device__ inline void writeDummyResidual(float vec_a[], float *scalar_b)
 {
 	*scalar_b = 0.0f;
 	for (int i = 0; i < 6; i++)
-		vec_a[i] = 0.0f;
+        vec_a[i] = 0.0f;
 }
 
 __device__ inline bool verticesAreTooFarAway(glm::vec3 &vertex_1, glm::vec3 &vertex_2, float distance_thresh)
