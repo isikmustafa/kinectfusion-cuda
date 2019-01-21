@@ -8,6 +8,7 @@
 #include "tsdf.cuh"
 #include "grid_map_pyramid.h"
 #include "voxel_grid.h"
+#include "display.cuh"
 
 int main()
 {

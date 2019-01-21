@@ -1,4 +1,8 @@
-#include "pch.h"
+#include "pch.h"=
+#include "cuda_grid_map.h"
+#include "grid_map_pyramid.h"
+#include "depth_map.h"
+#include "cuda_utils.h"
 
 class CudaGridMapTests : public ::testing::Test
 {

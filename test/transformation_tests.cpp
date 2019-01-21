@@ -1,4 +1,9 @@
 #include "pch.h"
+#include <cuda_runtime.h>
+#include "rigid_transform_3d.h"
+#include "cuda_grid_map.h"
+#include "cuda_utils.h"
+#include "cuda_wrapper.cuh"
 
 class TransformationTests : public ::testing::Test
 {

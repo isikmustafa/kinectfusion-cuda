@@ -4,6 +4,8 @@
 //
 #include "pch.h"
 
+#include "measurement.cuh"
+#include "icp.cuh"
+
 #include "measurement.cu"
 #include "icp.cu"
-#include "device_helper.cu"

@@ -1,4 +1,9 @@
 #include "pch.h"
+#include <cuda_runtime.h>
+#include "rigid_transform_3d.h"
+#include "icp.h"
+#include "cuda_wrapper.cuh"
+#include "icp.cuh"
 
 class IcpTests : public ::testing::Test
 {
@@ -51,7 +56,7 @@ TEST_F(IcpTests, TestComputeCorrespondence)
                                                                    { 0,  0 },
                                                                    { 2, -1 } } };
     
-    std::array<std::array<int, 2>, 4> coordinates;
+    std::array<glm::vec2, 4> coordinates;
     for (int i = 0; i < 4; i++)
     {
         coordinates[i] = computeCorrespondenceTestWrapper(vertices[i], rotation_mat, translation_vec, intrinsics);

@@ -1,8 +1,10 @@
 #pragma once
 #include "pch.h"
 
-std::array<int, 2> computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x3 rotation_mat,
-    glm::vec3 translation_vec, glm::mat3x3 intrinsics);
+#include "cuda_grid_map.h"
+
+glm::vec2 computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x3 rotation_mat, glm::vec3 translation_vec, 
+    glm::mat3x3 intrinsics);
 
 glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsigned int v);
 

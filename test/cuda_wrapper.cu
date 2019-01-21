@@ -1,22 +1,25 @@
 #include "cuda_wrapper.cuh"
+#include "icp.cuh"
+#include "cuda_utils.h"
+#include "device_helper.cuh"
 
-__global__ void computeCorrespondenceTestKernel(std::array<int, 2> *result_coords, glm::vec3 vertex_global, 
+__global__ void computeCorrespondenceTestKernel(glm::vec2 *result_coords, glm::vec3 vertex_global, 
     glm::mat3x3 rotation_mat, glm::vec3 translation_vec, glm::mat3x3 sensor_intrinsics)
 {
     *result_coords = computeCorrespondence(vertex_global, rotation_mat, translation_vec, sensor_intrinsics);
 }
 
-std::array<int, 2> computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x3 rotation_mat, 
-    glm::vec3 translation_vec, glm::mat3x3 intrinsics)
+glm::vec2 computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x3 rotation_mat, glm::vec3 translation_vec, 
+    glm::mat3x3 intrinsics)
 {
-    std::array<int, 2> *result_device;
+    glm::vec2 *result_device;
     HANDLE_ERROR(cudaMalloc(&result_device, sizeof(std::array<int, 2>)));
 
     computeCorrespondenceTestKernel<<<1, 1>>> (result_device, vertex, rotation_mat, translation_vec, intrinsics);
     HANDLE_ERROR(cudaPeekAtLastError());
     HANDLE_ERROR(cudaDeviceSynchronize());
 
-    std::array<int, 2> result_host;
+    glm::vec2 result_host;
     HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(std::array<int, 2>), cudaMemcpyDeviceToHost));
 
     return result_host;
