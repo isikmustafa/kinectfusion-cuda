@@ -4,6 +4,7 @@
 #include <array>
 #include <cuda_runtime.h>
 #include <glm/glm.hpp>
+#include <cusolverDn.h>
 
 #include "cuda_grid_map.h"
 #include "rigid_transform_3d.h"
@@ -91,5 +92,9 @@ __device__ inline void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global
 	*scalar_b = n.x*d.x + n.y*d.y + n.z*d.z - n.x*s.x - n.y*s.y - n.z*s.z;
 }
 
-void solveLinearSystem(std::array<float, 6> *mat_a, float *vec_b, unsigned int n_equations,
-    std::array<float, 6> *result_x);
+void cudaMatrixVectorMultiplication(float * mat_left, float * vec_right, float *vec_out, int n_rows);
+
+void cudaMatrixMatrixMultiplication(float * mat_left, float * mat_right, float *mat_out, int n_rows,
+    cublasOperation_t operation_left);
+
+void solveLinearSystem(float *mat_a, float *vec_b, unsigned int n_equations, float *result_x);

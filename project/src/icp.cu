@@ -1,7 +1,5 @@
 #include "icp.cuh"
 
-#include <cusolverDn.h>
-
 #include "device_helper.cuh"
 #include "cuda_utils.h"
 #include "cuda_event.h"
@@ -112,8 +110,8 @@ namespace kernel
 
 
 
-void cudaMatrixMatrixMultiplication(float * mat_left, float * mat_right,
-	float *mat_out, int n_rows, cublasOperation_t operation_left)
+void cudaMatrixMatrixMultiplication(float *mat_left, float *mat_right,
+	float *mat_out, int n_rows, cublasOperation_t operation_right)
 {
 	//matrix - matrix multiplication : c = al * a *b + bet * c
 
@@ -121,17 +119,18 @@ void cudaMatrixMatrixMultiplication(float * mat_left, float * mat_right,
 	cublasStatus_t stat; // CUBLAS functions status
 	cublasHandle_t handle; // CUBLAS context
 
+    stat = cublasCreate(&handle);
+
 	const int m = 6;
 
 	float alpha = 1.0f;
-	float beta = 1.0f;
+	float beta = 0.0f;
 
-	stat = cublasSgemm(handle, operation_left, CUBLAS_OP_N, m, m, n_rows, &alpha, mat_left,
-		m, mat_right, n_rows, &beta, mat_out, m);
+	stat = cublasSgemm(handle, CUBLAS_OP_N, operation_right, m, m, n_rows, &alpha, mat_left,
+		m, mat_right, m, &beta, mat_out, m);
 	
 }
-void cudaMatrixVectorMultiplication(float * mat_left, float * vec_right,
-	float *vec_out, int n_rows, cublasOperation_t operation)
+void cudaMatrixVectorMultiplication(float * mat_left, float * vec_right, float *vec_out, int n_rows)
 {
 	//matrix - matrix multiplication : c = al * a *b + bet * c
 
@@ -139,17 +138,18 @@ void cudaMatrixVectorMultiplication(float * mat_left, float * vec_right,
 	cublasStatus_t stat; // CUBLAS functions status
 	cublasHandle_t handle; // CUBLAS context
 
+    stat = cublasCreate(&handle);
+
 	const int m = 6;
 
 	float alpha = 1.0f;
 	float beta = 1.0f;
 
-	stat = cublasSgemv(handle, operation, m, n_rows, &alpha, mat_left, m, vec_right, 1, &beta,
+	stat = cublasSgemv(handle, CUBLAS_OP_N, m, n_rows, &alpha, mat_left, m, vec_right, 1, &beta,
 		vec_out, 1);
 }
 
-void solveLinearSystem(float *mat_a, float *vec_b, unsigned int n_equations,
-    float *result_x)
+void solveLinearSystem(float *mat_a, float *vec_b, unsigned int n_equations, float *result_x)
 {
     /*
         Variant A: Solve with SVD (probably slowest) as in exercise
@@ -168,7 +168,7 @@ void solveLinearSystem(float *mat_a, float *vec_b, unsigned int n_equations,
 	
 	//calculate A*A_T  B*A_T 
 	cudaMatrixMatrixMultiplication(mat_a, mat_a, A_t_A, n_equations, CUBLAS_OP_T);
-	cudaMatrixVectorMultiplication(mat_a, vec_b, result_x, n_equations, CUBLAS_OP_T);
+	cudaMatrixVectorMultiplication(mat_a, vec_b, result_x, n_equations);
 
 
 	cusolverStatus_t cusolverStatus;
