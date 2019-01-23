@@ -1,5 +1,8 @@
 ﻿<ProjectSettingsModel DefinitionId="a218e900-1199-4ab1-a767-7976786f04d4" DisplayName="Nexus Project User Settings" xmlns="clr-namespace:Ark.PropertyModel;assembly=Ark">
     <SettingsPointModel DefinitionId="3eb7ba04-016d-475e-b0ff-daa5f0e59a08" DisplayName="Launch">
+        <Property Name="ExternalStartProgram" Value="G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\project\x64\Debug\test.exe" />
+        <Property Name="LaunchAction" Value="StartExternalProgram" />
         <Property Name="LaunchSettingsModifiedByUser" Value="True" />
+        <Property Name="WorkingDirectory" Value="G:\Uni\TUM\Courses\ws18\3DScanning\kinectfusion-cuda\project\x64\Debug" />
     </SettingsPointModel>
 </ProjectSettingsModel>

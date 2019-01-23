@@ -36,31 +36,6 @@ protected:
     }
 };
 
-TEST_F(TransformationTests, TestSetGet)
-{
-    RigidTransform3D transform;
-
-    transform.setHomoMat(true_full_transform);
-    glm::mat4x4 homo_mat = transform.getHomoMat();
-
-    for (int col = 0; col < 4; col++)
-    {
-        for (int row = 0; row < 4; row++)
-        {
-            ASSERT_FLOAT_EQ(homo_mat[col][row], true_full_transform[col][row]);
-        }
-    }
-}
-
-glm::vec3 foo()
-{
-    glm::vec3 central_vertex(1.0, 2.0, 3.0);
-    glm::vec3 next_in_row(3.0, 2.0, 1.0);
-    glm::vec3 next_in_column(2.0, 1.0, 3.0);
-    return glm::normalize(glm::cross(next_in_row - central_vertex, next_in_column - central_vertex));
-}
-
-
 TEST_F(TransformationTests, TestComputeNormal)
 {
     std::array<std::array<float, 4>, 4> vertices = { { { 0.0,  0.0, 0.0, 0.0 },
@@ -68,7 +43,6 @@ TEST_F(TransformationTests, TestComputeNormal)
                                                        { 0.0,  4.0, 0.0, 0.0 },
                                                        { 3.0,  3.0, 3.0, 0.0 } } };
     glm::vec3 true_normal(0.0f, 0.0f, 1.0f);
-    glm::vec3 bar = foo();
 
     CudaGridMap vertex_map(width, height, format_description);
     int n_bytes = width * height * 16;

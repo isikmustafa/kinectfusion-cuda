@@ -52,7 +52,6 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />
     <ClCompile Include="src\rgbd_dataset.cpp" />
-    <ClCompile Include="src\rigid_transform_3d.cpp" />
     <ClCompile Include="src\timer.cpp" />
     <ClCompile Include="src\voxel_grid.cpp" />
     <ClCompile Include="src\window.cpp" />

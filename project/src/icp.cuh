@@ -34,16 +34,16 @@ namespace kernel
     float constructIcpResiduals(CudaGridMap &vertex_map, CudaGridMap &target_vertex_map, CudaGridMap &target_normal_map,
 		glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3x3 curr_rot_mat_estimate, 
         glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, float distance_thresh, float angle_thresh, 
-        std::array<float, 6> mat_A[], float vec_b[]);
+        float *mat_A, float *vec_b);
 }
 
-__device__ inline glm::vec2 computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
+__device__ inline glm::ivec2 computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
 	glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
 {
 	auto point = sensor_intrinsics * glm::transpose(prev_rot_mat) * (vertex_global - prev_transl_vec);
 	int u = glm::floor(point.x / point.z);
 	int v = glm::floor(point.y / point.z);
-	return glm::vec2(  u, v  );
+	return glm::ivec2(  u, v  );
 }
 
 __device__ inline void writeDummyResidual(float vec_a[], float *scalar_b)
@@ -91,5 +91,3 @@ __device__ inline void computeAndFillB(float *scalar_b, glm::vec3 &vertex_global
 
 	*scalar_b = n.x*d.x + n.y*d.y + n.z*d.z - n.x*s.x - n.y*s.y - n.z*s.z;
 }
-
-void solveLinearLeastSquares(float *mat_a, float *vec_b, unsigned int n_equations, float *result_x);

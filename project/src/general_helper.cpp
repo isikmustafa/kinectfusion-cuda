@@ -74,12 +74,12 @@ void writeSurface4x32(std::string file_name, cudaArray* gpu_source, int width, i
     stbi_write_png(final_path.c_str(), width, height, 3, byte_data_ptr, width * 3);
 }
 
-void writeDepthPyramidToFile(std::string file_name, std::array<CudaGridMap, 3> pyramid)
+void writeDepthPyramidToFile(std::string file_name,GridMapPyramid<CudaGridMap> pyramid)
 {
-    for (const CudaGridMap &map : pyramid)
+    for (int i = 0; i < 3; i++)
     {
-        auto dims = map.getGridDims();
-        writeSurface1x32(file_name, map.getCudaArray(), dims[0], dims[1]);
+        auto dims = pyramid[i].getGridDims();
+        writeSurface1x32(file_name, pyramid[i].getCudaArray(), dims[0], dims[1]);
     }
 }
 

@@ -30,11 +30,11 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
     int idx = u * width + v;
 
     //2. Check whether the vertex is valid
-    if (u > width && v > height)
+    if (u > width || v > height)
     {
         return;
     }
-	if (!device_helper::isValid(vertex_map, u, v)) 
+	if (!device_helper::isValid(vertex_map, u, v))
     {
 		writeDummyResidual(mat_A[idx], &vec_b[idx]);
 		return;
@@ -45,10 +45,11 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 	glm::vec3 vertex_global = curr_rot_mat_estimate * vertex_camera + current_transl_vec_estimate; 
 
     // 4. Run computeCorrespondence()
-	glm::vec2 corresponding_coords = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, sensor_intrinsics);
+	glm::ivec2 corresponding_coords = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, sensor_intrinsics);
     //5. Check for validity of the coordinates 
-    if (corresponding_coords.x < 0 && corresponding_coords.y < 0 &&
-        corresponding_coords.x >= width && corresponding_coords.y >= height)
+    if (corresponding_coords.x < 0 || corresponding_coords.y < 0 ||
+        corresponding_coords.x >= width || corresponding_coords.y >= height ||
+        !device_helper::isValid(target_vertex_map, corresponding_coords.x, corresponding_coords.y))
     {
         writeDummyResidual(mat_A[idx], &vec_b[idx]);
         return;
@@ -86,7 +87,7 @@ namespace kernel
     float constructIcpResiduals(CudaGridMap &vertex_map, CudaGridMap &target_vertex_map, CudaGridMap &target_normal_map, 
 		glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3x3 curr_rot_mat_estimate, 
         glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, float distance_thresh, float angle_thresh, 
-        std::array<float, 6> mat_A[], float vec_b[])
+        float *mat_A, float *vec_b)
     {
 		auto dims = vertex_map.getGridDims();
 
@@ -99,7 +100,7 @@ namespace kernel
 		constructIcpResidualsKernel<<<blocks, threads>>>(vertex_map.getCudaSurfaceObject(),  
             target_vertex_map.getCudaSurfaceObject(), target_normal_map.getCudaSurfaceObject(),  prev_rot_mat,  
             prev_transl_vec, curr_rot_mat_estimate, current_transl_vec_estimate, sensor_intrinsics, dims[0], dims[1], 
-            distance_thresh, angle_thresh, (float (*)[6])&mat_A[0][0], vec_b);
+            distance_thresh, angle_thresh, (float(*)[6])mat_A, vec_b);
 		end.record();
 		end.synchronize();
 

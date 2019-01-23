@@ -2,16 +2,9 @@
 #include "glm_macro.h"
 #include <glm/glm.hpp>
 
-class RigidTransform3D
+struct RigidTransform3D
 {
-public:
-    RigidTransform3D();
-    ~RigidTransform3D();
-
-    glm::mat4x4 getHomoMat();
-    void setHomoMat(glm::mat4x4 &mat);
-
-private:
-    glm::mat4x4 m_homo_mat;
+    glm::mat3x3 rot_mat;
+    glm::vec3 transl_vec;
 };
 

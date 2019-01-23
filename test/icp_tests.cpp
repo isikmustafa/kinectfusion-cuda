@@ -2,6 +2,8 @@
 
 #include <cuda_runtime.h>
 #include <cublas.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 #include "rigid_transform_3d.h"
 #include "icp.h"
@@ -9,6 +11,10 @@
 #include "icp.cuh"
 #include "cuda_utils.h"
 #include "linear_least_squares.h"
+#include "depth_map.h"
+#include "measurement.cuh"
+#include "sensor.h"
+#include "general_helper.h"
 
 
 class IcpTests : public ::testing::Test
@@ -19,9 +25,14 @@ protected:
     int height = 2;
     int n_iterations = 2;
     cudaChannelFormatDesc format_description = cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat);
-    std::vector<unsigned int> iters_per_layer = { 1, 2, 3 };
+    std::vector<unsigned int> iters_per_layer = { 2, 4, 10 };
     std::vector<void *> cuda_pointers_to_free;
     std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
+
+    glm::mat3x3 intrinsics = glm::mat3x3(
+        glm::vec3(2.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 2.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f));
     
     // 90 degree turn to the right
     glm::mat3x3 rotation_mat = glm::mat3x3(
@@ -44,7 +55,7 @@ TEST_F(IcpTests, TestInitialization)
 {
     RigidTransform3D transform;
 
-    ICP icp(transform, iters_per_layer, 4, 4, 1.0, 1.0);
+    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0, intrinsics);
 }
 
 TEST_F(IcpTests, TestComputeCorrespondence)
@@ -53,10 +64,6 @@ TEST_F(IcpTests, TestComputeCorrespondence)
                                             { 2.0,  2.0, 6.0 },
                                             {-1.0,  1.0, 3.0 },
                                             {-3.0, -3.0, 4.0 } } };
-    glm::mat3x3 intrinsics(
-        glm::vec3(2.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 2.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f));
     
     glm::vec3 translation_vec(0.0);
     
@@ -164,9 +171,9 @@ TEST_F(IcpTests, TestSolveLinearSystem)
 TEST_F(IcpTests, TestConstructIcpResiduals)
 {
     std::array<std::array<float, 4>, 4> target_vertices = { { { 1.0,  1.0, 3.0, -1.0 },
-                                                              { 1.0, -1.0, 3.0, -2.0 },
-                                                              {-1.0,  1.0, 3.0, -2.0 },
-                                                              {-1.0, -1.0, 3.0, -2.0 } } };
+                                                              { 1.0, -1.0, 3.0, -1.0 },
+                                                              {-1.0,  1.0, 3.0, -1.0 },
+                                                              {-1.0, -1.0, 3.0, -1.0 } } };
     CudaGridMap target_vertex_map(2, 2, format_description);
     int n_bytes = 16 * 2 * 2;
     HANDLE_ERROR(cudaMemcpyToArray(target_vertex_map.getCudaArray(), 0, 0, &target_vertices[0][0], n_bytes,
@@ -215,7 +222,7 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
     std::cout.rdbuf(std::cerr.rdbuf());
 
     kernel::constructIcpResiduals(vertex_map, target_vertex_map, target_normal_map, no_rotation, no_translation,
-        no_rotation, no_translation, intrinsics, distance_threshold, angle_threshold, &(*mat_a_device)[0],
+        no_rotation, no_translation, intrinsics, distance_threshold, angle_threshold, (float *)mat_a_device, 
         (float*)vec_b_device);
 
     HANDLE_ERROR(cudaDeviceSynchronize());
@@ -232,5 +239,76 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
             ASSERT_FLOAT_EQ(true_mat_a[i][j], mat_a[i][j]);
         }
         ASSERT_FLOAT_EQ(true_vec_b[i], vec_b[i]);
+    }
+}
+
+TEST_F(IcpTests, TestComputePose)
+{
+    const std::string path_frame_1 = "../../1305031102.160407.png";
+    const std::string path_frame_2 = "../../1305031102.194330.png";
+    const int width = 640;
+    const int height = 480;
+
+    cudaChannelFormatDesc raw_depth_desc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
+    cudaChannelFormatDesc depth_desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
+
+    DepthMap raw_depth_map_1(width, height, raw_depth_desc);
+    DepthMap raw_depth_map_2(width, height, raw_depth_desc);
+
+    raw_depth_map_1.update(path_frame_1);
+    raw_depth_map_2.update(path_frame_2);
+
+    CudaGridMap raw_depth_map_meters_1(width, height, depth_desc);
+    CudaGridMap raw_depth_map_meters_2(width, height, depth_desc);
+    kernel::convertToDepthMeters(raw_depth_map_1, raw_depth_map_meters_1, 1.0f / 5000.0f);
+    kernel::convertToDepthMeters(raw_depth_map_2, raw_depth_map_meters_2, 1.0f / 5000.0f);
+
+    GridMapPyramid<CudaGridMap> depth_map_pyramid_1(width, height, iters_per_layer.size(), depth_desc);
+    kernel::applyBilateralFilter(raw_depth_map_meters_1, depth_map_pyramid_1[0]);
+    kernel::downSample(depth_map_pyramid_1[0], depth_map_pyramid_1[1]);
+    kernel::downSample(depth_map_pyramid_1[1], depth_map_pyramid_1[2]);
+
+    GridMapPyramid<CudaGridMap> depth_map_pyramid_2(width, height, iters_per_layer.size(), depth_desc);
+    kernel::applyBilateralFilter(raw_depth_map_meters_2, depth_map_pyramid_2[0]);
+    kernel::downSample(depth_map_pyramid_2[0], depth_map_pyramid_2[1]);
+    kernel::downSample(depth_map_pyramid_2[1], depth_map_pyramid_2[2]);
+
+    Sensor depth_sensor;
+
+    GridMapPyramid<CudaGridMap> vertex_map_pyramid_1(width, height, iters_per_layer.size(), format_description);
+    kernel::createVertexMap(depth_map_pyramid_1[0], vertex_map_pyramid_1[0], depth_sensor.getInverseIntr());
+    kernel::createVertexMap(depth_map_pyramid_1[1], vertex_map_pyramid_1[1], depth_sensor.getInverseIntr());
+    kernel::createVertexMap(depth_map_pyramid_1[2], vertex_map_pyramid_1[2], depth_sensor.getInverseIntr());
+
+    GridMapPyramid<CudaGridMap> vertex_map_pyramid_2(width, height, iters_per_layer.size(), format_description);
+    kernel::createVertexMap(depth_map_pyramid_2[0], vertex_map_pyramid_2[0], depth_sensor.getInverseIntr());
+    kernel::createVertexMap(depth_map_pyramid_2[1], vertex_map_pyramid_2[1], depth_sensor.getInverseIntr());
+    kernel::createVertexMap(depth_map_pyramid_2[2], vertex_map_pyramid_2[2], depth_sensor.getInverseIntr());
+    
+    RigidTransform3D previous_pose;
+    glm::fquat quaternion(0.6132f, 0.5962f, -0.3311f, -0.3986f);
+    previous_pose.rot_mat = glm::toMat3(quaternion);
+    previous_pose.transl_vec = glm::vec3(1.3563f, 0.6305f, 1.6380f);
+
+    RigidTransform3D true_pose;
+    quaternion = glm::fquat(0.6129f, 0.5966f, -0.3316f, -0.3980f);
+    true_pose.rot_mat = glm::toMat3(quaternion);
+    true_pose.transl_vec = glm::vec3(1.3543f, 0.6306f, 1.6360f);
+
+    HANDLE_ERROR(cudaDeviceSynchronize());
+
+    ICP icp(iters_per_layer, width, height, 0.3, pi/2.0, depth_sensor.getIntr());
+    RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, previous_pose);
+
+    float tolerance;
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            tolerance = glm::abs(true_pose.rot_mat[i][j] - previous_pose.rot_mat[i][j]) / 2.0;
+            ASSERT_NEAR(true_pose.rot_mat[i][j], pose_estimate.rot_mat[i][j], tolerance);
+        }
+        tolerance = glm::abs(true_pose.transl_vec[i] - previous_pose.transl_vec[i]) / 2.0;
+        ASSERT_NEAR(true_pose.transl_vec[i], pose_estimate.transl_vec[i], tolerance);
     }
 }

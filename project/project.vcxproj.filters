@@ -102,9 +102,6 @@
     <ClCompile Include="src\cuda_grid_map.cpp">
       <Filter>DataStructures</Filter>
     </ClCompile>
-    <ClCompile Include="src\rigid_transform_3d.cpp">
-      <Filter>DataStructures</Filter>
-    </ClCompile>
     <ClCompile Include="src\icp.cpp">
       <Filter>PoseEstimation</Filter>
     </ClCompile>
