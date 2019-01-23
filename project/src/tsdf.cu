@@ -33,7 +33,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 
 		//1-Project point into image space of sensor and perform homogeneous division.
 		glm::vec3 point_eye = sensor.getInversePose() * glm::vec4(point, 1.0f);
-		auto pixel = sensor.getIntr() * point_eye;
+		auto pixel = sensor.getIntr(0) * point_eye;
 		pixel /= pixel.z;
 
 		//2-Check if it is in the view frustum. If not, don't do anything.

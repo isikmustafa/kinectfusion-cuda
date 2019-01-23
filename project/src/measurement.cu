@@ -95,7 +95,7 @@ __global__ void downSampleKernel(cudaSurfaceObject_t depth_map, cudaSurfaceObjec
 	surf2Dwrite(acc / count, depth_map_downsampled, i * 4, j);
 }
 
-__global__ void createVertexMapKernel(cudaSurfaceObject_t depth_map, cudaSurfaceObject_t vertex_map, glm::mat3 inv_cam_k, float scale)
+__global__ void createVertexMapKernel(cudaSurfaceObject_t depth_map, cudaSurfaceObject_t vertex_map, glm::mat3 inv_cam_k)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
@@ -106,8 +106,6 @@ __global__ void createVertexMapKernel(cudaSurfaceObject_t depth_map, cudaSurface
 	if (device_helper::isDepthValid(depth))
 	{
 		glm::vec3 p(i + 0.5f, j + 0.5f, 1.0f);
-		p.x *= scale;
-		p.y *= scale;
 		p = inv_cam_k * p;
 		p *= depth;
 
@@ -208,7 +206,7 @@ namespace kernel
 		dim3 threads(8, 8);
 		dim3 blocks(dims_input[0] / threads.x, dims_input[1] / threads.y);
 		start.record();
-		createVertexMapKernel << <blocks, threads >> > (depth_map.getCudaSurfaceObject(), vertex_map.getCudaSurfaceObject(), inv_cam_k, 640 / dims_input[0]);
+		createVertexMapKernel << <blocks, threads >> > (depth_map.getCudaSurfaceObject(), vertex_map.getCudaSurfaceObject(), inv_cam_k);
 		end.record();
 		end.synchronize();
 
