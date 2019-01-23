@@ -15,6 +15,7 @@
 #include "measurement.cuh"
 #include "sensor.h"
 #include "general_helper.h"
+#include "rgbd_dataset.h"
 
 
 class IcpTests : public ::testing::Test
@@ -244,60 +245,70 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
 
 TEST_F(IcpTests, TestComputePose)
 {
-    const std::string path_frame_1 = "../../1305031102.160407.png";
-    const std::string path_frame_2 = "../../1305031102.194330.png";
+    // ####### Preparation ########
     const int width = 640;
     const int height = 480;
 
     cudaChannelFormatDesc raw_depth_desc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc depth_desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
 
+    RgbdDataset rgbd_dataset;
+    rgbd_dataset.load("../../rgbd_dataset_freiburg1_xyz");
+    
+    Sensor depth_sensor;
+
+    // ######### Frame 1 ###########
     DepthMap raw_depth_map_1(width, height, raw_depth_desc);
-    DepthMap raw_depth_map_2(width, height, raw_depth_desc);
-
-    raw_depth_map_1.update(path_frame_1);
-    raw_depth_map_2.update(path_frame_2);
-
+    auto next = rgbd_dataset.nextDepthAndPose();
+    raw_depth_map_1.update(next.first);
+    depth_sensor.setPose(next.second);
     CudaGridMap raw_depth_map_meters_1(width, height, depth_desc);
-    CudaGridMap raw_depth_map_meters_2(width, height, depth_desc);
     kernel::convertToDepthMeters(raw_depth_map_1, raw_depth_map_meters_1, 1.0f / 5000.0f);
-    kernel::convertToDepthMeters(raw_depth_map_2, raw_depth_map_meters_2, 1.0f / 5000.0f);
-
+    
     GridMapPyramid<CudaGridMap> depth_map_pyramid_1(width, height, iters_per_layer.size(), depth_desc);
     kernel::applyBilateralFilter(raw_depth_map_meters_1, depth_map_pyramid_1[0]);
     kernel::downSample(depth_map_pyramid_1[0], depth_map_pyramid_1[1]);
     kernel::downSample(depth_map_pyramid_1[1], depth_map_pyramid_1[2]);
+
+    GridMapPyramid<CudaGridMap> vertex_map_pyramid_1(width, height, iters_per_layer.size(), format_description);
+    kernel::createVertexMap(depth_map_pyramid_1[0], vertex_map_pyramid_1[0], depth_sensor.getInverseIntr(0));
+    kernel::createVertexMap(depth_map_pyramid_1[1], vertex_map_pyramid_1[1], depth_sensor.getInverseIntr(1));
+    kernel::createVertexMap(depth_map_pyramid_1[2], vertex_map_pyramid_1[2], depth_sensor.getInverseIntr(2));
+    
+    // ######### Save pose #########
+    RigidTransform3D previous_pose;
+    glm::mat4x4 homo = next.second;
+    previous_pose.rot_mat = glm::mat3(homo);
+    previous_pose.transl_vec = homo[3];
+
+    // ######### Frame 2 ###########
+    DepthMap raw_depth_map_2(width, height, raw_depth_desc);
+    next = rgbd_dataset.nextDepthAndPose();
+    raw_depth_map_2.update(next.first);
+    depth_sensor.setPose(next.second);
+
+    CudaGridMap raw_depth_map_meters_2(width, height, depth_desc);
+    kernel::convertToDepthMeters(raw_depth_map_2, raw_depth_map_meters_2, 1.0f / 5000.0f);
 
     GridMapPyramid<CudaGridMap> depth_map_pyramid_2(width, height, iters_per_layer.size(), depth_desc);
     kernel::applyBilateralFilter(raw_depth_map_meters_2, depth_map_pyramid_2[0]);
     kernel::downSample(depth_map_pyramid_2[0], depth_map_pyramid_2[1]);
     kernel::downSample(depth_map_pyramid_2[1], depth_map_pyramid_2[2]);
 
-    Sensor depth_sensor;
-
-    GridMapPyramid<CudaGridMap> vertex_map_pyramid_1(width, height, iters_per_layer.size(), format_description);
-    kernel::createVertexMap(depth_map_pyramid_1[0], vertex_map_pyramid_1[0], depth_sensor.getInverseIntr());
-    kernel::createVertexMap(depth_map_pyramid_1[1], vertex_map_pyramid_1[1], depth_sensor.getInverseIntr());
-    kernel::createVertexMap(depth_map_pyramid_1[2], vertex_map_pyramid_1[2], depth_sensor.getInverseIntr());
-
     GridMapPyramid<CudaGridMap> vertex_map_pyramid_2(width, height, iters_per_layer.size(), format_description);
-    kernel::createVertexMap(depth_map_pyramid_2[0], vertex_map_pyramid_2[0], depth_sensor.getInverseIntr());
-    kernel::createVertexMap(depth_map_pyramid_2[1], vertex_map_pyramid_2[1], depth_sensor.getInverseIntr());
-    kernel::createVertexMap(depth_map_pyramid_2[2], vertex_map_pyramid_2[2], depth_sensor.getInverseIntr());
+    kernel::createVertexMap(depth_map_pyramid_2[0], vertex_map_pyramid_2[0], depth_sensor.getInverseIntr(0));
+    kernel::createVertexMap(depth_map_pyramid_2[1], vertex_map_pyramid_2[1], depth_sensor.getInverseIntr(1));
+    kernel::createVertexMap(depth_map_pyramid_2[2], vertex_map_pyramid_2[2], depth_sensor.getInverseIntr(2));
     
-    RigidTransform3D previous_pose;
-    glm::fquat quaternion(0.6132f, 0.5962f, -0.3311f, -0.3986f);
-    previous_pose.rot_mat = glm::toMat3(quaternion);
-    previous_pose.transl_vec = glm::vec3(1.3563f, 0.6305f, 1.6380f);
-
+    // ######### Save pse #########
     RigidTransform3D true_pose;
-    quaternion = glm::fquat(0.6129f, 0.5966f, -0.3316f, -0.3980f);
-    true_pose.rot_mat = glm::toMat3(quaternion);
-    true_pose.transl_vec = glm::vec3(1.3543f, 0.6306f, 1.6360f);
+    homo = next.second;
+    true_pose.rot_mat = glm::mat3(homo);
+    true_pose.transl_vec = homo[3];
 
     HANDLE_ERROR(cudaDeviceSynchronize());
 
-    ICP icp(iters_per_layer, width, height, 0.3, pi/2.0, depth_sensor.getIntr());
+    ICP icp(iters_per_layer, width, height, 100000.0, pi, depth_sensor.getIntr(0));
     RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, previous_pose);
 
     float tolerance;

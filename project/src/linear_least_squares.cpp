@@ -30,7 +30,7 @@ void LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n
 {
     // Use the result vector as buffer for the result
     float *bias_vec = result_x;
-    
+
     // Calcuate the squared coefficient matrix and the bias vector for the system: coeff_mat * x = bias_vec
     //      coeff_mat = transpose(mat_a) * mat_a
     //      bias_vec = transpose(mat_a) * vec_b
@@ -41,10 +41,14 @@ void LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n
     // Cholesky decomposition of coeff_mat = L * L^T, lower triangle of coeff_mat is replaced by the factor L
     HANDLE_CUSOLVER_ERROR(cusolverDnSpotrf(m_handle, m_fillmode, m_n_variables, m_coef_mat, m_n_variables, m_workspace,
         m_workspace_size, m_info));
+
+    std::cout << "Error info after decomposition: " << getErrorInfo() << std::endl;
     
     // Solve coeff_mat * x = bias_vec , where coeff_mat is cholesky factorized, bias_vec is overwritten by the solution
     cusolverDnSpotrs(m_handle, m_fillmode, m_n_variables, 1, m_coef_mat, m_n_variables, bias_vec, m_n_variables, m_info);
     HANDLE_ERROR(cudaDeviceSynchronize());
+
+    std::cout << "Error info after solving: " << getErrorInfo() << std::endl;
 
     // Finished: result_x already points to the solution
 }

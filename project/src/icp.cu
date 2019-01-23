@@ -27,7 +27,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 	/* 1. Compute indices (u, v) from thread index*/
 	int u = blockIdx.x * blockDim.x + threadIdx.x;
 	int v = blockIdx.y * blockDim.y + threadIdx.y;
-    int idx = u * width + v;
+    int idx = v * width + u;
 
     //2. Check whether the vertex is valid
     if (u > width || v > height)
@@ -39,7 +39,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 		writeDummyResidual(mat_A[idx], &vec_b[idx]);
 		return;
 	}
-   
+
     // 3. Transform the vertex into the global frame
     glm::vec3 vertex_camera = device_helper::readVec3(vertex_map, u, v);
 	glm::vec3 vertex_global = curr_rot_mat_estimate * vertex_camera + current_transl_vec_estimate; 

@@ -12,6 +12,7 @@
 #include "cuda_event.h"
 #include "general_helper.h"
 #include "linear_least_squares.h"
+#include "rgbd_dataset.h"
 
 #include "cuda_grid_map.cpp"
 #include "depth_map.cpp"
@@ -19,3 +20,4 @@
 #include "cuda_event.cpp"
 #include "general_helper.cpp"
 #include "linear_least_squares.cpp"
+#include "rgbd_dataset.cpp"

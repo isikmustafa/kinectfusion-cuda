@@ -38,32 +38,20 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
     // Initialize pose estimate to current one
     RigidTransform3D pose_estimate = previous_pose;
 
-    //for (int layer = m_iters_per_layer.size() - 1; layer > 0; layer--)
-    //{
-    //    for (int i = 0; i < m_iters_per_layer[layer]; i++)
-    //    {
-    //        kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
-    //            m_target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
-    //            pose_estimate.transl_vec, m_sensor_intrinsics, m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
-    //
-    //        auto grid_dims = vertex_pyramid[layer].getGridDims();
-    //        solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
-    //
-    //        updatePose(pose_estimate);
-    //    }
-    //}
-
-    for (int i = 0; i < m_iters_per_layer[0]; i++)
+    for (int layer = m_iters_per_layer.size() - 1; layer > 0; layer--)
+    {
+        for (int i = 0; i < m_iters_per_layer[layer]; i++)
         {
-            kernel::constructIcpResiduals(vertex_pyramid[0], target_vertex_pyramid[0], 
-                m_target_normal_pyramid[0], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
+            kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
+                m_target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
                 pose_estimate.transl_vec, m_sensor_intrinsics, m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
-        
-            auto grid_dims = vertex_pyramid[0].getGridDims();
+     
+            auto grid_dims = vertex_pyramid[layer].getGridDims();
             solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
-        
+    
             updatePose(pose_estimate);
         }
+    }
 
     return pose_estimate;
 }
