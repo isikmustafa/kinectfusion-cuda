@@ -1,6 +1,8 @@
 #pragma once
 #include "icp.h"
 #include <cusolverDn.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/transform.hpp>
 
 #include "cuda_utils.h"
 #include "measurement.cuh"
@@ -38,15 +40,28 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
     // Initialize pose estimate to current one
     RigidTransform3D pose_estimate = previous_pose;
 
-    for (int layer = m_iters_per_layer.size() - 1; layer > 0; layer--)
+    for (int layer = m_iters_per_layer.size() - 1; layer >= 0; layer--)
     {
         for (int i = 0; i < m_iters_per_layer[layer]; i++)
         {
             kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
                 m_target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
                 pose_estimate.transl_vec, m_sensor_intrinsics, m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
-     
+
             auto grid_dims = vertex_pyramid[layer].getGridDims();
+
+            // DEBUG >>>>>>>>>>
+            std::vector<float> temp(grid_dims[0] * grid_dims[1]);
+            HANDLE_ERROR(cudaMemcpy(&(temp[0]), m_vec_b, sizeof(float) * grid_dims[0] * grid_dims[1], cudaMemcpyDeviceToHost));
+
+            int counter = 0;
+            for (int i = 0; i < grid_dims[0] * grid_dims[1]; i++)
+            {
+                if (temp[i] != 0.0f) counter++;
+            }
+
+            std::cout << counter << std::endl;
+            // <<<<<<<<<<<<<<
             solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
             updatePose(pose_estimate);
@@ -68,12 +83,17 @@ void ICP::updatePose(RigidTransform3D &pose)
     float t_y = vec_x_host[4];
     float t_z = vec_x_host[5];
 
+    if (isnan(alpha) || isnan(beta) || isnan(gamma) || isnan(t_x), isnan(t_y), isnan(t_z))
+    {
+        throw std::runtime_error("Error: NANs in result vector x.");
+    }
+
     glm::mat3x3 incremental_rotation(
-        glm::vec3(  1.0f, -alpha, gamma),
-        glm::vec3( alpha,  1.0f,  -beta),
-        glm::vec3(-gamma, -beta,  1.0f));
+        glm::rotate(alpha, glm::vec3(1.0f, 0.0f, 0.0f)) 
+        * glm::rotate(beta, glm::vec3(0.0f, 1.0f, 0.0f)) 
+        * glm::rotate(gamma, glm::vec3(0.0f, 0.0f, 1.0f)));
     glm::vec3 incremental_translation(t_x, t_y, t_z);
 
     pose.rot_mat = incremental_rotation * pose.rot_mat;
-    pose.transl_vec = incremental_translation + pose.transl_vec;
+    pose.transl_vec = incremental_rotation * pose.transl_vec + incremental_translation;
 }

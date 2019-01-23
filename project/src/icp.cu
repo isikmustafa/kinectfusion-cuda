@@ -45,17 +45,22 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 	glm::vec3 vertex_global = curr_rot_mat_estimate * vertex_camera + current_transl_vec_estimate; 
 
     // 4. Run computeCorrespondence()
-	glm::ivec2 corresponding_coords = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, sensor_intrinsics);
-    //5. Check for validity of the coordinates 
-    if (corresponding_coords.x < 0 || corresponding_coords.y < 0 ||
-        corresponding_coords.x >= width || corresponding_coords.y >= height ||
-        !device_helper::isValid(target_vertex_map, corresponding_coords.x, corresponding_coords.y))
+	glm::ivec2 corresponding_coords = computeCorrespondence(vertex_global, prev_rot_mat, prev_transl_vec, 
+        sensor_intrinsics);
+    int u_corr = corresponding_coords.x;
+    int v_corr = corresponding_coords.y;
+
+    //5. Check for validity of the correspondence
+    if (u_corr < 0 || v_corr < 0 || u_corr >= width || v_corr >= height ||
+        !device_helper::isValid(target_vertex_map, u_corr, v_corr) ||
+        !device_helper::isValid(target_normal_map, u_corr, v_corr))
     {
         writeDummyResidual(mat_A[idx], &vec_b[idx]);
         return;
     }
 
 	glm::vec3 target_vertex = device_helper::readVec3(target_vertex_map, u, v);
+    
     // 6. Check for the distance constraint
 	if(verticesAreTooFarAway(vertex_global, target_vertex, distance_thresh) )
 	{ 
@@ -66,10 +71,15 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
     glm::vec3 target_normal = device_helper::readVec3(target_normal_map, u, v);
 
     //7. Compute the normal for the vertex
-    glm::vec3 normal = device_helper::computeNormal(vertex_map, u, v);
+    glm::vec4 normal = device_helper::computeNormal(vertex_map, u, v);
+    if (normal.w == device_helper::cInvalid)
+    {
+        writeDummyResidual(mat_A[idx], &vec_b[idx]);
+        return;
+    }
 
     //8. Check for the angle constraint
-    if (normalsAreTooDifferent(normal, target_normal, curr_rot_mat_estimate, angle_thresh))
+    if (normalsAreTooDifferent(glm::vec3(normal), target_normal, curr_rot_mat_estimate, angle_thresh))
     {
         writeDummyResidual(mat_A[idx], &vec_b[idx]);
         return;

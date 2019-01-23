@@ -308,7 +308,7 @@ TEST_F(IcpTests, TestComputePose)
 
     HANDLE_ERROR(cudaDeviceSynchronize());
 
-    ICP icp(iters_per_layer, width, height, 100000.0, pi, depth_sensor.getIntr(0));
+    ICP icp(iters_per_layer, width, height, 10.0, pi/2.0, depth_sensor.getIntr(0));
     RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, previous_pose);
 
     float tolerance;

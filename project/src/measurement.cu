@@ -124,7 +124,7 @@ __global__ void createNormalMapKernel(cudaSurfaceObject_t vertex_map, cudaSurfac
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
     auto normal = device_helper::computeNormal(vertex_map, i, j);
-	device_helper::writeVec3(normal, normal_map, i, j);
+    device_helper::writeVec4(normal, normal_map, i, j);
 }
 
 namespace kernel
