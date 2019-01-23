@@ -49,7 +49,7 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 
 	auto ray_origin = sensor.getPosition();
 	//Do not normalize the direction. pos = origin + dir * depth.
-	auto ray_direction = glm::mat3(sensor.getPose()) * sensor.getInverseIntr() * glm::vec3(i + 0.5f, j + 0.5f, 1.0f);
+	auto ray_direction = glm::mat3(sensor.getPose()) * sensor.getInverseIntr(0) * glm::vec3(i + 0.5f, j + 0.5f, 1.0f);
 
 	//For an efficient and correct solution, intersect the ray first with bounding box of the voxel grid to determine near and far distance
 	//for ray casting.

@@ -12,7 +12,7 @@ __global__ void oneHalfChannelToWindowContentKernel(cudaSurfaceObject_t surface,
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
 	unsigned short h_pixel;
-	surf2Dread(&h_pixel, surface, i * 2, j);
+	surf2Dread(&h_pixel, surface, i * 2, j, cudaBoundaryModeZero);
 
 	auto pixel = static_cast<unsigned char>(__half2float(h_pixel) * scale);
 
@@ -30,7 +30,7 @@ __global__ void oneFloatChannelToWindowContentKernel(cudaSurfaceObject_t surface
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
 	float f_pixel;
-	surf2Dread(&f_pixel, surface, i * 4, j);
+	surf2Dread(&f_pixel, surface, i * 4, j, cudaBoundaryModeZero);
 
 	auto pixel = static_cast<unsigned char>(f_pixel * scale);
 
@@ -49,9 +49,9 @@ __global__ void fourFloatChannelToWindowContentKernel(cudaSurfaceObject_t surfac
 
 	float r, g, b;
 	int idx = i * 16;
-	surf2Dread(&r, surface, idx, j);
-	surf2Dread(&g, surface, idx + 4, j);
-	surf2Dread(&b, surface, idx + 8, j);
+	surf2Dread(&r, surface, idx, j, cudaBoundaryModeZero);
+	surf2Dread(&g, surface, idx + 4, j, cudaBoundaryModeZero);
+	surf2Dread(&b, surface, idx + 8, j, cudaBoundaryModeZero);
 
 	unsigned int pixel_w = (255) << 8;
 	pixel_w = (pixel_w | static_cast<unsigned char>(b * scale)) << 8;
@@ -68,11 +68,11 @@ __global__ void shadingToWindowContentKernel(cudaSurfaceObject_t normal_map, cud
 
 	glm::vec3 normal;
 	int idx = i * 16;
-	surf2Dread(&normal.x, normal_map, idx, j);
-	surf2Dread(&normal.y, normal_map, idx + 4, j);
-	surf2Dread(&normal.z, normal_map, idx + 8, j);
+	surf2Dread(&normal.x, normal_map, idx, j, cudaBoundaryModeZero);
+	surf2Dread(&normal.y, normal_map, idx + 4, j, cudaBoundaryModeZero);
+	surf2Dread(&normal.z, normal_map, idx + 8, j, cudaBoundaryModeZero);
 
-	auto ray_direction = glm::normalize(glm::mat3(sensor.getPose()) * sensor.getInverseIntr() * glm::vec3(i + 0.5f, j + 0.5f, 1.0f));
+	auto ray_direction = glm::normalize(glm::mat3(sensor.getPose()) * sensor.getInverseIntr(0) * glm::vec3(i + 0.5f, j + 0.5f, 1.0f));
 	auto radiance = glm::abs(glm::dot(normal, ray_direction));
 
 	unsigned int pixel_w = (255) << 8;
