@@ -64,6 +64,9 @@
     <ClInclude Include="src\display.cuh">
       <Filter>I/O</Filter>
     </ClInclude>
+    <ClInclude Include="src\linear_least_squares.h">
+      <Filter>PoseEstimation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -113,6 +116,9 @@
     </ClCompile>
     <ClCompile Include="src\rgbd_dataset.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\linear_least_squares.cpp">
+      <Filter>PoseEstimation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

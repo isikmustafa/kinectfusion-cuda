@@ -1,8 +1,34 @@
 #include "general_helper.h"
 
+#undef STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
 #include "cuda_utils.h"
+
+void cudaMatrixMatrixMultiplication(float *mat_left_transp, float *mat_right_transp, float *mat_out_transp,
+    int n_rows_left, int n_cols_left, int n_cols_right, cublasOperation_t operation_right)
+{
+    cublasHandle_t cublas_handle;
+    HANDLE_CUBLAS_ERROR(cublasCreate(&cublas_handle));
+
+    float alpha = 1.0f;
+    float beta = 0.0f;
+
+    HANDLE_CUBLAS_ERROR(cublasSgemm(cublas_handle, CUBLAS_OP_N, operation_right, n_rows_left, n_cols_right, n_cols_left,
+        &alpha, mat_left_transp, n_rows_left, mat_right_transp, n_cols_right, &beta, mat_out_transp, n_rows_left));
+}
+
+void cudaMatrixVectorMultiplication(float *mat_left_transp, float *vec_right, float *vec_out, int n_rows, int n_cols)
+{
+    cublasHandle_t cublas_handle;
+    HANDLE_CUBLAS_ERROR(cublasCreate(&cublas_handle));
+
+    float alpha = 1.0f;
+    float beta = 1.0f;
+
+    HANDLE_CUBLAS_ERROR(cublasSgemv(cublas_handle, CUBLAS_OP_N, n_rows, n_cols, &alpha, mat_left_transp, n_rows, 
+        vec_right, 1, &beta, vec_out, 1));
+}
 
 void writeSurface1x32(std::string file_name, cudaArray* gpu_source, int width, int height)
 {
