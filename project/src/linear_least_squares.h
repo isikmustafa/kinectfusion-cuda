@@ -13,7 +13,7 @@ public:
         All three arrays (mat_a_tranp, vec_b and result_x) have to be located on device memory.
         The function expects the transpose of A in column major format.
     */
-    void solve(float *mat_a_transp, float *vec_b, unsigned int n_equations, float *result_x);
+    float solve(float *mat_a_transp, float *vec_b, unsigned int n_equations, float *result_x);
     int getErrorInfo();
 
 private:

@@ -4,6 +4,7 @@
 
 #include "cuda_utils.h"
 #include "general_helper.h"
+#include "timer.h"
 
 LinearLeastSquares::LinearLeastSquares()
 {
@@ -26,8 +27,11 @@ LinearLeastSquares::~LinearLeastSquares()
     HANDLE_ERROR(cudaFree(m_info));
 }
 
-void LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n_equations, float *result_x)
+float LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n_equations, float *result_x)
 {
+    Timer timer;
+    timer.start();
+
     // Use the result vector as buffer for the result
     float *bias_vec = result_x;
 
@@ -49,6 +53,7 @@ void LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n
     HANDLE_ERROR(cudaDeviceSynchronize());
 
     // Finished: result_x already points to the solution
+    return timer.getTime();
 }
 
 int LinearLeastSquares::getErrorInfo()

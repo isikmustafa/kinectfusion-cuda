@@ -24,12 +24,15 @@ public:
     RigidTransform3D computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
         GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid,
         RigidTransform3D &previous_pose, Sensor sensor);
+    
+    std::array<float, 2> getExecutionTimes();
 
 private:
     cudaChannelFormatDesc m_normal_format_description;
     std::vector<unsigned int> m_iters_per_layer;
     float m_distance_thresh;
     float m_angle_thresh;
+    std::array<float, 2> m_execution_times;
     
     // Buffers for the residual paramterers and the result, allocated once
     float *m_mat_a;

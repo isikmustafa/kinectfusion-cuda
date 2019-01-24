@@ -32,7 +32,13 @@ int main()
     // Initialization
     Sensor moving_sensor;
     Sensor fixed_sensor;
-    fixed_sensor.setPose(glm::mat4x4(1.0));
+    glm::mat4x4 viewpoint(
+        glm::vec4(1.0f,  0.0f,   0.0f,  0.0),
+        glm::vec4(0.0f,  0.86f, -0.5f,  0.0),
+        glm::vec4(0.0f,  0.5f,   0.86f, 0.0),
+        glm::vec4(0.0f, -1.0f,  -0.5f,  1.0f));
+    fixed_sensor.setPose(viewpoint);
+    
     
     VoxelGrid voxel_grid(3.0f, 512);
     kernel::initializeGrid(voxel_grid.getStruct(), Voxel());
@@ -119,8 +125,9 @@ int main()
         // Compute the camera pose for the new frame
         pose_estimate = icp_registrator.computePose(vertex_pyramid, predicted_vertex_pyramid, predicted_normal_pyramid,
             pose_estimate, moving_sensor);
-            
-            // TODO: implement getLastExecutionTime() function for icp
+
+        auto icp_execution_times = icp_registrator.getExecutionTimes();
+        kernel_time += icp_execution_times[0] + icp_execution_times[1];
 
         moving_sensor.setPose(glm::mat4x4(
             glm::vec4(pose_estimate.rot_mat[0], 0.0f),
