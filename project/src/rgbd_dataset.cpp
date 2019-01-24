@@ -79,11 +79,6 @@ std::pair<std::string, glm::mat4> RgbdDataset::nextDepthAndPose()
 	return m_depth_pose_pairs[m_current_index++];
 }
 
-std::string RgbdDataset::nextDepth()
-{
-    return nextDepthAndPose().first;
-}
-
 bool RgbdDataset::isFinished() const
 {
 	return m_current_index >= m_depth_pose_pairs.size();

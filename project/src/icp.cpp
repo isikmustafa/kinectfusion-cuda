@@ -32,17 +32,18 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
 {
     // Initialize pose estimate to current one
     RigidTransform3D pose_estimate = previous_pose;
+	m_execution_times = { 0.0f, 0.0f };
 
     for (int layer = m_iters_per_layer.size() - 1; layer >= 0; layer--)
     {
         for (int i = 0; i < m_iters_per_layer[layer]; i++)
         {
-            m_execution_times[0] = kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
+            m_execution_times[0] += kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
                 target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
                 pose_estimate.transl_vec, sensor.getIntr(layer), m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
 
             auto grid_dims = vertex_pyramid[layer].getGridDims();
-            m_execution_times[1] = solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
+            m_execution_times[1] += solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
             updatePose(pose_estimate);
         }

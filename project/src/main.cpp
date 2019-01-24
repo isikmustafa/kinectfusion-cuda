@@ -14,6 +14,8 @@
 #include "display.cuh"
 #include "icp.h"
 
+#include <iostream>
+
 int main()
 {
     // Configuration
@@ -69,7 +71,7 @@ int main()
     std::string depth_path;
     if (!use_kinect)
     {
-        depth_path = rgbd_dataset.nextDepth();
+        depth_path = rgbd_dataset.nextDepthAndPose().first;
     }    
     else
     {
@@ -97,7 +99,7 @@ int main()
 		}
 		else if (!rgbd_dataset.isFinished())
 		{
-			depth_path = rgbd_dataset.nextDepth();
+			depth_path = rgbd_dataset.nextDepthAndPose().first;
 			raw_depth_map.update(depth_path);
 		}
         else
@@ -153,6 +155,9 @@ int main()
         window.draw();
 		window.setWindowTitle("Total frame time: " + std::to_string(timer.getTime() * 1000.0) +
 			" , Total kernel execution time: " + std::to_string(kernel_time));
+
+		std::cout << "ICP execution time(1): " << icp_execution_times[0] << std::endl;
+		std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;
 	}
 
 	writeSurface4x32("predicted.png", predicted_normal_pyramid[0].getCudaArray(), 640, 480);

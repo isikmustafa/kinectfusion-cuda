@@ -53,7 +53,7 @@ float LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int 
     HANDLE_ERROR(cudaDeviceSynchronize());
 
     // Finished: result_x already points to the solution
-    return timer.getTime();
+    return timer.getTime() * 1000.0;
 }
 
 int LinearLeastSquares::getErrorInfo()
