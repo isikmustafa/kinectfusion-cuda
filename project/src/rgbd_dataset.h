@@ -14,6 +14,7 @@ class RgbdDataset
 public:
 	void load(const std::string& path);
 	std::pair<std::string, glm::mat4> nextDepthAndPose();
+    std::string nextDepth();
 	bool isFinished() const;
 
 private:

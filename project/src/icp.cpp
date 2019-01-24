@@ -42,19 +42,6 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
                 pose_estimate.transl_vec, sensor.getIntr(layer), m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
 
             auto grid_dims = vertex_pyramid[layer].getGridDims();
-
-            // DEBUG >>>>>>>>>>
-            std::vector<float> temp(grid_dims[0] * grid_dims[1]);
-            HANDLE_ERROR(cudaMemcpy(&(temp[0]), m_vec_b, sizeof(float) * grid_dims[0] * grid_dims[1], cudaMemcpyDeviceToHost));
-
-            int counter = 0;
-            for (int i = 0; i < grid_dims[0] * grid_dims[1]; i++)
-            {
-                if (temp[i] != 0.0f) counter++;
-            }
-
-            std::cout << "Nonzeroes in b: " << counter << std::endl;
-            // <<<<<<<<<<<<<<
             solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
             updatePose(pose_estimate);

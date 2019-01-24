@@ -37,12 +37,6 @@ void LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n
     cudaMatrixMatrixMultiplication(mat_a_transp, mat_a_transp, m_coef_mat, m_n_variables, n_equations, 
         m_n_variables, CUBLAS_OP_T);
 
-    std::array<std::array<float, 6>, 6> coef_mat_host;
-    HANDLE_ERROR(cudaMemcpy(&coef_mat_host, m_coef_mat, sizeof(std::array<std::array<float, 6>, 6>), cudaMemcpyDeviceToHost));
-
-    std::array<float, 6> bias_vec_host;
-    HANDLE_ERROR(cudaMemcpy(&bias_vec_host, bias_vec, 6 * sizeof(float), cudaMemcpyDeviceToHost));
-
     cudaMatrixVectorMultiplication(mat_a_transp, vec_b, bias_vec, m_n_variables, n_equations);
 
     // Cholesky decomposition of coeff_mat = L * L^T, lower triangle of coeff_mat is replaced by the factor L
@@ -55,19 +49,6 @@ void LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n
     HANDLE_ERROR(cudaDeviceSynchronize());
 
     // Finished: result_x already points to the solution
-
-    std::array<float, 6> vec_x_host;
-    HANDLE_ERROR(cudaMemcpy(&vec_x_host, result_x, 6 * sizeof(float), cudaMemcpyDeviceToHost));
-
-    float error = 0;
-    for (int i = 0; i < 6; i++)
-    {
-        for (int j = 0; j < 6; j++)
-        {
-            error += coef_mat_host[i][j] * vec_x_host[i] - bias_vec_host[i];
-        }
-    }
-    std::cout << "ERROR: " << error / n_equations << std::endl;
 }
 
 int LinearLeastSquares::getErrorInfo()
