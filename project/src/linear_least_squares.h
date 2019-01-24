@@ -18,7 +18,8 @@ public:
 
 private:
     const unsigned int m_n_variables = 6;
-    cusolverDnHandle_t m_handle;
+    cublasHandle_t m_cublas_handle;
+    cusolverDnHandle_t m_cusolver_handle;
     int m_workspace_size;
     cublasFillMode_t m_fillmode = CUBLAS_FILL_MODE_LOWER;
 

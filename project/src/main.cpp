@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "data_helper.h"
 #include "sensor.h"
 #include "depth_map.h"
@@ -13,8 +15,6 @@
 #include "rgbd_dataset.h"
 #include "display.cuh"
 #include "icp.h"
-
-#include <iostream>
 
 int main()
 {
@@ -40,7 +40,6 @@ int main()
         glm::vec4(0.0f,  0.5f,   0.86f, 0.0),
         glm::vec4(0.0f, -1.0f,  -0.5f,  1.0f));
     fixed_sensor.setPose(viewpoint);
-    
     
     VoxelGrid voxel_grid(3.0f, 512);
     kernel::initializeGrid(voxel_grid.getStruct(), Voxel());
@@ -68,17 +67,19 @@ int main()
     Timer timer;
 
     // First frame: camera pose = identity --> definition of world frame origin
-    std::string depth_path;
+    std::pair<std::string, glm::mat4> next;
     if (!use_kinect)
     {
-        depth_path = rgbd_dataset.nextDepthAndPose().first;
+        next = rgbd_dataset.nextDepthAndPose();
     }    
     else
     {
         window.getKinectData(raw_depth_map);
     }
 
-    raw_depth_map.update(depth_path);
+    raw_depth_map.update(next.first);
+
+    glm::mat4x4 first_pose_inverse = glm::inverse(next.second);
 
     moving_sensor.setPose(glm::mat4x4(1.0));
     kernel::convertToDepthMeters(raw_depth_map, raw_depth_map_meters, depth_scale);
@@ -99,8 +100,8 @@ int main()
 		}
 		else if (!rgbd_dataset.isFinished())
 		{
-			depth_path = rgbd_dataset.nextDepthAndPose().first;
-			raw_depth_map.update(depth_path);
+			next = rgbd_dataset.nextDepthAndPose();
+			raw_depth_map.update(next.first);
 		}
         else
         {
@@ -136,6 +137,9 @@ int main()
             glm::vec4(pose_estimate.rot_mat[1], 0.0f),
             glm::vec4(pose_estimate.rot_mat[2], 0.0f),
             glm::vec4(pose_estimate.transl_vec, 1.0f)));
+
+        std::cout << "Squared pose error:" << poseError(first_pose_inverse * next.second, moving_sensor.getPose()) 
+            << std::endl;
         
         // Fuse the new frame into the TSDF model
 		kernel_time += kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);

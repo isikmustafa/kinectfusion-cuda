@@ -1,5 +1,7 @@
 #include "pch.h"
 #include <cuda_runtime.h>
+#include <cublas.h>
+
 #include "rigid_transform_3d.h"
 #include "cuda_grid_map.h"
 #include "cuda_utils.h"
@@ -77,8 +79,11 @@ TEST_F(TransformationTests, TestMatrixMatrixMultiply)
     HANDLE_ERROR(cudaMalloc(&result_device, sizeof(std::array<std::array<float, 6>, 6>)));
     cuda_pointers_to_free.push_back(result_device);
 
+    cublasHandle_t cublas_handle;
+    HANDLE_CUBLAS_ERROR(cublasCreate(&cublas_handle));
+
     cudaMatrixMatrixMultiplication((float *)mat_a_device, (float *)mat_a_device, (float *)result_device, 6, 2, 6, 
-        CUBLAS_OP_T);
+        CUBLAS_OP_T, cublas_handle);
 
     std::array<std::array<float, 6>, 6> result_host;
     HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(std::array<std::array<float, 6>, 6>),
@@ -111,12 +116,15 @@ TEST_F(TransformationTests, TestMatrixVectorMultiply)
 
     std::array<float, 6> true_result = { 1.0, 3.0, 2.0, 2.0, 0.0, 2.0 };
 
-
     std::array<float, 6> *result_device;
     HANDLE_ERROR(cudaMalloc(&result_device, sizeof(std::array<float, 6>)));
     cuda_pointers_to_free.push_back(result_device);
 
-    cudaMatrixVectorMultiplication((float *)mat_a_device, (float *)vec_b_device, (float *)result_device, 6, 2);
+    cublasHandle_t cublas_handle;
+    HANDLE_CUBLAS_ERROR(cublasCreate(&cublas_handle));
+
+    cudaMatrixVectorMultiplication((float *)mat_a_device, (float *)vec_b_device, (float *)result_device, 6, 2, 
+        cublas_handle);
 
     std::array<float, 6> result_host;
     HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(std::array<float, 6>), cudaMemcpyDeviceToHost));
