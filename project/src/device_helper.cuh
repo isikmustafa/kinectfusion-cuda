@@ -8,11 +8,12 @@ namespace device_helper
 {
 	constexpr float cValid = -1.0f;
 	constexpr float cInvalid = -2.0f;
+    constexpr float cMinDepth = 0.1f;
 
 	// Checks if given depth value with float precision is considered as valid or not.
 	__device__ inline bool isDepthValid(float depth)
 	{
-		return depth > 0.0f && isfinite(depth);
+		return depth > cMinDepth && isfinite(depth);
 	}
 
 	// Validates the element (i, j) of the grid map. The function expects a gridmap with 4D vectors as elements, 

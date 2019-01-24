@@ -43,8 +43,7 @@ int main()
 
 	Window window(use_kinect);
 	Timer timer;
-	float total_execution_time = 0.0;
-	while (total_execution_time < 3e5)
+	while (true)
 	{
 		if (use_kinect)
 		{
@@ -57,6 +56,10 @@ int main()
 			raw_depth_map.update(next.first);
 			depth_sensor.setPose(next.second);
 		}
+        else
+        {
+            break;
+        }
 
 		auto total_kernel_time = 0.0f;
 		timer.start();
@@ -84,8 +87,6 @@ int main()
 
 		window.setWindowTitle("Total frame time: " + std::to_string(timer.getTime() * 1000.0) +
 			" , Total kernel execution time: " + std::to_string(total_kernel_time));
-
-		total_execution_time += total_kernel_time;
 	}
 
 	writeSurface4x32("predicted.png", predicted_normal_map.getCudaArray(), 640, 480);

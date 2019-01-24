@@ -60,7 +60,7 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
                 if (temp[i] != 0.0f) counter++;
             }
 
-            std::cout << counter << std::endl;
+            std::cout << "Nonzeroes in b: " << counter << std::endl;
             // <<<<<<<<<<<<<<
             solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
@@ -89,11 +89,11 @@ void ICP::updatePose(RigidTransform3D &pose)
     }
 
     glm::mat3x3 incremental_rotation(
-        glm::rotate(alpha, glm::vec3(1.0f, 0.0f, 0.0f)) 
-        * glm::rotate(beta, glm::vec3(0.0f, 1.0f, 0.0f)) 
-        * glm::rotate(gamma, glm::vec3(0.0f, 0.0f, 1.0f)));
+          glm::rotate(alpha, glm::vec3(0.0f, 0.0f, 1.0f))
+        * glm::rotate(gamma, glm::vec3(0.0f, 1.0f, 0.0f))
+        * glm::rotate(beta, glm::vec3(1.0f, 0.0f, 0.0f)));
     glm::vec3 incremental_translation(t_x, t_y, t_z);
 
-    pose.rot_mat = incremental_rotation * pose.rot_mat;
-    pose.transl_vec = incremental_rotation * pose.transl_vec + incremental_translation;
+    pose.rot_mat = glm::transpose(incremental_rotation) * pose.rot_mat;
+    pose.transl_vec = glm::transpose(incremental_rotation) * pose.transl_vec + incremental_translation;
 }
