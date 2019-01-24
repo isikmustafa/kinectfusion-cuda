@@ -5,6 +5,7 @@
 #include "grid_map_pyramid.h"
 #include "rigid_transform_3d.h"
 #include "linear_least_squares.h"
+#include "sensor.h"
 
 /*
     Class for a specific implementation of the ICP algorithm. It computes the global pose of a set of vertices by 
@@ -16,22 +17,19 @@
 class ICP
 {
 public:
-    ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh, 
-        float angle_thresh, glm::mat3x3 sensor_intrinsics);
+    ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh,
+        float angle_thresh);
     ~ICP();
 
     RigidTransform3D computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
-        GridMapPyramid<CudaGridMap> &target_vertex_pyramid, RigidTransform3D &previous_pose);
+        GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid,
+        RigidTransform3D &previous_pose, Sensor sensor);
 
 private:
     cudaChannelFormatDesc m_normal_format_description;
     std::vector<unsigned int> m_iters_per_layer;
     float m_distance_thresh;
     float m_angle_thresh;
-    glm::mat3x3 m_sensor_intrinsics;
-
-    // Buffer for the target normals, allocated once
-    GridMapPyramid<CudaGridMap> m_target_normal_pyramid;
     
     // Buffers for the residual paramterers and the result, allocated once
     float *m_mat_a;

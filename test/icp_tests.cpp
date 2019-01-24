@@ -56,7 +56,7 @@ TEST_F(IcpTests, TestInitialization)
 {
     RigidTransform3D transform;
 
-    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0, intrinsics);
+    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0);
 }
 
 TEST_F(IcpTests, TestComputeCorrespondence)
@@ -273,10 +273,16 @@ TEST_F(IcpTests, TestComputePose)
     kernel::createVertexMap(depth_map_pyramid_1[0], vertex_map_pyramid_1[0], depth_sensor_1.getInverseIntr(0));
     kernel::createVertexMap(depth_map_pyramid_1[1], vertex_map_pyramid_1[1], depth_sensor_1.getInverseIntr(1));
     kernel::createVertexMap(depth_map_pyramid_1[2], vertex_map_pyramid_1[2], depth_sensor_1.getInverseIntr(2));
+
+    GridMapPyramid<CudaGridMap> normal_map_pyramid_1(width, height, iters_per_layer.size(), format_description);
+    kernel::computeNormalMap(vertex_map_pyramid_1[0], normal_map_pyramid_1[0]);
+    kernel::computeNormalMap(vertex_map_pyramid_1[1], normal_map_pyramid_1[1]);
+    kernel::computeNormalMap(vertex_map_pyramid_1[2], normal_map_pyramid_1[2]);
     
     // ######### Save pose #########
     RigidTransform3D previous_pose;
     previous_pose.rot_mat = glm::mat3(1.0);
+    previous_pose.transl_vec = glm::vec3(0.0);
     previous_pose.transl_vec = glm::vec3(0.0);
     
     //// ######### Frame 2 ###########
@@ -301,24 +307,25 @@ TEST_F(IcpTests, TestComputePose)
     
     // ######### Save pose #########
     RigidTransform3D true_pose;
-    glm::mat4x4 homo = depth_sensor_1.getPose() * depth_sensor_2.getInversePose();
+    glm::mat4x4 homo = depth_sensor_1.getInversePose() * depth_sensor_2.getPose();
     true_pose.rot_mat = glm::mat3(homo);
     true_pose.transl_vec = homo[3];
 
     HANDLE_ERROR(cudaDeviceSynchronize());
 
-    ICP icp(iters_per_layer, width, height, 0.1, pi / 3.0, depth_sensor_2.getIntr(0));
-    RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, previous_pose);
+    ICP icp(iters_per_layer, width, height, 0.1, pi / 3.0);
+    RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, normal_map_pyramid_1,
+        previous_pose, depth_sensor_2);
 
-    float tolerance;
+    glm::vec3 v = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+    glm::vec3 true_rotated_v = true_pose.rot_mat * v;
+    glm::vec3 rotated_v = pose_estimate.rot_mat * v;
+    float angle = glm::acos(glm::dot(true_rotated_v, rotated_v));
+
+    ASSERT_LE(angle, pi / 90.0f);
+
     for (int i = 0; i < 3; i++)
     {
-        for (int j = 0; j < 3; j++)
-        {
-            tolerance = 1e-4;
-            ASSERT_NEAR(true_pose.rot_mat[i][j], pose_estimate.rot_mat[i][j], tolerance);
-        }
-        tolerance = 1e-4;
-        ASSERT_NEAR(true_pose.transl_vec[i], pose_estimate.transl_vec[i], tolerance);
+        ASSERT_NEAR(true_pose.transl_vec[i], pose_estimate.transl_vec[i], 0.01f);
     }
 }

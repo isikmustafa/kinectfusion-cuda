@@ -8,14 +8,11 @@
 #include "measurement.cuh"
 #include "icp.cuh"
 
-ICP::ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh,
-    float angle_thresh, glm::mat3x3 sensor_intrinsics)
+ICP::ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh, 
+    float angle_thresh)
     : m_distance_thresh(distance_thresh)
     , m_iters_per_layer(iters_per_layer)
     , m_angle_thresh(angle_thresh)
-    , m_normal_format_description{ cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat) }
-    , m_target_normal_pyramid(width, height, iters_per_layer.size(), m_normal_format_description)
-    , m_sensor_intrinsics(sensor_intrinsics)
 {
     HANDLE_ERROR(cudaMalloc(&m_mat_a, height * width * 6 * sizeof(float)));
     HANDLE_ERROR(cudaMalloc(&m_vec_b, height * width * sizeof(float)));
@@ -29,14 +26,10 @@ ICP::~ICP()
     cudaFree(m_vec_x);
 }
 
-RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid, 
-    GridMapPyramid<CudaGridMap> &target_vertex_pyramid, RigidTransform3D &previous_pose)
+RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
+    GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid,
+    RigidTransform3D &previous_pose, Sensor sensor)
 {
-    // Create target normal pyramid
-    kernel::computeNormalMap(vertex_pyramid[0], m_target_normal_pyramid[0]);
-    kernel::computeNormalMap(vertex_pyramid[1], m_target_normal_pyramid[1]);
-    kernel::computeNormalMap(vertex_pyramid[2], m_target_normal_pyramid[2]);
-
     // Initialize pose estimate to current one
     RigidTransform3D pose_estimate = previous_pose;
 
@@ -45,8 +38,8 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
         for (int i = 0; i < m_iters_per_layer[layer]; i++)
         {
             kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
-                m_target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
-                pose_estimate.transl_vec, m_sensor_intrinsics, m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
+                target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
+                pose_estimate.transl_vec, sensor.getIntr(layer), m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
 
             auto grid_dims = vertex_pyramid[layer].getGridDims();
 
