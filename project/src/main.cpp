@@ -21,7 +21,7 @@ int main()
 	// Configuration
 	constexpr bool use_kinect = false;
 	const std::string dataset_dir = "rgbd_dataset_freiburg1_xyz";
-	constexpr float depth_scale = 1.0f / 5000.0f;
+	constexpr auto depth_scale = 1.0f / (use_kinect ? 1000.0f : 5000.0f);
 	constexpr unsigned int width = 640;
 	constexpr unsigned int height = 480;
 
@@ -29,11 +29,12 @@ int main()
 	const int n_pyramid_layers = icp_iters_per_layer.size();
 	constexpr float icp_distance_thresh = 0.1f; // meters
 	constexpr float pi = 3.14159265358979323846f;
-	constexpr float icp_angle_thresh = pi / 6.0f;
+	constexpr float icp_angle_thresh = pi / 3.0f;
 
 	// Initialization
-	Sensor moving_sensor;
-	Sensor fixed_sensor;
+	Sensor moving_sensor(use_kinect ? 571.0f : 525.0f);
+	Sensor fixed_sensor(use_kinect ? 571.0f : 525.0f);
+
 	glm::mat4x4 viewpoint(
 		glm::vec4(1.0f, 0.0f, 0.0f, 0.0),
 		glm::vec4(0.0f, 0.86f, -0.5f, 0.0),
@@ -58,7 +59,7 @@ int main()
 	GridMapPyramid<CudaGridMap> predicted_normal_pyramid(width, height, n_pyramid_layers, vector_4d_desc);
 
 	RgbdDataset rgbd_dataset;
-	if (!use_kinect)
+	if constexpr (!use_kinect)
 	{
 		rgbd_dataset.load(dataset_dir);
 	}
@@ -68,18 +69,17 @@ int main()
 
 	// First frame: camera pose = identity --> definition of world frame origin
 	std::pair<std::string, glm::mat4> next;
-	if (!use_kinect)
+	glm::mat4x4 first_pose_inverse;
+	if constexpr (!use_kinect)
 	{
 		next = rgbd_dataset.nextDepthAndPose();
+		raw_depth_map.update(next.first);
+		first_pose_inverse = glm::inverse(next.second);
 	}
 	else
 	{
 		window.getKinectData(raw_depth_map);
 	}
-
-	raw_depth_map.update(next.first);
-
-	glm::mat4x4 first_pose_inverse = glm::inverse(next.second);
 
 	moving_sensor.setPose(glm::mat4x4(1.0));
 	kernel::convertToDepthMeters(raw_depth_map, raw_depth_map_meters, depth_scale);
@@ -154,9 +154,10 @@ int main()
 		/*kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
 			predicted_normal_pyramid[0]);*/
 
-			// Display the result on the screen
-		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[0].getCudaSurfaceObject(),
+		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[1].getCudaSurfaceObject(),
 			window, previous_inverse_sensor_rotation);
+
+		//kernel_time += kernel::oneFloatChannelToWindowContent(depth_pyramid[0].getCudaSurfaceObject(), window, 128.0f);
 
 		//glm::vec3 light_dir(1.0f, 2.0f, 3.0f);
 		//auto light_dir_eye = glm::normalize(glm::mat3(moving_sensor.getInversePose()) * light_dir);
