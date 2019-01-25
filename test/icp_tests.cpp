@@ -259,7 +259,7 @@ TEST_F(IcpTests, TestComputePose)
     DepthMap raw_depth_map_1(width, height, raw_depth_desc);
     auto next = rgbd_dataset.nextDepthAndPose();
     raw_depth_map_1.update(next.first);
-    Sensor depth_sensor_1;
+    Sensor depth_sensor_1(525.0f);
     depth_sensor_1.setPose(next.second);
     CudaGridMap raw_depth_map_meters_1(width, height, depth_desc);
     kernel::convertToDepthMeters(raw_depth_map_1, raw_depth_map_meters_1, 1.0f / 5000.0f);
@@ -289,7 +289,7 @@ TEST_F(IcpTests, TestComputePose)
     DepthMap raw_depth_map_2(width, height, raw_depth_desc);
     next = rgbd_dataset.nextDepthAndPose();
     raw_depth_map_2.update(next.first);
-    Sensor depth_sensor_2;
+    Sensor depth_sensor_2(525.0f);
     depth_sensor_2.setPose(next.second);
     
     CudaGridMap raw_depth_map_meters_2(width, height, depth_desc);
