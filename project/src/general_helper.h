@@ -22,7 +22,7 @@ void cudaMatrixMatrixMultiplication(float *mat_left_transp, float *mat_right_tra
 void cudaMatrixVectorMultiplication(float *mat_left_transp, float *vec_right, float *vec_out, int n_rows, int n_cols,
     cublasHandle_t cublas_handle);
 
-float poseError(glm::mat4x4 pose_1, glm::mat4x4 pose_2);
+std::pair<float,float> poseError(glm::mat4x4 pose_1, glm::mat4x4 pose_2);
 
 
 /////////////// DEBUG FUNCTIONS /////////////////////////

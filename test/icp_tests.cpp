@@ -275,9 +275,9 @@ TEST_F(IcpTests, TestComputePose)
     kernel::createVertexMap(depth_map_pyramid_1[2], vertex_map_pyramid_1[2], depth_sensor_1.getInverseIntr(2));
 
     GridMapPyramid<CudaGridMap> normal_map_pyramid_1(width, height, iters_per_layer.size(), format_description);
-    kernel::computeNormalMap(vertex_map_pyramid_1[0], normal_map_pyramid_1[0]);
-    kernel::computeNormalMap(vertex_map_pyramid_1[1], normal_map_pyramid_1[1]);
-    kernel::computeNormalMap(vertex_map_pyramid_1[2], normal_map_pyramid_1[2]);
+    kernel::createNormalMap(vertex_map_pyramid_1[0], normal_map_pyramid_1[0]);
+    kernel::createNormalMap(vertex_map_pyramid_1[1], normal_map_pyramid_1[1]);
+    kernel::createNormalMap(vertex_map_pyramid_1[2], normal_map_pyramid_1[2]);
     
     // ######### Save pose #########
     RigidTransform3D previous_pose;

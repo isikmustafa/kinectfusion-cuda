@@ -8,7 +8,7 @@ namespace device_helper
 {
 	constexpr float cValid = -1.0f;
 	constexpr float cInvalid = -2.0f;
-    constexpr float cMinDepth = 0.1f;
+    constexpr float cMinDepth = 0.01f;
 
 	// Checks if given depth value with float precision is considered as valid or not.
 	__device__ inline bool isDepthValid(float depth)

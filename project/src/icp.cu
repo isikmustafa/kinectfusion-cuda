@@ -12,17 +12,13 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
     glm::mat3x3 curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, 
     unsigned int width, unsigned int height, float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
 {
-    /* TODO:
-        1. Compute indices (u, v) from thread index
-        2. Check using device_helper::is_valid() whether the vertex is valid, else writeDummyResidual() and return
-        3. Transform the vertex into the global frame using the current pose estimate
-        4. Run computeCorrespondence() to get the coordinates of the corresponding element of the target vertex map
-        5. Check for validity of the coordinates (not negative, not larger or equal than height/width)
-        6. Check for the distance constraint using verticesAreTooFarAway(), else writeDummyResidual() and return
-        7. Compute the normal for the vertex (in global frame) using computeNormal() from measurement.cuh
-        8. Check for the angle constraint using normalsAreTooDifferent(), else writeDummyResidual() and return
-        9. Compute the parameters for A and write them into the array using computeAndFillA()
-        10. Compute the value for b and write it into the array using computeAndFillB()
+    /* 
+       - Discard the normals for now.
+	   - Sanity check by initializing icp with ground truth
+	   - Count the correspondences 
+	   - Work on highest resolution
+	   - Rule of thumb( %50 of correspondences)
+	   - We should converge , not have errors in first frame
     */
 	/* 1. Compute indices (u, v) from thread index*/
 	int u = blockIdx.x * blockDim.x + threadIdx.x;
@@ -66,7 +62,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 
     glm::vec3 target_normal = device_helper::readVec3(target_normal_map, u, v);
 
-    //7. Compute the normal for the vertex
+    /*7. Compute the normal for the vertex*/
     glm::vec4 normal = device_helper::computeNormal(vertex_map, u, v);
     if (normal.w == device_helper::cInvalid)
     {
@@ -74,7 +70,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
         return;
     }
 
-    //8. Check for the angle constraint
+    /*8. Check for the angle constraint*/
     if (areNormalsTooDifferent(glm::vec3(normal), target_normal, curr_rot_mat_estimate, angle_thresh))
     {
         writeDummyResidual(mat_A[idx], &vec_b[idx]);

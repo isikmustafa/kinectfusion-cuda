@@ -3,7 +3,8 @@
 #undef STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 #include "cuda_utils.h"
 
@@ -27,12 +28,16 @@ void cudaMatrixVectorMultiplication(float *mat_left_transp, float *vec_right, fl
         vec_right, 1, &beta, vec_out, 1));
 }
 
-float poseError(glm::mat4x4 pose_1, glm::mat4x4 pose_2)
+std::pair <float, float> poseError(glm::mat4x4 pose_1, glm::mat4x4 pose_2)
 {
-    glm::mat4x4 diff = pose_1 - pose_2;
-    diff = glm::matrixCompMult(diff, diff);
-    glm::vec4 ones4(1.0f, 1.0f, 1.0f, 1.0f);
-    return glm::dot(ones4, diff * ones4);
+	glm::vec3 v = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
+	glm::vec3 true_rotated_v = glm::mat3x3(pose_1) * v;
+	glm::vec3 rotated_v = glm::mat3x3(pose_2) * v;
+	float angle_error = glm::distance(true_rotated_v, rotated_v);
+
+	float distance_error = glm::distance(glm::vec3(pose_1[3]), glm::vec3(pose_2[3]));
+
+    return std::pair <float, float>(angle_error, distance_error);
 }
 
 void writeSurface1x32(std::string file_name, cudaArray* gpu_source, int width, int height)

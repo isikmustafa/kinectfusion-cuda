@@ -52,7 +52,7 @@ glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsi
 __global__ void normalsAreTooDifferentTestKernel(bool *result, glm::vec3 normal, glm::vec3 target_normal, 
     glm::mat3x3 rotation_mat, float angle_thresh)
 {
-    *result = normalsAreTooDifferent(normal, target_normal, rotation_mat, angle_thresh);
+    *result = areNormalsTooDifferent(normal, target_normal, rotation_mat, angle_thresh);
 }
 
 bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal, glm::mat3x3 rotation_mat, 

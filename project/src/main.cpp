@@ -25,9 +25,9 @@ int main()
 	constexpr unsigned int width = 640;
 	constexpr unsigned int height = 480;
 
-	std::vector<unsigned int> icp_iters_per_layer = { 2, 2, 2 }; // high -> low resolution
+	std::vector<unsigned int> icp_iters_per_layer = { 10, 0, 0 }; // high -> low resolution
 	const int n_pyramid_layers = icp_iters_per_layer.size();
-	constexpr float icp_distance_thresh = 0.1f; // meters
+	constexpr float icp_distance_thresh = 0.3f; // meters
 	constexpr float pi = 3.14159265358979323846f;
 	constexpr float icp_angle_thresh = pi / 6.0f;
 
@@ -81,7 +81,7 @@ int main()
 
 	glm::mat4x4 first_pose_inverse = glm::inverse(next.second);
 
-	moving_sensor.setPose(glm::mat4x4(1.0));
+	moving_sensor.setPose(next.second);
 	kernel::convertToDepthMeters(raw_depth_map, raw_depth_map_meters, depth_scale);
 	kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);
 
@@ -90,6 +90,7 @@ int main()
 	pose_estimate.transl_vec = moving_sensor.getPosition();
 
 	// Register and fuse all subsequent frames
+	int frame_number = 1;
 	while (true)
 	{
 		// Get the new depth frame
@@ -142,11 +143,15 @@ int main()
 		auto icp_execution_times = icp_registrator.getExecutionTimes();
 		kernel_time += icp_execution_times[0] + icp_execution_times[1];
 
-		moving_sensor.setPose(pose_estimate.getTransformation());
-
-		std::cout << "Squared pose error:" << poseError(first_pose_inverse * next.second, moving_sensor.getPose())
+		auto pose_error_output = poseError(next.second, pose_estimate.getTransformation());
+		std::cout << "Frame Number: "<< frame_number <<" Angle Error :" << 180*pose_error_output.first/pi<< " Distance Error: " << pose_error_output.second
 			<< std::endl;
 
+		//moving_sensor.setPose(next.second);
+		moving_sensor.setPose(pose_estimate.getTransformation());
+
+		
+		//std::getchar();
 		// Fuse the new frame into the TSDF model
 		kernel_time += kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);
 
@@ -166,12 +171,19 @@ int main()
 		window.setWindowTitle("Total frame time: " + std::to_string(timer.getTime() * 1000.0) +
 			" , Total kernel execution time: " + std::to_string(kernel_time));
 
-		std::cout << "Raycast(1): " << raycast_times[0] << std::endl;
+		/*std::cout << "Raycast(1): " << raycast_times[0] << std::endl;
 		std::cout << "Raycast(2): " << raycast_times[1] << std::endl;
 		std::cout << "Raycast(3): " << raycast_times[2] << std::endl;
 
 		std::cout << "ICP execution time(1): " << icp_execution_times[0] << std::endl;
-		std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;
+		std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;*/
+		/*if(frame_number>0 && frame_number<20)
+		{
+			std::string frame_name = std::to_string(frame_number)+"_predicted_.png";
+			std::cout << frame_name<<std::endl;
+			writeSurface4x32(frame_name, predicted_normal_pyramid[0].getCudaArray(), 640, 480);
+		}*/
+		frame_number++;
 	}
 
 	return 0;
