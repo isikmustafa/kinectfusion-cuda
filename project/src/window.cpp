@@ -121,6 +121,13 @@ void Window::getKinectData(DepthMap& depth_frame) const
 	texture->LockRect(0, &locked_rect, nullptr, 0);
 	if (locked_rect.Pitch != 0)
 	{
+		auto u_ptr = reinterpret_cast<USHORT*>(locked_rect.pBits);
+		for (int i = 0; i < gWidth * gHeight; ++i)
+		{
+			//Depth data will be in millimeters.
+			u_ptr[i] = NuiDepthPixelToDepth(u_ptr[i]);
+		}
+
 		depth_frame.update(locked_rect.pBits);
 	}
 
