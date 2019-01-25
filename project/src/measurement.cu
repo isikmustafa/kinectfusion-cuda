@@ -213,7 +213,7 @@ namespace kernel
 		return CudaEvent::calculateElapsedTime(start, end);
 	}
 
-	float computeNormalMap(const CudaGridMap& vertex_map, const CudaGridMap& normal_map)
+	float createNormalMap(const CudaGridMap& vertex_map, const CudaGridMap& normal_map)
 	{
 		auto dims_input = vertex_map.getGridDims();
 		auto dims_output = normal_map.getGridDims();

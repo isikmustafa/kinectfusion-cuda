@@ -13,5 +13,5 @@ namespace kernel
 	float applyBilateralFilter(const CudaGridMap& raw_depth_map_meters, const CudaGridMap& filtered_depth_map);
 	float downSample(const CudaGridMap& depth_map, const CudaGridMap& depth_map_downsampled);
 	float createVertexMap(const CudaGridMap& depth_map, const CudaGridMap& vertex_map, const glm::mat3& inv_cam_k);
-	float computeNormalMap(const CudaGridMap& vertex_map, const CudaGridMap& normal_map);
+	float createNormalMap(const CudaGridMap& vertex_map, const CudaGridMap& normal_map);
 }

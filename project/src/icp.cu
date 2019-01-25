@@ -30,10 +30,6 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
     int idx = v * width + u;
 
     //2. Check whether the vertex is valid
-    if (u > width || v > height)
-    {
-        return;
-    }
 	if (!device_helper::isValid(vertex_map, u, v))
     {
 		writeDummyResidual(mat_A[idx], &vec_b[idx]);
@@ -62,7 +58,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 	glm::vec3 target_vertex = device_helper::readVec3(target_vertex_map, u, v);
     
     // 6. Check for the distance constraint
-	if(verticesAreTooFarAway(vertex_global, target_vertex, distance_thresh) )
+	if(areVerticesTooFarAway(vertex_global, target_vertex, distance_thresh) )
 	{ 
 	    writeDummyResidual(mat_A[idx], &vec_b[idx]);
 	    return;
@@ -79,7 +75,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
     }
 
     //8. Check for the angle constraint
-    if (normalsAreTooDifferent(glm::vec3(normal), target_normal, curr_rot_mat_estimate, angle_thresh))
+    if (areNormalsTooDifferent(glm::vec3(normal), target_normal, curr_rot_mat_estimate, angle_thresh))
     {
         writeDummyResidual(mat_A[idx], &vec_b[idx]);
         return;
@@ -102,8 +98,7 @@ namespace kernel
 		auto dims = vertex_map.getGridDims();
 
 		CudaEvent start, end;
-        int temp = std::min<int>(dims[0] - 1, 8);
-        dim3 threads(std::min<int>(dims[0] - 1, 8), std::min<int>(dims[1] - 1, 8));
+		dim3 threads(8, 8);
 		dim3 blocks(dims[0] / threads.x, dims[1] / threads.y);
         
 		start.record();

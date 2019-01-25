@@ -29,7 +29,7 @@ int main()
 	const int n_pyramid_layers = icp_iters_per_layer.size();
 	constexpr float icp_distance_thresh = 0.1f; // meters
 	constexpr float pi = 3.14159265358979323846f;
-	constexpr float icp_angle_thresh = pi / 3.0f;
+	constexpr float icp_angle_thresh = pi / 6.0f;
 
 	// Initialization
 	Sensor moving_sensor;
