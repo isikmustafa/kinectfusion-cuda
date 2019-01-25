@@ -69,9 +69,10 @@ void ICP::updatePose(RigidTransform3D &pose)
     float t_y = vec_x_host[4];
     float t_z = vec_x_host[5];
 
-    if (isnan(alpha) || isnan(beta) || isnan(gamma) || isnan(t_x) || isnan(t_y) || isnan(t_z))
+    if (!std::isfinite(alpha) || !std::isfinite(beta) || !std::isfinite(gamma) ||
+		!std::isfinite(t_x) || !std::isfinite(t_y) || !std::isfinite(t_z))
     {
-        throw std::runtime_error("Error: NANs in result vector x.");
+        throw std::runtime_error("Error: not finite result in solution.");
     }
 
     glm::mat3x3 incremental_rotation(
