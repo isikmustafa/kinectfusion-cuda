@@ -25,7 +25,7 @@ int main()
     constexpr unsigned int width = 640;
     constexpr unsigned int height = 480;
     
-    std::vector<unsigned int> icp_iters_per_layer = { 10, 0, 0 }; // high -> low resolution
+    std::vector<unsigned int> icp_iters_per_layer = { 2, 2, 2 }; // high -> low resolution
     const int n_pyramid_layers = icp_iters_per_layer.size();
     constexpr float icp_distance_thresh = 0.1f; // meters
     constexpr float pi = 3.14159265358979323846f;
@@ -123,8 +123,15 @@ int main()
 
         // Raycast vertex maps from current TSDF model
 		auto previous_inverse_sensor_rotation = glm::mat3(moving_sensor.getInversePose());
+
         kernel_time += kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[0], 
-            predicted_normal_pyramid[0]);
+            predicted_normal_pyramid[0], 0);
+
+		kernel_time += kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[1],
+			predicted_normal_pyramid[1], 1);
+
+		kernel_time += kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[2],
+			predicted_normal_pyramid[2], 2);
 
         // Compute the camera pose for the new frame
         pose_estimate = icp_registrator.computePose(vertex_pyramid, predicted_vertex_pyramid, predicted_normal_pyramid,

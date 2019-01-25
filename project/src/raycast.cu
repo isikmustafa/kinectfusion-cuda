@@ -39,7 +39,7 @@ __device__ glm::vec3 computeGradient(const glm::vec3& point, const VoxelGridStru
 	return (glm::vec3(f_x, f_y, f_z) - glm::vec3(f)) / uvw_resolution;
 }
 
-__global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSurfaceObject_t output_vertex, cudaSurfaceObject_t output_normal)
+__global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSurfaceObject_t output_vertex, cudaSurfaceObject_t output_normal, int level)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
@@ -49,7 +49,7 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 
 	auto ray_origin = sensor.getPosition();
 	//Do not normalize the direction. pos = origin + dir * depth.
-	auto ray_direction = glm::mat3(sensor.getPose()) * sensor.getInverseIntr(0) * glm::vec3(i + 0.5f, j + 0.5f, 1.0f);
+	auto ray_direction = glm::mat3(sensor.getPose()) * sensor.getInverseIntr(level) * glm::vec3(i + 0.5f, j + 0.5f, 1.0f);
 
 	//For an efficient and correct solution, intersect the ray first with bounding box of the voxel grid to determine near and far distance
 	//for ray casting.
@@ -134,13 +134,21 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 
 namespace kernel
 {
-	float raycast(const VoxelGridStruct& voxel_grid, const Sensor& sensor, const CudaGridMap& output_vertex, const CudaGridMap& output_normal)
+	float raycast(const VoxelGridStruct& voxel_grid, const Sensor& sensor, const CudaGridMap& output_vertex, const CudaGridMap& output_normal, int level)
 	{
+		auto dims_vertex = output_vertex.getGridDims();
+		auto dims_normal = output_normal.getGridDims();
+
+		if (dims_vertex != dims_normal)
+		{
+			throw std::runtime_error("raycast: vertex and normal surface objects are not of same size!");
+		}
+
 		CudaEvent start, end;
 		dim3 threads(8, 8);
-		dim3 blocks(640 / threads.x, 480 / threads.y);
+		dim3 blocks(dims_vertex[0] / threads.x, dims_vertex[1] / threads.y);
 		start.record();
-		raycastKernel << <blocks, threads >> > (voxel_grid, sensor, output_vertex.getCudaSurfaceObject(), output_normal.getCudaSurfaceObject());
+		raycastKernel << <blocks, threads >> > (voxel_grid, sensor, output_vertex.getCudaSurfaceObject(), output_normal.getCudaSurfaceObject(), level);
 		end.record();
 		end.synchronize();
 
