@@ -61,6 +61,27 @@ __global__ void fourFloatChannelToWindowContentKernel(cudaSurfaceObject_t surfac
 	surf2Dwrite(pixel_w, window, i * 4, j);
 }
 
+__global__ void normalMapToWindowContentKernel(cudaSurfaceObject_t normal_map, cudaSurfaceObject_t window, glm::mat3 inverse_sensor_rotation)
+{
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+	int j = threadIdx.y + blockIdx.y * blockDim.y;
+
+	glm::vec3 normal;
+	int idx = i * 16;
+	surf2Dread(&normal.x, normal_map, idx, j, cudaBoundaryModeZero);
+	surf2Dread(&normal.y, normal_map, idx + 4, j, cudaBoundaryModeZero);
+	surf2Dread(&normal.z, normal_map, idx + 8, j, cudaBoundaryModeZero);
+
+	normal = glm::normalize(inverse_sensor_rotation * normal);
+
+	unsigned int pixel_w = (255) << 8;
+	pixel_w = (pixel_w | static_cast<unsigned char>(normal.z * 255.0f)) << 8;
+	pixel_w = (pixel_w | static_cast<unsigned char>(normal.y * 255.0f)) << 8;
+	pixel_w = (pixel_w | static_cast<unsigned char>(normal.x * 255.0f));
+
+	surf2Dwrite(pixel_w, window, i * 4, j);
+}
+
 __global__ void shadingToWindowContentKernel(cudaSurfaceObject_t normal_map, cudaSurfaceObject_t window, Sensor sensor)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -118,6 +139,19 @@ namespace kernel
 		dim3 blocks(640 / threads.x, 480 / threads.y);
 		start.record();
 		fourFloatChannelToWindowContentKernel << <blocks, threads >> > (surface, window.get_content(), scale);
+		end.record();
+		end.synchronize();
+
+		return CudaEvent::calculateElapsedTime(start, end);
+	}
+
+	float normalMapToWindowContent(cudaSurfaceObject_t normal_map, const Window& window, const glm::mat3& inverse_sensor_rotation)
+	{
+		CudaEvent start, end;
+		dim3 threads(8, 8);
+		dim3 blocks(640 / threads.x, 480 / threads.y);
+		start.record();
+		normalMapToWindowContentKernel << <blocks, threads >> > (normal_map, window.get_content(), inverse_sensor_rotation);
 		end.record();
 		end.synchronize();
 

@@ -122,6 +122,7 @@ int main()
 		kernel_time += kernel::createVertexMap(depth_pyramid[2], vertex_pyramid[2], moving_sensor.getInverseIntr(2));
 
         // Raycast vertex maps from current TSDF model
+		auto previous_inverse_sensor_rotation = glm::mat3(moving_sensor.getInversePose());
         kernel_time += kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[0], 
             predicted_normal_pyramid[0]);
 
@@ -145,12 +146,12 @@ int main()
 		kernel_time += kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);
 		
         // Raycast vertex and normal maps from a fixed view
-        kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
-            predicted_normal_pyramid[0]);
+        /*kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
+            predicted_normal_pyramid[0]);*/
 
         // Display the result on the screen
-		kernel_time += kernel::fourFloatChannelToWindowContent(predicted_normal_pyramid[0].getCudaSurfaceObject(), 
-            window, 255.0f);
+		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[0].getCudaSurfaceObject(),
+            window, previous_inverse_sensor_rotation);
         
         //glm::vec3 light_dir(1.0f, 2.0f, 3.0f);
 		//auto light_dir_eye = glm::normalize(glm::mat3(moving_sensor.getInversePose()) * light_dir);
@@ -163,9 +164,6 @@ int main()
 		std::cout << "ICP execution time(1): " << icp_execution_times[0] << std::endl;
 		std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;
 	}
-
-	writeSurface4x32("predicted.png", predicted_normal_pyramid[0].getCudaArray(), 640, 480);
-	//writeSurface4x32("filtered.png", normal_map_pyramid[0].getCudaArray(), 640, 480);
 
 	return 0;
 }
