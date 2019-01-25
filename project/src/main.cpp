@@ -154,7 +154,7 @@ int main()
 		/*kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
 			predicted_normal_pyramid[0]);*/
 
-		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[1].getCudaSurfaceObject(),
+		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[0].getCudaSurfaceObject(),
 			window, previous_inverse_sensor_rotation);
 
 		//kernel_time += kernel::oneFloatChannelToWindowContent(depth_pyramid[0].getCudaSurfaceObject(), window, 128.0f);
