@@ -51,7 +51,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
         return;
     }
 
-	glm::vec3 target_vertex = device_helper::readVec3(target_vertex_map, u, v);
+	glm::vec3 target_vertex = device_helper::readVec3(target_vertex_map, u_corr, v_corr);
     
     // 6. Check for the distance constraint
 	if(areVerticesTooFarAway(vertex_global, target_vertex, distance_thresh) )
@@ -60,7 +60,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 	    return;
 	}
 
-    glm::vec3 target_normal = device_helper::readVec3(target_normal_map, u, v);
+    glm::vec3 target_normal = device_helper::readVec3(target_normal_map, u_corr, v_corr);
 
     /*7. Compute the normal for the vertex*/
     glm::vec4 normal = device_helper::computeNormal(vertex_map, u, v);
