@@ -94,6 +94,8 @@ int main()
 
 	// Register and fuse all subsequent frames
 	int frame_number = 1;
+	float total_angle_error = 0.0f;
+	float total_distance_error = 0.0f;
 	while (true)
 	{
 		// Get the new depth frame
@@ -143,19 +145,31 @@ int main()
 		pose_estimate = icp_registrator.computePose(vertex_pyramid, predicted_vertex_pyramid, predicted_normal_pyramid,
 			pose_estimate, moving_sensor);
 
+		moving_sensor.setPose(pose_estimate.getTransformation());
+
 		auto icp_execution_times = icp_registrator.getExecutionTimes();
 		kernel_time += icp_execution_times[0] + icp_execution_times[1];
 
-		auto pose_error = poseError( initial_pose *  first_pose_inverse * next.second, 
-            pose_estimate.getTransformation());
-        
-        if (pose_error.first > 5.0 || pose_error.second > 0.05)
-        {
-            std::cout << "Frame Number: " << frame_number << " Angle Error :" << 180 * pose_error.first / pi
-                << " Distance Error: " << pose_error.second << std::endl;
-        }
+		if constexpr (!use_kinect)
+		{
+			auto pose_error = poseError(initial_pose *  first_pose_inverse * next.second,
+				pose_estimate.getTransformation());
 
-		moving_sensor.setPose(pose_estimate.getTransformation());
+			total_angle_error += pose_error.first;
+			total_distance_error += pose_error.second;
+			if (pose_error.first > 5.0 || pose_error.second > 0.05)
+			{
+				std::cout << "Frame Number: " << frame_number << " Angle Error :" << 180 * pose_error.first / pi
+					<< " Distance Error: " << pose_error.second << std::endl;
+			}
+
+			//At every 50th frame, print average errors.
+			if (frame_number % 50 == 0)
+			{
+				std::cout << "Average angle error: " << 180 * (total_angle_error / frame_number) / pi;
+				std::cout << " Average distance error : " << total_distance_error / frame_number << std::endl;
+			}
+		}
 
 		// Fuse the new frame into the TSDF model
 		kernel_time += kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);

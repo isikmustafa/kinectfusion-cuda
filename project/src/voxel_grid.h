@@ -40,7 +40,7 @@ struct VoxelGridStruct
 	VoxelGridStruct(float p_total_width_in_meters, int p_n)
 		: total_width_in_meters(p_total_width_in_meters)
 		, n(p_n)
-		, resolution(p_total_width_in_meters / p_n)
+		, resolution(p_total_width_in_meters / (p_n - 1))
 		, mue(2.0f * resolution)
 	{}
 };

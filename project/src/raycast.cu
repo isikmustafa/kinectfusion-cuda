@@ -28,15 +28,17 @@ __device__ glm::vec2 intersectBBox(const glm::vec3& origin, const glm::vec3& inv
 
 __device__ glm::vec3 computeGradient(const glm::vec3& point, const VoxelGridStruct& voxel_grid)
 {
-	auto uvw_resolution = 1.0f / voxel_grid.n;
+	auto uvw_resolution = 0.5f / (voxel_grid.n - 1);
 	auto uvw = point / voxel_grid.total_width_in_meters + glm::vec3(0.5f);
 
-	auto f = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z).x;
+	auto f_x0 = tex3D<float2>(voxel_grid.texture_object, uvw.x + uvw_resolution, uvw.y, uvw.z).x;
+	auto f_y0 = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y + uvw_resolution, uvw.z).x;
+	auto f_z0 = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z + uvw_resolution).x;
 	auto f_x = tex3D<float2>(voxel_grid.texture_object, uvw.x - uvw_resolution, uvw.y, uvw.z).x;
 	auto f_y = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y - uvw_resolution, uvw.z).x;
 	auto f_z = tex3D<float2>(voxel_grid.texture_object, uvw.x, uvw.y, uvw.z - uvw_resolution).x;
 
-	return (glm::vec3(f_x, f_y, f_z) - glm::vec3(f)) / uvw_resolution;
+	return (glm::vec3(f_x, f_y, f_z) - glm::vec3(f_x0, f_y0, f_z0)) / uvw_resolution;
 }
 
 __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSurfaceObject_t output_vertex, cudaSurfaceObject_t output_normal, int level)
@@ -44,7 +46,6 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-	const auto resolution = voxel_grid.resolution;
 	const auto mue = voxel_grid.mue;
 
 	auto ray_origin = sensor.getPosition();
@@ -108,7 +109,6 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 	{
 		auto vertex = ray_origin + ray_direction * precise_distance;
 		auto normal = computeGradient(vertex, voxel_grid);
-
 		auto normal_norm = glm::length(normal);
 
 		if (device_helper::isDepthValid(normal_norm))

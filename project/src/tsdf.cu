@@ -24,8 +24,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 
 	const auto resolution = voxel_grid.resolution;
 	const auto mue = voxel_grid.mue;
-	auto start_coord = (-voxel_grid.total_width_in_meters + resolution) * 0.5f;
-	auto point = glm::vec3(start_coord) + glm::vec3(i * resolution, j * resolution, -resolution);
+	auto point = glm::vec3(-voxel_grid.total_width_in_meters * 0.5f) + glm::vec3(i * resolution, j * resolution, -resolution);
 	for (int k = 0; k < voxel_grid.n; ++k)
 	{
 		//Update the point to the center of the next voxel.
@@ -58,7 +57,7 @@ __global__ void fuseKernel(cudaSurfaceObject_t raw_depth_map_meters, VoxelGridSt
 		{
 			//4-Compute TSDF and weight;
 			auto f = glm::min(1.0f, diff / mue);
-			auto w = 1.0f;
+			auto w = 1.0f / depth;
 
 			//5-Update voxel.
 			int idx = i * sizeof(Voxel);
