@@ -77,13 +77,12 @@ int main()
 		next = rgbd_dataset.nextDepthAndPose();
 		raw_depth_map.update(next.first);
 		first_pose_inverse = glm::inverse(next.second);
+		raw_depth_map.update(next.first);
 	}
 	else
 	{
 		window.getKinectData(raw_depth_map);
 	}
-
-	raw_depth_map.update(next.first);
 
     moving_sensor.setPose(initial_pose);
 	kernel::convertToDepthMeters(raw_depth_map, raw_depth_map_meters, depth_scale);
@@ -137,8 +136,8 @@ int main()
 		kernel_time += raycast_times[1] = kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[1],
 			predicted_normal_pyramid[1], 1);
 
-		kernel_time += raycast_times[2] = kernel::raycast(voxel_grid.getStruct(), moving_sensor, 
-            predicted_vertex_pyramid[2], predicted_normal_pyramid[2], 2);
+		kernel_time += raycast_times[2] = kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[2],
+			predicted_normal_pyramid[2], 2);
 
 		// Compute the camera pose for the new frame
 		pose_estimate = icp_registrator.computePose(vertex_pyramid, predicted_vertex_pyramid, predicted_normal_pyramid,
