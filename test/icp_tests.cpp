@@ -171,10 +171,10 @@ TEST_F(IcpTests, TestSolveLinearSystem)
 
 TEST_F(IcpTests, TestConstructIcpResiduals)
 {
-    std::array<std::array<float, 4>, 4> target_vertices = { { { 1.0,  1.0, 3.0, -1.0 },
+    std::array<std::array<float, 4>, 4> target_vertices = { { {-1.0, -1.0, 3.0, -1.0 },
                                                               { 1.0, -1.0, 3.0, -1.0 },
                                                               {-1.0,  1.0, 3.0, -1.0 },
-                                                              {-1.0, -1.0, 3.0, -1.0 } } };
+                                                              { 1.0,  1.0, 3.0, -1.0 } } };
     CudaGridMap target_vertex_map(2, 2, format_description);
     int n_bytes = 16 * 2 * 2;
     HANDLE_ERROR(cudaMemcpyToArray(target_vertex_map.getCudaArray(), 0, 0, &target_vertices[0][0], n_bytes,
@@ -188,10 +188,10 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
     HANDLE_ERROR(cudaMemcpyToArray(target_normal_map.getCudaArray(), 0, 0, &target_normals[0][0], n_bytes,
         cudaMemcpyHostToDevice));
 
-    std::array<std::array<float, 4>, 4> vertices = { { { 1.0,  1.0, 4.0, -1.0 },
+    std::array<std::array<float, 4>, 4> vertices = { { {-1.0, -1.0, 4.0, -1.0 },
                                                        { 1.0, -1.0, 4.0, -1.0 },
                                                        {-1.0,  1.0, 5.0, -1.0 },
-                                                       {-1.0, -1.0, 4.0, -1.0 } } };
+                                                       { 1.0,  1.0, 4.0, -1.0 } } };
     CudaGridMap vertex_map(2, 2, format_description);
     HANDLE_ERROR(cudaMemcpyToArray(vertex_map.getCudaArray(), 0, 0, &vertices[0][0], n_bytes, cudaMemcpyHostToDevice));
 
@@ -214,7 +214,7 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
     HANDLE_ERROR(cudaMalloc(&mat_a_device, sizeof(std::array<std::array<float, 6>, 4>)));
     HANDLE_ERROR(cudaMalloc(&vec_b_device, sizeof(std::array<float, 4>)));
 
-    std::array<std::array<float, 6>, 4> true_mat_a = { { { 1.0, -1.0,  0.0, 0.0, 0.0, -1.0 },
+    std::array<std::array<float, 6>, 4> true_mat_a = { { {-1.0,  1.0,  0.0, 0.0, 0.0, -1.0 },
                                                          { 0.0,  0.0,  0.0, 0.0, 0.0,  0.0 },
                                                          { 0.0,  0.0,  0.0, 0.0, 0.0,  0.0 },
                                                          { 0.0,  0.0,  0.0, 0.0, 0.0,  0.0 } } };

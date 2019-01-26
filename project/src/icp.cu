@@ -4,9 +4,6 @@
 #include "cuda_utils.h"
 #include "cuda_event.h"
 
-#define IDX2C(i,j,ld) (((j)*(ld))+(i))
-
-
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
     cudaSurfaceObject_t target_normal_map, glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, 
     glm::mat3x3 curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, 
@@ -54,7 +51,7 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 	glm::vec3 target_vertex = device_helper::readVec3(target_vertex_map, u_corr, v_corr);
     
     // 6. Check for the distance constraint
-	if(areVerticesTooFarAway(vertex_global, target_vertex, distance_thresh) )
+	if(areVerticesTooFarAway(vertex_global, target_vertex, distance_thresh))
 	{ 
 	    writeDummyResidual(mat_A[idx], &vec_b[idx]);
 	    return;
@@ -94,7 +91,7 @@ namespace kernel
 		auto dims = vertex_map.getGridDims();
 
 		CudaEvent start, end;
-		dim3 threads(8, 8);
+        dim3 threads(std::min<int>(dims[0] - 1, 8), std::min<int>(dims[1] - 1, 8));
 		dim3 blocks(dims[0] / threads.x, dims[1] / threads.y);
         
 		start.record();

@@ -1,4 +1,6 @@
 #include <iostream>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/transform.hpp>
 
 #include "data_helper.h"
 #include "sensor.h"
@@ -25,22 +27,23 @@ int main()
 	constexpr unsigned int width = 640;
 	constexpr unsigned int height = 480;
 
-	std::vector<unsigned int> icp_iters_per_layer = { 10, 0, 0 }; // high -> low resolution
+	std::vector<unsigned int> icp_iters_per_layer = { 10, 4, 2 }; // high -> low resolution
 	const int n_pyramid_layers = icp_iters_per_layer.size();
-	constexpr float icp_distance_thresh = 0.3f; // meters
+	constexpr float icp_distance_thresh = 0.4f; // meters
 	constexpr float pi = 3.14159265358979323846f;
-	constexpr float icp_angle_thresh = pi / 3.0f;
+	constexpr float icp_angle_thresh = 7.0f * pi / 18.0f;
+
+    glm::mat4x4 static_viewpoint = glm::rotate(- pi / 36.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+    static_viewpoint[3] = glm::vec4(0.0f, -0.2f, -1.8f, 1.0f);
+
+    glm::mat4x4 initial_pose(1.0f);
+    initial_pose[3] = glm::vec4(0.0, 0.0, -1.0, 1.0);
 
 	// Initialization
 	Sensor moving_sensor(use_kinect ? 571.0f : 525.0f);
 	Sensor fixed_sensor(use_kinect ? 571.0f : 525.0f);
 
-	glm::mat4x4 viewpoint(
-		glm::vec4(1.0f, 0.0f, 0.0f, 0.0),
-		glm::vec4(0.0f, 0.86f, -0.5f, 0.0),
-		glm::vec4(0.0f, 0.5f, 0.86f, 0.0),
-		glm::vec4(0.0f, -1.0f, -0.5f, 1.0f));
-	fixed_sensor.setPose(viewpoint);
+	fixed_sensor.setPose(static_viewpoint);
 
 	VoxelGrid voxel_grid(3.0f, 512);
 	kernel::initializeGrid(voxel_grid.getStruct(), Voxel());
@@ -67,7 +70,6 @@ int main()
 	Window window(use_kinect);
 	Timer timer;
 
-	// First frame: camera pose = identity --> definition of world frame origin
 	std::pair<std::string, glm::mat4> next;
 	glm::mat4x4 first_pose_inverse;
 	if constexpr (!use_kinect)
@@ -83,7 +85,7 @@ int main()
 
 	raw_depth_map.update(next.first);
 
-	moving_sensor.setPose(next.second);
+    moving_sensor.setPose(initial_pose);
 	kernel::convertToDepthMeters(raw_depth_map, raw_depth_map_meters, depth_scale);
 	kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);
 
@@ -135,8 +137,8 @@ int main()
 		kernel_time += raycast_times[1] = kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[1],
 			predicted_normal_pyramid[1], 1);
 
-		kernel_time += raycast_times[2] = kernel::raycast(voxel_grid.getStruct(), moving_sensor, predicted_vertex_pyramid[2],
-			predicted_normal_pyramid[2], 2);
+		kernel_time += raycast_times[2] = kernel::raycast(voxel_grid.getStruct(), moving_sensor, 
+            predicted_vertex_pyramid[2], predicted_normal_pyramid[2], 2);
 
 		// Compute the camera pose for the new frame
 		pose_estimate = icp_registrator.computePose(vertex_pyramid, predicted_vertex_pyramid, predicted_normal_pyramid,
@@ -145,21 +147,23 @@ int main()
 		auto icp_execution_times = icp_registrator.getExecutionTimes();
 		kernel_time += icp_execution_times[0] + icp_execution_times[1];
 
-		auto pose_error_output = poseError(next.second, pose_estimate.getTransformation());
-		std::cout << "Frame Number: "<< frame_number <<" Angle Error :" << 180*pose_error_output.first/pi<< " Distance Error: " << pose_error_output.second
-			<< std::endl;
+		auto pose_error = poseError( initial_pose *  first_pose_inverse * next.second, 
+            pose_estimate.getTransformation());
+        
+        if (pose_error.first > 5.0 || pose_error.second > 0.05)
+        {
+            std::cout << "Frame Number: " << frame_number << " Angle Error :" << 180 * pose_error.first / pi
+                << " Distance Error: " << pose_error.second << std::endl;
+        }
 
-		//moving_sensor.setPose(next.second);
 		moving_sensor.setPose(pose_estimate.getTransformation());
 
-		
-		//std::getchar();
 		// Fuse the new frame into the TSDF model
 		kernel_time += kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);
 
 		// Raycast vertex and normal maps from a fixed view
-		/*kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
-			predicted_normal_pyramid[0]);*/
+		kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
+			predicted_normal_pyramid[0], 0);
 
 		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[0].getCudaSurfaceObject(),
 			window, previous_inverse_sensor_rotation);
@@ -180,7 +184,8 @@ int main()
 
 		std::cout << "ICP execution time(1): " << icp_execution_times[0] << std::endl;
 		std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;*/
-		/*if(frame_number>0 && frame_number<20)
+		
+        /*if(frame_number>0 && frame_number<20)
 		{
 			std::string frame_name = std::to_string(frame_number)+"_predicted_.png";
 			std::cout << frame_name<<std::endl;
@@ -189,5 +194,7 @@ int main()
 		frame_number++;
 	}
 
+
+    std::getchar();
 	return 0;
 }

@@ -43,11 +43,11 @@ float LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int 
         m_n_variables, CUBLAS_OP_T, m_cublas_handle);
 
     cudaMatrixVectorMultiplication(mat_a_transp, vec_b, bias_vec, m_n_variables, n_equations, m_cublas_handle);
-	std::array<std::array<float, 6>, 6> coef_mat_host;
-	HANDLE_ERROR(cudaMemcpy(&coef_mat_host, m_coef_mat, sizeof(std::array<std::array<float, 6>, 6>), cudaMemcpyDeviceToHost));
-
-	std::array<float, 6> bias_vec_host;
-	HANDLE_ERROR(cudaMemcpy(&bias_vec_host, bias_vec, 6 * sizeof(float), cudaMemcpyDeviceToHost));
+	//std::array<std::array<float, 6>, 6> coef_mat_host;
+	//HANDLE_ERROR(cudaMemcpy(&coef_mat_host, m_coef_mat, sizeof(std::array<std::array<float, 6>, 6>), cudaMemcpyDeviceToHost));
+    //
+	//std::array<float, 6> bias_vec_host;
+	//HANDLE_ERROR(cudaMemcpy(&bias_vec_host, bias_vec, 6 * sizeof(float), cudaMemcpyDeviceToHost));
 
     // Cholesky decomposition of coeff_mat = L * L^T, lower triangle of coeff_mat is replaced by the factor L
     HANDLE_CUSOLVER_ERROR(cusolverDnSpotrf(m_cusolver_handle, m_fillmode, m_n_variables, m_coef_mat, m_n_variables, m_workspace,
@@ -61,15 +61,15 @@ float LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int 
 	std::array<float, 6> vec_x_host;
 	HANDLE_ERROR(cudaMemcpy(&vec_x_host, result_x, 6 * sizeof(float), cudaMemcpyDeviceToHost));
 
-	float error = 0;
-	for (int i = 0; i < 6; i++)
-	{
-		for (int j = 0; j < 6; j++)
-		{
-			error += coef_mat_host[i][j] * vec_x_host[i] - bias_vec_host[i];
-		}
-	}
-	std::cout << "ERROR: " << error / n_equations << std::endl;
+	//float error = 0;
+	//for (int i = 0; i < 6; i++)
+	//{
+	//	for (int j = 0; j < 6; j++)
+	//	{
+	//		error += coef_mat_host[i][j] * vec_x_host[i] - bias_vec_host[i];
+	//	}
+	//}
+	//std::cout << "ERROR: " << error / n_equations << std::endl;
 
     // Finished: result_x already points to the solution
     return timer.getTime() * 1000.0;

@@ -43,16 +43,19 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
                 pose_estimate.transl_vec, sensor.getIntr(layer), m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
 
             auto grid_dims = vertex_pyramid[layer].getGridDims();
-			std::vector<float> temp(grid_dims[0] * grid_dims[1]);
-			HANDLE_ERROR(cudaMemcpy(&(temp[0]), m_vec_b, sizeof(float) * grid_dims[0] * grid_dims[1], cudaMemcpyDeviceToHost));
+			//std::vector<float> temp(grid_dims[0] * grid_dims[1]);
+			//HANDLE_ERROR(cudaMemcpy(&(temp[0]), m_vec_b, sizeof(float) * grid_dims[0] * grid_dims[1], cudaMemcpyDeviceToHost));
 
-			int counter = 0;
-			for (int i = 0; i < grid_dims[0] * grid_dims[1]; i++)
-			{
-				if (temp[i] != 0.0f) counter++;
-			}
-
-			std::cout << "Nonzeroes in b: " << counter << std::endl;
+			//int counter = 0;
+			//for (int i = 0; i < grid_dims[0] * grid_dims[1]; i++)
+			//{
+			//	if (temp[i] != 0.0f) counter++;
+			//}
+            //
+            //if (counter < grid_dims[0] * grid_dims[1] / 2.0)
+            //{
+            //    std::cout << "Nonzeroes in b: " << counter << std::endl;
+            //}
             m_execution_times[1] += solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
             updatePose(pose_estimate);
