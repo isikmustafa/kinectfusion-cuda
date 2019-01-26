@@ -24,7 +24,7 @@ struct VoxelGridStruct
 	const int n;
 
 	//Defines the resolution of a single voxel.
-	//One voxel will be of volume resolution^3 where resolution=(total_width_in_meters/n).
+	//One voxel will be of volume resolution^3 where resolution=(total_width_in_meters/(n-1)).
 	const float resolution;
 
 	//Constant in the paper for TSDF calculations.
