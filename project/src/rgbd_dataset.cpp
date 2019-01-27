@@ -72,11 +72,23 @@ void RgbdDataset::load(const std::string& path)
 
 		m_depth_pose_pairs.emplace_back(path + "/" + depth_image_path, pose);
 	}
+
+    m_initial_pose_inverse = glm::inverse(m_depth_pose_pairs[0].second);
 }
 
-std::pair<std::string, glm::mat4> RgbdDataset::nextDepthAndPose()
+std::string RgbdDataset::getNextDepthImagePath()
 {
-	return m_depth_pose_pairs[m_current_index++];
+	return m_depth_pose_pairs[m_current_index++].first;
+}
+
+glm::mat4x4 RgbdDataset::getCurrentPose()
+{
+    return m_depth_pose_pairs[m_current_index].second;
+}
+
+glm::mat4x4 RgbdDataset::getInitialPoseInverse()
+{
+    return m_initial_pose_inverse;
 }
 
 bool RgbdDataset::isFinished() const

@@ -1,20 +1,18 @@
 #pragma once
 #include "icp.h"
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
 
 #include "cuda_utils.h"
 #include "icp.cuh"
 
-ICP::ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh, 
-    float angle_thresh, float stop_thresh)
-    : m_distance_thresh(distance_thresh)
-    , m_iters_per_layer(iters_per_layer)
-    , m_angle_thresh(angle_thresh)
+ICP::ICP(IcpConfig &config)
+    : m_distance_thresh(config.distance_thresh)
+    , m_iters_per_layer(config.iters_per_layer)
+    , m_angle_thresh(config.angle_thresh)
 {
-    HANDLE_ERROR(cudaMalloc(&m_mat_a, height * width * 6 * sizeof(float)));
-    HANDLE_ERROR(cudaMalloc(&m_vec_b, height * width * sizeof(float)));
-    HANDLE_ERROR(cudaMalloc(&m_vec_x, 6 * sizeof(float)));
+    HANDLE_ERROR(cudaMalloc(&m_mat_a, config.height * config.width * m_n_variables * sizeof(float)));
+    HANDLE_ERROR(cudaMalloc(&m_vec_b, config.height * config.width * sizeof(float)));
+    HANDLE_ERROR(cudaMalloc(&m_vec_x, m_n_variables * sizeof(float)));
 }
 
 ICP::~ICP()
@@ -26,11 +24,14 @@ ICP::~ICP()
 
 RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
     GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid,
-    RigidTransform3D &previous_pose, Sensor sensor)
+    Sensor sensor)
 {
-    // Initialize pose estimate to current one
-    RigidTransform3D pose_estimate = previous_pose;
-	m_execution_times = { 0.0f, 0.0f };
+    RigidTransform3D previous_pose, pose_estimate;
+    previous_pose.rot_mat = glm::mat3x3(sensor.getPose());
+    previous_pose.transl_vec = sensor.getPosition();
+    pose_estimate = previous_pose;
+
+    m_execution_times = { 0.0f, 0.0f };
 
     for (int layer = m_iters_per_layer.size() - 1; layer >= 0; layer--)
     {
@@ -64,9 +65,9 @@ std::array<float, 2> ICP::getExecutionTimes()
 void ICP::updatePose(RigidTransform3D &pose)
 {
     std::array<float, 6> vec_x_host;
-    HANDLE_ERROR(cudaMemcpy(&vec_x_host, m_vec_x, 6 * sizeof(float), cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(&vec_x_host, m_vec_x, m_n_variables * sizeof(float), cudaMemcpyDeviceToHost));
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < m_n_variables; i++)
     {
         if (!std::isfinite(vec_x_host[i]))
         {

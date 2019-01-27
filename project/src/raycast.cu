@@ -134,7 +134,8 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 
 namespace kernel
 {
-	float raycast(const VoxelGridStruct& voxel_grid, const Sensor& sensor, const CudaGridMap& output_vertex, const CudaGridMap& output_normal, int level)
+	float raycast(const VoxelGridStruct& voxel_grid, const Sensor& sensor, const CudaGridMap& output_vertex, 
+        const CudaGridMap& output_normal, int level)
 	{
 		auto dims_vertex = output_vertex.getGridDims();
 		auto dims_normal = output_normal.getGridDims();

@@ -29,6 +29,7 @@
     <ClInclude Include="src\grid_map_pyramid.h" />
     <ClInclude Include="src\icp.cuh" />
     <ClInclude Include="src\icp.h" />
+    <ClInclude Include="src\kinect_fusion.h" />
     <ClInclude Include="src\linear_least_squares.h" />
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
@@ -48,6 +49,7 @@
   <ItemGroup>
     <ClCompile Include="src\general_helper.cpp" />
     <ClCompile Include="src\icp.cpp" />
+    <ClCompile Include="src\kinect_fusion.cpp" />
     <ClCompile Include="src\linear_least_squares.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\cuda_grid_map.cpp" />

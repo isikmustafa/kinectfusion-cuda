@@ -52,13 +52,6 @@ protected:
     }
 };
 
-TEST_F(IcpTests, TestInitialization)
-{
-    RigidTransform3D transform;
-
-    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0, 1.0);
-}
-
 TEST_F(IcpTests, TestComputeCorrespondence)
 {
     std::array<glm::vec3, 4> vertices = { { { 1.0,  1.0, 3.0 },
@@ -246,8 +239,16 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
 TEST_F(IcpTests, TestComputePose)
 {
     // ####### Preparation ########
-    const int width = 640;
-    const int height = 480;
+    IcpConfig icp_config = {};
+    icp_config.iters_per_layer = { 8, 4, 2 };
+    icp_config.width = 640;
+    icp_config.height = 480;
+    icp_config.distance_thresh = 0.5f;
+    icp_config.angle_thresh = 6.0f * pi / 18.0f;
+    icp_config.stop_threshold = 1e-6f;
+
+    width = 640;
+    height = 480;
 
     cudaChannelFormatDesc raw_depth_desc = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
     cudaChannelFormatDesc depth_desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
@@ -257,10 +258,10 @@ TEST_F(IcpTests, TestComputePose)
 
     // ######### Frame 1 ###########
     DepthMap raw_depth_map_1(width, height, raw_depth_desc);
-    auto next = rgbd_dataset.nextDepthAndPose();
-    raw_depth_map_1.update(next.first);
+    auto next_path = rgbd_dataset.getNextDepthImagePath();
+    raw_depth_map_1.update(next_path);
     Sensor depth_sensor_1(525.0f);
-    depth_sensor_1.setPose(next.second);
+    depth_sensor_1.setPose(rgbd_dataset.getCurrentPose());
     CudaGridMap raw_depth_map_meters_1(width, height, depth_desc);
     kernel::convertToDepthMeters(raw_depth_map_1, raw_depth_map_meters_1, 1.0f / 5000.0f);
     
@@ -287,10 +288,10 @@ TEST_F(IcpTests, TestComputePose)
     
     //// ######### Frame 2 ###########
     DepthMap raw_depth_map_2(width, height, raw_depth_desc);
-    next = rgbd_dataset.nextDepthAndPose();
-    raw_depth_map_2.update(next.first);
+    next_path = rgbd_dataset.getNextDepthImagePath();
+    raw_depth_map_2.update(next_path);
     Sensor depth_sensor_2(525.0f);
-    depth_sensor_2.setPose(next.second);
+    depth_sensor_2.setPose(rgbd_dataset.getCurrentPose());
     
     CudaGridMap raw_depth_map_meters_2(width, height, depth_desc);
     kernel::convertToDepthMeters(raw_depth_map_2, raw_depth_map_meters_2, 1.0f / 5000.0f);
@@ -313,13 +314,14 @@ TEST_F(IcpTests, TestComputePose)
 
     HANDLE_ERROR(cudaDeviceSynchronize());
 
-    ICP icp(iters_per_layer, width, height, 0.1, pi / 3.0, 1e-6);
+    ICP icp(icp_config);
+    depth_sensor_2.setPose(previous_pose.getTransformation());
     RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, normal_map_pyramid_1,
-        previous_pose, depth_sensor_2);
+        depth_sensor_2);
 
     glm::vec3 v = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
-    glm::vec3 true_rotated_v = true_pose.rot_mat * v;
-    glm::vec3 rotated_v = pose_estimate.rot_mat * v;
+    glm::vec3 true_rotated_v = glm::normalize(true_pose.rot_mat * v);
+    glm::vec3 rotated_v = glm::normalize(pose_estimate.rot_mat * v);
     float angle = glm::acos(glm::dot(true_rotated_v, rotated_v));
 
     ASSERT_LE(angle, pi / 90.0f);

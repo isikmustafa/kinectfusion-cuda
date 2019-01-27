@@ -1,4 +1,5 @@
 #pragma once
+#include <cuda_runtime.h>
 
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
