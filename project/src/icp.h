@@ -10,15 +10,15 @@
 /*
     Class for a specific implementation of the ICP algorithm. It computes the global pose of a set of vertices by 
     aligning it to a target set of vertices. It uses a coarse to fine approach by starting from
-    a lower resolution which is successively increased over the iterations. On creation only the dimensions of the 
-    underlying grid and of the resolution pyramids are specified. After instantiation, the object can be used to 
-    compute poses arbitrarily often, as long as the dimensions match.
+    a lower resolution which is successively increased over the iterations. On creation only some constant parameters
+    are specified. After instantiation, the object can be used to compute poses arbitrarily often, as long as the 
+    dimensions match.
 */
 class ICP
 {
 public:
     ICP(std::vector<unsigned int> iters_per_layer, unsigned int width, unsigned int height, float distance_thresh,
-        float angle_thresh);
+        float angle_thresh, float stop_threshold);
     ~ICP();
 
     RigidTransform3D computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
@@ -32,16 +32,19 @@ private:
     std::vector<unsigned int> m_iters_per_layer;
     float m_distance_thresh;
     float m_angle_thresh;
+    float m_stop_thresh;
     std::array<float, 2> m_execution_times;
     
+    LinearLeastSquares solver;
+
     // Buffers for the residual paramterers and the result, allocated once
     float *m_mat_a;
     float *m_vec_b;
     float *m_vec_x;
 
-    LinearLeastSquares solver;
-
 private:
     void updatePose(RigidTransform3D &pose);
+    glm::mat3x3 buildRotationZYX(float z_angle, float y_angle, float x_angle);
+    unsigned int countResiduals(unsigned int max_idx);
 };
 

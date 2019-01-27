@@ -23,6 +23,7 @@ int main()
 	// Configuration
 	constexpr bool use_kinect = false;
 	const std::string dataset_dir = "rgbd_dataset_freiburg1_xyz";
+    constexpr float pi = 3.14159265358979323846f;
 	constexpr auto depth_scale = 1.0f / (use_kinect ? 1000.0f : 5000.0f);
 	constexpr unsigned int width = 640;
 	constexpr unsigned int height = 480;
@@ -30,14 +31,15 @@ int main()
 	std::vector<unsigned int> icp_iters_per_layer = { 10, 4, 2 }; // high -> low resolution
 	const int n_pyramid_layers = icp_iters_per_layer.size();
 	constexpr float icp_distance_thresh = 0.4f; // meters
-	constexpr float pi = 3.14159265358979323846f;
 	constexpr float icp_angle_thresh = 7.0f * pi / 18.0f;
+    constexpr float icp_stop_thresh = 1e-6f;
 
     glm::mat4x4 static_viewpoint = glm::rotate(- pi / 36.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     static_viewpoint[3] = glm::vec4(0.0f, -0.2f, -1.8f, 1.0f);
 
     glm::mat4x4 initial_pose(1.0f);
     initial_pose[3] = glm::vec4(0.0, 0.0, -1.0, 1.0);
+    //initial_pose[3] = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
 	// Initialization
 	Sensor moving_sensor(use_kinect ? 571.0f : 525.0f);
@@ -48,7 +50,7 @@ int main()
 	VoxelGrid voxel_grid(3.0f, 512);
 	kernel::initializeGrid(voxel_grid.getStruct(), Voxel());
 
-	ICP icp_registrator(icp_iters_per_layer, width, height, icp_distance_thresh, icp_angle_thresh);
+	ICP icp_registrator(icp_iters_per_layer, width, height, icp_distance_thresh, icp_angle_thresh, icp_stop_thresh);
 
 	cudaChannelFormatDesc depth_desc_half = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindFloat);
 	cudaChannelFormatDesc depth_desc_single = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);
@@ -69,6 +71,14 @@ int main()
 
 	Window window(use_kinect);
 	Timer timer;
+
+    if (use_kinect)
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            window.getKinectData(raw_depth_map);
+        }
+    }
 
 	std::pair<std::string, glm::mat4> next;
 	glm::mat4x4 first_pose_inverse;
@@ -154,7 +164,7 @@ int main()
 		{
 			auto pose_error = poseError(initial_pose *  first_pose_inverse * next.second,
 				pose_estimate.getTransformation());
-
+        
 			total_angle_error += pose_error.first;
 			total_distance_error += pose_error.second;
 			if (pose_error.first > 5.0 || pose_error.second > 0.05)
@@ -162,7 +172,7 @@ int main()
 				std::cout << "Frame Number: " << frame_number << " Angle Error :" << 180 * pose_error.first / pi
 					<< " Distance Error: " << pose_error.second << std::endl;
 			}
-
+        
 			//At every 50th frame, print average errors.
 			if (frame_number % 50 == 0)
 			{
@@ -175,8 +185,8 @@ int main()
 		kernel_time += kernel::fuse(raw_depth_map_meters, voxel_grid.getStruct(), moving_sensor);
 
 		// Raycast vertex and normal maps from a fixed view
-		kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
-			predicted_normal_pyramid[0], 0);
+		//kernel_time += kernel::raycast(voxel_grid.getStruct(), fixed_sensor, predicted_vertex_pyramid[0],
+		//	predicted_normal_pyramid[0], 0);
 
 		kernel_time += kernel::normalMapToWindowContent(predicted_normal_pyramid[0].getCudaSurfaceObject(),
 			window, previous_inverse_sensor_rotation);

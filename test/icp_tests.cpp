@@ -56,7 +56,7 @@ TEST_F(IcpTests, TestInitialization)
 {
     RigidTransform3D transform;
 
-    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0);
+    ICP icp(iters_per_layer, 4, 4, 1.0, 1.0, 1.0);
 }
 
 TEST_F(IcpTests, TestComputeCorrespondence)
@@ -313,7 +313,7 @@ TEST_F(IcpTests, TestComputePose)
 
     HANDLE_ERROR(cudaDeviceSynchronize());
 
-    ICP icp(iters_per_layer, width, height, 0.1, pi / 3.0);
+    ICP icp(iters_per_layer, width, height, 0.1, pi / 3.0, 1e-6);
     RigidTransform3D pose_estimate = icp.computePose(vertex_map_pyramid_2, vertex_map_pyramid_1, normal_map_pyramid_1,
         previous_pose, depth_sensor_2);
 
