@@ -43,6 +43,11 @@ public:
         return m_voxel_grid[coords.x][coords.y][coords.z];
     }
 
+    float getVoxelSize() const
+    {
+        return m_voxel_size;
+    }
+
     /* 
         Updates the map given a single measured point, which is expected in world coordinate frame, whose origin is 
         at the center of the voxel grid per default.
@@ -86,7 +91,6 @@ public:
                  (int)std::floor(point_in_grid_frame.z / m_voxel_size) };
     }
 
-private:
     glm::fvec3 toVoxelCoordinates(glm::fvec3 &point, Coords3D coords)
     {
         glm::fvec3 voxel_center = m_voxel_size * (glm::fvec3)coords + m_voxel_size / 2.0f;

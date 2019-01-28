@@ -58,4 +58,5 @@ TEST_F(NdtTests, TestInit)
 
     NdtPoseEstimator<2> estimator(2, 3, 1.0);
     estimator.initialize(data);
+    estimator.computePose(data, glm::mat4x4(1.0f));
 }
