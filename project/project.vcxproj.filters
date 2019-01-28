@@ -68,6 +68,9 @@
       <Filter>I/O</Filter>
     </ClInclude>
     <ClInclude Include="src\kinect_fusion.h" />
+    <ClInclude Include="src\ndt_map_3d.h">
+      <Filter>NDT</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -138,6 +141,9 @@
     </Filter>
     <Filter Include="Fusion&amp;Raycast">
       <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NDT">
+      <UniqueIdentifier>{9d29697e-5a36-4207-9cd8-5375dacf6019}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

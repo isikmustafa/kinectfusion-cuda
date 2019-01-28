@@ -8,6 +8,7 @@
       <Filter>pch</Filter>
     </ClCompile>
     <ClCompile Include="icp_tests.cpp" />
+    <ClCompile Include="ndt_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

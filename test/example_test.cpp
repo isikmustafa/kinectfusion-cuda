@@ -49,3 +49,8 @@ TEST_F(ExampleTestFixture, TestGlmToArray)
     float* flat = &true_rot_mat[0][0];
     ASSERT_FLOAT_EQ(42.0, flat[4]);
 }
+
+TEST_F(ExampleTestFixture, TestGlmSize)
+{
+    ASSERT_EQ(12, sizeof(glm::fvec3));
+}
