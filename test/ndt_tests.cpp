@@ -16,7 +16,7 @@ TEST_F(NdtTests, TestNdtMapUpdate)
                                         { 2.0f, 3.0f, 1.0f },
                                         { 3.0f, 2.0f, 1.0f } } };
     float voxel_size = 5.0f;
-    Coords3D coords{ 0, 0, 0 };
+    Coords3D coords{ 1, 1, 1 };
     
     glm::fvec3 true_mean(-0.5f, -0.5f, -0.5f);
     glm::fvec3 true_co_moments_diag(0.0);
@@ -48,7 +48,13 @@ TEST_F(NdtTests, TestNdtMapUpdate)
 
 TEST_F(NdtTests, TestInit)
 {
-    float data[6] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f };
+    glm::fvec4 data[6] = { 
+        glm::fvec4(1.0f), 
+        glm::fvec4(2.0f), 
+        glm::fvec4(3.0f), 
+        glm::fvec4(4.0f), 
+        glm::fvec4(5.0f), 
+        glm::fvec4(6.0f) };
 
     NdtPoseEstimator<2> estimator(2, 3, 1.0);
     estimator.initialize(data);

@@ -10,9 +10,32 @@ public:
         : m_frame_width(frame_width), m_frame_height(frame_height), m_ndt_map(voxel_size) {}
     ~NdtPoseEstimator() {}
 
-    void initialize(float *depth_data)
+    // Vertices always expected in world coordinates
+    void initialize(glm::fvec4 *vertices)
     {
-        // TODO: implement
+        Coords2D coords;
+        for (coords.x = 0; coords.x < m_frame_height; coords.x++)
+        {
+            for (coords.y = 0; coords.y < m_frame_width; coords.y++)
+            {
+                glm::fvec4 vertex = vertices[calcIndexFromPixelCoords(coords)];
+
+                m_ndt_map.updateMap(glm::fvec3(vertex));
+            }
+        }
+    }
+
+    // Vertices always expected in world coordinates
+    void computePose(glm::fvec4 *vertices, glm::mat4x4 previous_pose)
+    {
+        /*
+            For each vertex:
+            1. Calculate grid coordinates
+            2. Get normal distribution of corresponding voxel
+            3. Optimize pose with Newton, following chapter V of
+            http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.10.7059&rep=rep1&type=pdf
+            4. return if converged, else back to 1
+        */
     }
 
 private:
@@ -25,9 +48,9 @@ private:
     {
         return { idx / m_frame_width, idx % m_frame_width };
     }
-    
-    glm::vec3 to3dPoint(float depth, Coords2D coords)
+
+    int calcIndexFromPixelCoords(Coords2D coords)
     {
-        // TODO: implement
+        return coords.x * m_frame_width + coords.y;
     }
 };
