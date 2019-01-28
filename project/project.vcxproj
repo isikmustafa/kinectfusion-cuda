@@ -34,6 +34,7 @@
     <ClInclude Include="src\measurement.cuh" />
     <ClInclude Include="src\cuda_grid_map.h" />
     <ClInclude Include="src\ndt_map_3d.h" />
+    <ClInclude Include="src\ndt_pose_estimator.h" />
     <ClInclude Include="src\raycast.cuh" />
     <ClInclude Include="src\rgbd_dataset.h" />
     <ClInclude Include="src\rigid_transform_3d.h" />

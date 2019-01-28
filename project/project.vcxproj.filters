@@ -71,6 +71,9 @@
     <ClInclude Include="src\ndt_map_3d.h">
       <Filter>NDT</Filter>
     </ClInclude>
+    <ClInclude Include="src\ndt_pose_estimator.h">
+      <Filter>NDT</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">

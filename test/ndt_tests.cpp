@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "ndt_map_3d.h"
+#include "ndt_pose_estimator.h"
+#include "data_helper.h"
 
 class NdtTests : public ::testing::Test
 {
@@ -11,25 +13,27 @@ TEST_F(NdtTests, TestNdtMapUpdate)
 {
     std::array<glm::fvec3, 4> points{ { { 1.0f, 2.0f, 3.0f },
                                         { 2.0f, 1.0f, 3.0f },
-                                        { 3.0f, 2.0f, 1.0f },
-                                        { 2.0f, 3.0f, 1.0f } } };
-    Coords3D coords{ 1, 0, 1 };
+                                        { 2.0f, 3.0f, 1.0f },
+                                        { 3.0f, 2.0f, 1.0f } } };
+    float voxel_size = 5.0f;
+    Coords3D coords{ 0, 0, 0 };
     
-    glm::fvec3 true_mean(2.0f, 2.0f, 2.0f);
+    glm::fvec3 true_mean(-0.5f, -0.5f, -0.5f);
     glm::fvec3 true_co_moments_diag(0.0);
     glm::fvec3 true_co_moments_triangle(0.0);
     for (const auto point : points)
     {
-        true_co_moments_diag += (point - true_mean) * (point - true_mean);
-        true_co_moments_triangle.x += (point.x - true_mean.x) * (point.y - true_mean.y);
-        true_co_moments_triangle.y += (point.x - true_mean.x) * (point.z - true_mean.z);
-        true_co_moments_triangle.z += (point.y - true_mean.y) * (point.z - true_mean.z);
+        glm::fvec3 point_local = point - glm::vec3(2.5f, 2.5f, 2.5f);
+        true_co_moments_diag += (point_local - true_mean) * (point_local - true_mean);
+        true_co_moments_triangle.x += (point_local.x - true_mean.x) * (point_local.y - true_mean.y);
+        true_co_moments_triangle.y += (point_local.x - true_mean.x) * (point_local.z - true_mean.z);
+        true_co_moments_triangle.z += (point_local.y - true_mean.y) * (point_local.z - true_mean.z);
     }
 
-    NdtMap3d<2> ndt_map;
-    for (const auto point : points)
+    NdtMap3D<2> ndt_map(voxel_size);
+    for (glm::fvec3 point : points)
     {
-        ndt_map.updateVoxel(point, coords);
+        ndt_map.updateMap(point);
     }
 
     NdtVoxel voxel = ndt_map.getVoxel(coords);
@@ -40,4 +44,12 @@ TEST_F(NdtTests, TestNdtMapUpdate)
         ASSERT_NEAR(true_co_moments_diag[i], voxel.co_moments_diag[i], 1e-6f);
         ASSERT_NEAR(true_co_moments_triangle[i], voxel.co_moments_triangle[i], 1e-6f);
     }
+}
+
+TEST_F(NdtTests, TestInit)
+{
+    float data[6] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f };
+
+    NdtPoseEstimator<2> estimator(2, 3, 1.0);
+    estimator.initialize(data);
 }
