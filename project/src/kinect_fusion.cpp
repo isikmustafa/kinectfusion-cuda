@@ -7,6 +7,7 @@
 #include "measurement.cuh"
 #include "general_helper.h"
 #include "display.cuh"
+#include <glm/gtx/transform.hpp>
 
 KinectFusion::KinectFusion(KinectFusionConfig &kf_config, IcpConfig &icp_config)
     : m_config(kf_config)
@@ -219,4 +220,34 @@ void KinectFusion::updateWindowTitle(float kernel_time)
     m_window.setWindowTitle("Frame: " + std::to_string(m_current_frame_number) 
         + "Total frame time: " + std::to_string(m_timer.getTime() * 1000.0) 
         + " , Total kernel execution time: " + std::to_string(kernel_time));
+}
+void KinectFusion::changeView()
+{
+	float angle;
+	glm::vec3 rotation_axis, translation_vector;
+	float input_position;
+	float pi = 3.14159265358979323846f;
+	while (true)
+	{
+		std::cout << "Please enter rotation angle in degrees: ";
+		std::cin >> angle;
+		std::cout << "Please enter rotation axis in vector: ";
+		std::cin >> rotation_axis.x;
+		std::cin >> rotation_axis.y;
+		std::cin >> rotation_axis.z;
+		std::cout << "Please enter translation vector: ";
+		std::cin >> translation_vector.x;
+		std::cin >> translation_vector.y;
+		std::cin >> translation_vector.z;
+		float kernel_time = 0.0f;
+		Sensor dummy_sensor = m_moving_sensor;
+		dummy_sensor.setPose(glm::translate(glm::rotate(dummy_sensor.getPose(), -pi / (180.0f / angle),
+			rotation_axis), translation_vector));
+		kernel_time += kernel::raycast(m_voxel_grid.getStruct(), dummy_sensor,
+			m_predicted_vertex_pyramid[0], m_predicted_normal_pyramid[0], 0);
+
+		kernel_time += kernel::normalMapToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(),
+			m_window, glm::mat3x3(dummy_sensor.getInversePose()));
+		updateWindowTitle(kernel_time);
+	}
 }

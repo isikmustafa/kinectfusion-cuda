@@ -47,6 +47,7 @@ int main()
     icp_config.angle_thresh = 6.0f * pi / 18.0f;
     icp_config.stop_threshold = 1e-6f;
 
-    KinectFusion awesome(config_kinect, icp_config);
+    KinectFusion awesome(config_dataset, icp_config);
     awesome.startTracking(798);
+	awesome.changeView();
 }

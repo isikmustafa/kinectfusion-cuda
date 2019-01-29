@@ -39,6 +39,7 @@ public:
     void showCurrentDepth();
     void showCurrentNormals();
     void startTracking(int n_frames);
+	void changeView();
 
 private:
     // Constants
