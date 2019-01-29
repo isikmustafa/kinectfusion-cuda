@@ -69,13 +69,13 @@ public:
 			voxel.count += 1.0f;
 
 			// Compute and save p_k - mean_{k-1}
-			glm::vec3 deviations_from_previous_mean = point_local - voxel.mean;
+			auto deviations_from_previous_mean = point_local - voxel.mean;
 
 			// Update the mean
 			voxel.mean += deviations_from_previous_mean / voxel.count;
 
 			// Update the co-moments
-			glm::vec3 deviations_from_current_mean = point_local - voxel.mean;
+			auto deviations_from_current_mean = point_local - voxel.mean;
 
 			// 1. diagonal elements:
 			voxel.co_moments_diag += deviations_from_previous_mean * deviations_from_current_mean;
