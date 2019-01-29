@@ -20,6 +20,7 @@ struct KinectFusionConfig
     bool verbose;
     bool use_static_view;
     bool compute_pose_error;
+	bool use_shading;
     std::string dataset_dir;
     unsigned int frame_width;
     unsigned int frame_height;

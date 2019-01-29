@@ -188,8 +188,16 @@ void KinectFusion::visualizeCurrentModel()
             m_predicted_normal_pyramid[0], 0);
     }
 
-	m_functions_to_times["other"] += kernel::normalMapToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(),
-        m_window, glm::mat3x3(m_moving_sensor.getInversePose()));
+	if (m_config.use_shading)
+	{
+		m_functions_to_times["other"] += kernel::shadingToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(), m_window,
+			m_config.use_static_view ? m_fixed_sensor : m_moving_sensor);
+	}
+	else
+	{
+		m_functions_to_times["other"] += kernel::normalMapToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(),
+			m_window, glm::mat3x3((m_config.use_static_view ? m_fixed_sensor : m_moving_sensor).getInversePose()));
+	}
 }
 
 void KinectFusion::saveNormalMapToFile(std::string suffix)

@@ -72,7 +72,9 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 		return;
 	}
 
-	auto distance_increase = mue * 0.99f;
+	auto large_distance_increase = mue * 1.99f;
+	auto small_distance_increase = mue * 0.25f;
+	auto distance_increase = large_distance_increase;
 	auto previous_tsdf = 0.0f;
 	auto precise_distance = 0.0f;
 	for (auto current_distance = near_distance; current_distance < far_distance; current_distance += distance_increase)
@@ -91,15 +93,25 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 			//and continued from +ve to -ve.
 			if (current_distance != near_distance)
 			{
-				//Formula(15) to compute more precise distance of intersection.
-				precise_distance = current_distance - distance_increase * previous_tsdf / (tsdf - previous_tsdf);
+				if (distance_increase == large_distance_increase)
+				{
+					//Go back to positive area.
+					current_distance -= mue;
+					distance_increase = small_distance_increase;
+					continue;
+				}
+				else
+				{
+					//Formula(15) to compute more precise distance of intersection.
+					precise_distance = current_distance - distance_increase * previous_tsdf / (tsdf - previous_tsdf);
+				}
 			}
 			break;
 		}
 		//4-Update distance_increase if it is the region of uncertainty.
 		else if (tsdf < 0.99f)
 		{
-			distance_increase = mue * 0.125f;
+			distance_increase = small_distance_increase;
 		}
 		previous_tsdf = tsdf;
 	}
