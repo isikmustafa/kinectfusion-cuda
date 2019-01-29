@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "glm_macro.h"
 #include <glm/glm.hpp>
 
@@ -74,16 +75,20 @@ private:
 
     int m_current_frame_number;
 
+	//Timings
+	std::unordered_map<std::string, float> m_functions_to_times;
+
 private:
     void initializeTracking();
     void warmupKinect();
     void readNextDephtMap();
-    float depthFrameToVertexPyramid();
-    float raycastVertexAndNormalPyramid();
-    float computePose();
+	void depthFrameToVertexPyramid();
+	void raycastTsdf();
+	void computePose();
     void computePoseError();
-    float fuseCurrentDepthToTSDF();
-    float visualizeCurrentModel();
+	void fuseCurrentDepthToTSDF();
+	void visualizeCurrentModel();
     void saveNormalMapToFile(std::string suffix);
-    void updateWindowTitle(float kernel_time);
+    void updateWindowTitle();
+	void printTimings();
 };
