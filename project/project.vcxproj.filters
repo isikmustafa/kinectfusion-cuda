@@ -58,9 +58,6 @@
     <ClInclude Include="src\general_helper.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\display.cuh">
-      <Filter>I/O</Filter>
-    </ClInclude>
     <ClInclude Include="src\linear_least_squares.h">
       <Filter>PoseEstimation</Filter>
     </ClInclude>
@@ -68,6 +65,12 @@
       <Filter>I/O</Filter>
     </ClInclude>
     <ClInclude Include="src\kinect_fusion.h" />
+    <ClInclude Include="src\display.cuh">
+      <Filter>Display</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fps_camera.h">
+      <Filter>Display</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\cuda_event.cpp">
@@ -89,7 +92,7 @@
       <Filter>Fusion&amp;Raycast</Filter>
     </CudaCompile>
     <CudaCompile Include="src\display.cu">
-      <Filter>I/O</Filter>
+      <Filter>Display</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +122,9 @@
       <Filter>I/O</Filter>
     </ClCompile>
     <ClCompile Include="src\kinect_fusion.cpp" />
+    <ClCompile Include="src\fps_camera.cpp">
+      <Filter>Display</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DataStructures">
@@ -138,6 +144,9 @@
     </Filter>
     <Filter Include="Fusion&amp;Raycast">
       <UniqueIdentifier>{b06305b5-5221-4dcd-a30d-5293a3365f84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Display">
+      <UniqueIdentifier>{d9cbe02b-1653-4f69-a7bb-ad339dd619e0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

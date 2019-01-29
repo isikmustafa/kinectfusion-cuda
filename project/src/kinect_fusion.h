@@ -42,6 +42,7 @@ public:
     void showCurrentNormals();
     void startTracking(int n_frames);
 	void changeView();
+	void walk();
 
 private:
     // Constants

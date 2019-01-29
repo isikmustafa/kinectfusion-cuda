@@ -94,7 +94,7 @@ __global__ void shadingToWindowContentKernel(cudaSurfaceObject_t normal_map, cud
 	surf2Dread(&normal.z, normal_map, idx + 8, j, cudaBoundaryModeZero);
 
 	auto ray_direction = glm::normalize(glm::mat3(sensor.getPose()) * sensor.getInverseIntr(0) * glm::vec3(i + 0.5f, j + 0.5f, 1.0f));
-	auto radiance = glm::abs(glm::dot(normal, ray_direction));
+	auto radiance = glm::min(glm::abs(glm::dot(normal, ray_direction)), 1.0f);
 
 	unsigned int pixel_w = (255) << 8;
 	pixel_w = (pixel_w | static_cast<unsigned char>(radiance * 255.0f)) << 8;

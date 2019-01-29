@@ -10,15 +10,16 @@ int main()
 
     KinectFusionConfig config_dataset = {};
     config_dataset.use_kinect = false;
-    config_dataset.verbose = false;
+    config_dataset.verbose = true;
     config_dataset.compute_pose_error = false;
     config_dataset.use_static_view = false;
+	config_dataset.use_shading = true;
     config_dataset.dataset_dir = "rgbd_dataset_freiburg1_xyz";
     config_dataset.depth_scale = 1.0f / 5000.0f;
     config_dataset.frame_width = 640;
     config_dataset.frame_height = 480;
     config_dataset.field_of_view = 525.0f;
-    config_dataset.voxel_grid_size = 6.0f;
+    config_dataset.voxel_grid_size = 4.0f;
     config_dataset.voxel_grid_resolution = 512;
     config_dataset.static_viewpoint = glm::rotate(- pi / 36.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     config_dataset.static_viewpoint[3] = glm::vec4(0.0f, -0.2f, -1.8f, 1.0f);
@@ -49,5 +50,5 @@ int main()
 
     KinectFusion awesome(config_dataset, icp_config);
     awesome.startTracking(798);
-	awesome.changeView();
+	awesome.walk();
 }

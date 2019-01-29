@@ -13,7 +13,7 @@
 
 constexpr int gWidth = 640;
 constexpr int gHeight = 480;
-constexpr bool gVSync = false;
+constexpr bool gVSync = true;
 
 Window::Window(const bool use_kinect = false)
 {
@@ -169,4 +169,83 @@ void Window::draw()
 void Window::setWindowTitle(const std::string& str) const
 {
 	SDL_SetWindowTitle(m_window, ("KinectFusion --- " + str).c_str());
+}
+
+void Window::handleInput()
+{
+	SDL_Event e;
+	while (SDL_PollEvent(&e))
+	{
+		if (e.type == SDL_KEYDOWN)
+		{
+			switch (e.key.keysym.sym)
+			{
+			case SDLK_w:
+				m_wasd_state[0] = true;
+				break;
+
+			case SDLK_a:
+				m_wasd_state[1] = true;
+				break;
+
+			case SDLK_s:
+				m_wasd_state[2] = true;
+				break;
+
+			case SDLK_d:
+				m_wasd_state[3] = true;
+				break;
+			}
+		}
+		else if (e.type == SDL_KEYUP)
+		{
+			switch (e.key.keysym.sym)
+			{
+			case SDLK_w:
+				m_wasd_state[0] = false;
+				break;
+
+			case SDLK_a:
+				m_wasd_state[1] = false;
+				break;
+
+			case SDLK_s:
+				m_wasd_state[2] = false;
+				break;
+
+			case SDLK_d:
+				m_wasd_state[3] = false;
+				break;
+			}
+		}
+		else if (e.type == SDL_MOUSEMOTION)
+		{
+			m_mouse_state[0] = m_mouse_state[1];
+			m_mouse_state[1].x = e.motion.x;
+			m_mouse_state[1].y = e.motion.y;
+		}
+		else if (e.type == SDL_MOUSEBUTTONDOWN)
+		{
+			m_mouse_pressed = true;
+		}
+		else if (e.type == SDL_MOUSEBUTTONUP)
+		{
+			m_mouse_pressed = false;
+		}
+	}
+}
+
+const std::array<bool, 4>& Window::getWasdState()
+{
+	return m_wasd_state;
+}
+
+const std::array<glm::ivec2, 2>& Window::getMouseState()
+{
+	return m_mouse_state;
+}
+
+bool Window::isMousePressed()
+{
+	return m_mouse_pressed;
 }
