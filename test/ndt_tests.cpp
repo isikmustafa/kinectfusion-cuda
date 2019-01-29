@@ -18,19 +18,19 @@ TEST_F(NdtTests, TestNdtMapUpdate)
     float voxel_size = 5.0f;
     Coords3D coords{ 1, 1, 1 };
     
-    glm::fvec3 true_mean(-0.5f, -0.5f, -0.5f);
+    glm::fvec3 true_mean(-0.1f, -0.1f, -0.1f);
     glm::fvec3 true_co_moments_diag(0.0);
     glm::fvec3 true_co_moments_triangle(0.0);
     for (const auto point : points)
     {
-        glm::fvec3 point_local = point - glm::vec3(2.5f, 2.5f, 2.5f);
+        glm::fvec3 point_local = (point - glm::vec3(2.5f, 2.5f, 2.5f)) / voxel_size;
         true_co_moments_diag += (point_local - true_mean) * (point_local - true_mean);
         true_co_moments_triangle.x += (point_local.x - true_mean.x) * (point_local.y - true_mean.y);
         true_co_moments_triangle.y += (point_local.x - true_mean.x) * (point_local.z - true_mean.z);
         true_co_moments_triangle.z += (point_local.y - true_mean.y) * (point_local.z - true_mean.z);
     }
 
-    NdtMap3D<2> ndt_map(voxel_size);
+    NdtMap3D<2> ndt_map(voxel_size * 2.0f);
     for (glm::fvec3 point : points)
     {
         ndt_map.updateMap(point);

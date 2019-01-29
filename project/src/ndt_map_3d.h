@@ -1,109 +1,120 @@
 #pragma once
+
+#include "data_helper.h"
+
 #include <array>
 #include <type_traits>
 #include <glm/glm.hpp>
 
-#include "data_helper.h"
-
-struct NdtVoxel 
+struct NdtVoxel
 {
-    glm::fvec3 mean = glm::fvec3(0.0);
-    glm::fvec3 co_moments_diag = glm::fvec3(0.0);
-    glm::fvec3 co_moments_triangle = glm::fvec3(0.0);
-    float count = 0.0f;
+	glm::vec3 mean{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 co_moments_diag{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 co_moments_triangle{ 0.0f, 0.0f, 0.0f };
+	float count{ 0.0f };
 };
 
-
 template<size_t N>
-using VoxelCube = std::array<std::array<std::array<NdtVoxel, N>, N>, N>;
+using VoxelCubeGrid = std::array<std::array<std::array<NdtVoxel, N>, N>, N>;
 
 /*
-    Cubic voxel grid representing a 3D NDT map with a voxel_size of N x N x N.
+	Cubic voxel grid representing a 3D NDT map with a voxel_size of N x N x N.
 */
 template<size_t N>
 class NdtMap3D
 {
 public:
-    NdtMap3D(float voxel_size) : m_voxel_size(voxel_size)
-    { 
-        static_assert(N % 2 == 0, "Error: Voxel grid dimension must be even.");
-        float center_distance = N / 2 * m_voxel_size;
-        m_grid_center = glm::vec3(center_distance);
-    }
-    ~NdtMap3D() {}
+	NdtMap3D(float total_width_in_meters)
+		: m_total_width(total_width_in_meters)
+		, m_half_total_width(total_width_in_meters * 0.5f)
+		, m_voxel_width(m_total_width / N)
+		, m_one_over_voxel_width(1.0f / m_voxel_width)
+	{
+		static_assert(N % 2 == 0, "Error: Voxel grid dimension must be even.");
+	}
 
 private:
-    float m_voxel_size;
-    glm::fvec3 m_grid_center;
-    VoxelCube<N> m_voxel_grid;
+	VoxelCubeGrid<N> m_voxel_grid;
+	float m_total_width;
+	float m_half_total_width;
+	float m_voxel_width;
+	float m_one_over_voxel_width;
 
 public:
-    NdtVoxel& getVoxel(Coords3D coords)
-    {
-        return m_voxel_grid[coords.x][coords.y][coords.z];
-    }
+	NdtVoxel& getVoxel(const Coords3D& index)
+	{
+		return m_voxel_grid[index.x][index.y][index.z];
+	}
 
-    float getVoxelSize() const
-    {
-        return m_voxel_size;
-    }
+	float getVoxelWidth() const
+	{
+		return m_voxel_width;
+	}
 
-    /* 
-        Updates the map given a single measured point, which is expected in world coordinate frame, whose origin is 
-        at the center of the voxel grid per default.
-        Online algorithm explained at https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online.
-    */
-    void updateMap(glm::fvec3 &point)
-    {
-        Coords3D coords = calcCoordinates3D(point);
+	/*
+		Updates the map given a single measured point, which is expected in world coordinate frame, whose origin is
+		at the center of the voxel grid per default.
+		Online algorithm explained at https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online.
+	*/
+	void updateMap(const glm::vec3& point)
+	{
+		auto grid_coordinate = getGridCoordinate(point);
+		auto index = calculateGridIndexFromGridCoordinate(grid_coordinate);
 
-        if (coordinatesAreValid(coords))
-        {
-            NdtVoxel &voxel = getVoxel(coords);
-            glm::fvec3 point_local = toVoxelCoordinates(point, coords);
+		if (isIndexValid(index))
+		{
+			auto& voxel = getVoxel(index);
+			auto point_local = toVoxelCoordinates(grid_coordinate, index);
 
-            voxel.count += 1.0f;
+			voxel.count += 1.0f;
 
-            // Compute and save p_k - mean_{k-1}
-            glm::fvec3 deviations_from_previous_mean = point_local - voxel.mean;
+			// Compute and save p_k - mean_{k-1}
+			glm::vec3 deviations_from_previous_mean = point_local - voxel.mean;
 
-            // Update the mean
-            voxel.mean += deviations_from_previous_mean / voxel.count;
+			// Update the mean
+			voxel.mean += deviations_from_previous_mean / voxel.count;
 
-            // Update the co-moments
-            glm::fvec3 deviations_from_current_mean = point_local - voxel.mean;
+			// Update the co-moments
+			glm::vec3 deviations_from_current_mean = point_local - voxel.mean;
 
-            // 1. diagonal elements:
-            voxel.co_moments_diag += deviations_from_previous_mean * deviations_from_current_mean;
+			// 1. diagonal elements:
+			voxel.co_moments_diag += deviations_from_previous_mean * deviations_from_current_mean;
 
-            // 2. upper triangle elements
-            voxel.co_moments_triangle.x += deviations_from_previous_mean.x * deviations_from_current_mean.y;
-            voxel.co_moments_triangle.y += deviations_from_previous_mean.x * deviations_from_current_mean.z;
-            voxel.co_moments_triangle.z += deviations_from_previous_mean.y * deviations_from_current_mean.z;
-        }
-    }
+			// 2. upper triangle elements
+			voxel.co_moments_triangle.x += deviations_from_previous_mean.x * deviations_from_current_mean.y;
+			voxel.co_moments_triangle.y += deviations_from_previous_mean.x * deviations_from_current_mean.z;
+			voxel.co_moments_triangle.z += deviations_from_previous_mean.y * deviations_from_current_mean.z;
+		}
+	}
 
-    Coords3D calcCoordinates3D(glm::fvec3 &point)
-    {
-        glm::fvec3 point_in_grid_frame = point + m_grid_center;
-        return { (int)std::floor(point_in_grid_frame.x / m_voxel_size),
-                 (int)std::floor(point_in_grid_frame.y / m_voxel_size),
-                 (int)std::floor(point_in_grid_frame.z / m_voxel_size) };
-    }
+	glm::vec3 getGridCoordinate(const glm::vec3& point) const
+	{
+		return (point + m_half_total_width) * m_one_over_voxel_width;
+	}
 
-    glm::fvec3 toVoxelCoordinates(glm::fvec3 &point, Coords3D coords)
-    {
-        glm::fvec3 voxel_center = m_voxel_size * (glm::fvec3)coords + m_voxel_size / 2.0f;
-        return point + m_grid_center - voxel_center;
-    }
+	Coords3D calculateGridIndexFromGridCoordinate(const glm::vec3& grid_coordinate) const
+	{
+		return { static_cast<int>(grid_coordinate.x),
+				 static_cast<int>(grid_coordinate.y),
+				 static_cast<int>(grid_coordinate.z) };
+	}
 
-    bool coordinatesAreValid(Coords3D coords)
-    {
-        bool x_valid = coords.x >= 0 && coords.x < N;
-        bool y_valid = coords.y >= 0 && coords.y < N;
-        bool z_valid = coords.z >= 0 && coords.z < N;
+	Coords3D calculateGridIndex(const glm::vec3& point) const
+	{
+		return calculateGridIndexFromGridCoordinate(getGridCoordinate(point));
+	}
 
-        return x_valid && y_valid && z_valid;
-    }
+	bool isIndexValid(const Coords3D& index) const
+	{
+		bool x_valid = index.x >= 0 && index.x < N;
+		bool y_valid = index.y >= 0 && index.y < N;
+		bool z_valid = index.z >= 0 && index.z < N;
+
+		return x_valid && y_valid && z_valid;
+	}
+
+	glm::vec3 toVoxelCoordinates(const glm::vec3& grid_coordinate, const Coords3D& index) const
+	{
+		return grid_coordinate - glm::vec3(index.x, index.y, index.z) - glm::vec3(0.5f);
+	}
 };
-

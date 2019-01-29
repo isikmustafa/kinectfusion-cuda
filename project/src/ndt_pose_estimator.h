@@ -8,12 +8,13 @@ template<size_t N>
 class NdtPoseEstimator
 {
 public:
+	//TODO m_ndt_map does not take voxel_size as argument anymore
     NdtPoseEstimator(unsigned int frame_width, unsigned int frame_height, float voxel_size)
         : m_frame_width(frame_width), m_frame_height(frame_height), m_ndt_map(voxel_size) {}
     ~NdtPoseEstimator() 
     {
         m_c1 = 0.95;
-        m_c2 = (1.0f - m_c1) / pow(m_ndt_map.getVoxelSize(), 3);
+        m_c2 = (1.0f - m_c1) / pow(m_ndt_map.getVoxelWidth(), 3);
         m_d3 = -log(m_c2);
         m_d1 = -log(m_c1 + m_c2) - m_d3;
         constexpr float exp_0p5 = 1.648721271;
@@ -21,22 +22,22 @@ public:
     }
 
     // Vertices always expected in world coordinates
-    void initialize(glm::fvec4 *vertices)
+    void initialize(glm::vec4 *vertices)
     {
         Coords2D coords;
         for (coords.x = 0; coords.x < m_frame_height; coords.x++)
         {
             for (coords.y = 0; coords.y < m_frame_width; coords.y++)
             {
-                glm::fvec4 vertex = vertices[calcIndexFromPixelCoords(coords)];
+                glm::vec4 vertex = vertices[calcIndexFromPixelCoords(coords)];
 
-                m_ndt_map.updateMap(glm::fvec3(vertex));
+                m_ndt_map.updateMap(glm::vec3(vertex));
             }
         }
     }
 
     // Vertices always expected in world coordinates
-    void computePose(glm::fvec4 *vertices, glm::mat4x4 previous_pose)
+    void computePose(glm::vec4 *vertices, const glm::mat4x4& previous_pose)
     {
         /*
             For each vertex:
@@ -57,7 +58,7 @@ public:
             {
                 for (coords.y = 0; coords.y < m_frame_width; coords.y++)
                 {
-                    glm::fvec4 vertex = vertices[calcIndexFromPixelCoords(coords)];
+                    glm::vec4 vertex = vertices[calcIndexFromPixelCoords(coords)];
 
                     if (vertex.w == -2.0f)
                     {
@@ -65,13 +66,14 @@ public:
                     }
                     vertex.w = 1.0f;
                     
-                    glm::fvec3 vertex_global = glm::fvec3(previous_pose * vertex);
-                    Coords3D voxel_coords = m_ndt_map.calcCoordinates3D(vertex_global);
+					glm::vec3 vertex_global = previous_pose * vertex;
+					auto grid_coordinate = m_ndt_map.getGridCoordinate(vertex_global);
+					auto index = m_ndt_map.calculateGridIndexFromGridCoordinate(grid_coordinate);
                     
-                    if (m_ndt_map.coordinatesAreValid(voxel_coords))
+                    if (m_ndt_map.isIndexValid(index))
                     {
-                        NdtVoxel voxel = m_ndt_map.getVoxel(voxel_coords);
-                        constructGradientAndHessian(m_ndt_map.toVoxelCoordinates(vertex_global, voxel_coords), voxel);
+                        auto& voxel = m_ndt_map.getVoxel(index);
+                        constructGradientAndHessian(m_ndt_map.toVoxelCoordinates(grid_coordinate, index), voxel);
                     }
                 }
             }
@@ -112,20 +114,20 @@ private:
         return coords.x * m_frame_width + coords.y;
     }
 
-    void constructGradientAndHessian(glm::fvec3 &local_point, NdtVoxel &voxel)
+    void constructGradientAndHessian(glm::vec3 &local_point, NdtVoxel &voxel)
     {
         // Calculate some reusable intermediate results
-        glm::fvec3 x = local_point - voxel.mean;
+        glm::vec3 x = local_point - voxel.mean;
         glm::fmat3x3 sigma_inv = computeInverseCovMat(voxel);
 
-        std::array<glm::fvec3, 6> jacobian{ { { 1.0f, 0.0f, 0.0f },
+        std::array<glm::vec3, 6> jacobian{ { { 1.0f, 0.0f, 0.0f },
                                                { 0.0f, 1.0f, 0.0f },
                                                { 0.0f, 0.0f, 0.0f },
                                                { 0.0f, -x.z,  x.y },
                                                {  x.z, 0.0f, -x.x },
                                                { -x.y,  x.x, 0.0f } } };
 
-        glm::fvec3 x_T_sigma_inv = sigma_inv * x;
+        glm::vec3 x_T_sigma_inv = sigma_inv * x;
 
         std::array<float, 6> x_T_sigma_inv_dx_dp;
         for (int i = 0; i < 6; i++)
