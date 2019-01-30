@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <cuda_runtime.h>
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>
@@ -52,6 +53,8 @@ public:
 	~VoxelGrid();
 
 	const VoxelGridStruct& getStruct() const { return m_struct; }
+    void saveVoxelGrid(std::string file_name);
+    void loadVoxelGrid(std::string file_name);
 
 private:
 	VoxelGridStruct m_struct;

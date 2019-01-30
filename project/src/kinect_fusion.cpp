@@ -30,9 +30,10 @@ KinectFusion::KinectFusion(KinectFusionConfig &kf_config, IcpConfig &icp_config)
 		m_vector_4d_desc)
 {
 	m_fixed_sensor.setPose(m_config.static_viewpoint);
+    m_fixed_sensor.setPose(m_config.initial_pose);
 	kernel::initializeGrid(m_voxel_grid.getStruct(), Voxel());
 
-	if (!m_config.use_kinect)
+	if (!m_config.use_kinect && !m_config.load_mode)
 	{
 		m_rgbd_dataset.load(m_config.dataset_dir);
 	}
@@ -323,4 +324,14 @@ void KinectFusion::walk()
 
 		m_moving_sensor.setPose(fps_camera.getPose());
 	}
+}
+
+void KinectFusion::saveTSDF(std::string file_name)
+{
+    m_voxel_grid.saveVoxelGrid(file_name);
+}
+
+void KinectFusion::loadTSDF(std::string file_name)
+{
+    m_voxel_grid.loadVoxelGrid(file_name);
 }

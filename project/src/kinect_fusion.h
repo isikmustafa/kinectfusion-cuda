@@ -21,6 +21,7 @@ struct KinectFusionConfig
     bool use_static_view;
     bool compute_pose_error;
 	bool use_shading;
+    bool load_mode;
     std::string dataset_dir;
     unsigned int frame_width;
     unsigned int frame_height;
@@ -43,6 +44,8 @@ public:
     void startTracking(int n_frames);
 	void changeView();
 	void walk();
+    void saveTSDF(std::string file_name);
+    void loadTSDF(std::string file_name);
 
 private:
     // Constants

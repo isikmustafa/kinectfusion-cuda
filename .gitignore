@@ -16,3 +16,4 @@ project/packages
 /project/rgbd_dataset_freiburg1_xyz
 /project/rgbd_dataset_freiburg3_teddy
 /project/Predicted-Truth
+*.bin
