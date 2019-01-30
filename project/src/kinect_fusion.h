@@ -80,6 +80,17 @@ private:
 	//Timings
 	std::unordered_map<std::string, float> m_functions_to_times;
 
+	float m_raycast_time;
+	float m_icp_r_time;
+	float m_icp_s_time;
+	float m_fusion_time=0.0f;
+	float m_preprocessing_time=0.0f;
+	float m_display_time = 0.0f;
+	float m_distance_error;
+	float m_angle_error;
+
+
+
 	//Inputs
 	KeyboardState m_keyboard_state;
 
@@ -96,4 +107,5 @@ private:
     void saveNormalMapToFile(std::string suffix);
     void updateWindowTitle();
 	void printTimings();
+	void saveStream(std::ofstream &output_file);
 };
