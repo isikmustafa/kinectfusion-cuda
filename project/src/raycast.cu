@@ -73,7 +73,7 @@ __global__ void raycastKernel(VoxelGridStruct voxel_grid, Sensor sensor, cudaSur
 	}
 
 	auto large_distance_increase = mue * 1.99f;
-	auto small_distance_increase = mue * 0.25f;
+	auto small_distance_increase = mue * 0.1f;
 	auto distance_increase = large_distance_increase;
 	auto previous_tsdf = 0.0f;
 	auto precise_distance = 0.0f;

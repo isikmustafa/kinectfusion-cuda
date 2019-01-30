@@ -8,7 +8,7 @@
 struct Voxel
 {
 	//The current truncated signed distance value.
-	float f{ 0.0f };
+	float f{ 2.0f };
 
 	//The current weight;
 	float w{ 0.0f };
