@@ -120,6 +120,7 @@ __global__ void createVertexMapKernel(cudaSurfaceObject_t depth_map, cudaSurface
 	}
 	else
 	{
+		device_helper::writeVec3(glm::vec3(0.0f), vertex_map, i, j);
 		device_helper::invalidate(vertex_map, i, j);
 	}
 }
