@@ -32,7 +32,7 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
     pose_estimate = previous_pose;
 
     m_execution_times = { 0.0f, 0.0f };
-
+	int counter = 0;//*
     for (int layer = m_iters_per_layer.size() - 1; layer >= 0; layer--)
     {
         for (int i = 0; i < m_iters_per_layer[layer]; i++)
@@ -45,6 +45,8 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
             m_execution_times[1] += solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
             updatePose(pose_estimate);
+
+			counter++;// match it to frame number
 
             // If ICP converged, move directly to the next pyramid layer
             if (solver.getLastError() < m_stop_thresh)

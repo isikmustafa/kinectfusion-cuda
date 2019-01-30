@@ -79,9 +79,9 @@ private:
     void warmupKinect();
     void readNextDephtMap();
     float depthFrameToVertexPyramid();
-    float raycastVertexAndNormalPyramid();
-    float computePose();
-    void computePoseError();
+    float raycastVertexAndNormalPyramid(float &raycast_time);
+	float computePose(float &icp_first, float &icp_second, std::pair <float, float>  &poseError);
+	std::pair <float, float> computePoseError();
     float fuseCurrentDepthToTSDF();
     float visualizeCurrentModel();
     void saveNormalMapToFile(std::string suffix);

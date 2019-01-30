@@ -1,14 +1,13 @@
 #include "kinect_fusion.h"
 
 #include <iostream>
-
+#include <fstream>
 #include "tsdf.cuh"
 #include "raycast.cuh"
 #include "measurement.cuh"
 #include "general_helper.h"
 #include "display.cuh"
 #include <glm/gtx/transform.hpp>
-
 KinectFusion::KinectFusion(KinectFusionConfig &kf_config, IcpConfig &icp_config)
     : m_config(kf_config)
     , m_icp_config(icp_config)
@@ -43,22 +42,55 @@ KinectFusion::~KinectFusion()
 
 void KinectFusion::startTracking(int n_frames)
 {
-    initializeTracking();
-
+    /*initializeTracking();
+	std::ofstream output_file;
+	std::string iters_per_layer = std::to_string(m_icp_config.iters_per_layer[0]) + "."
+		+ std::to_string(m_icp_config.iters_per_layer[1]) + "." + std::to_string(m_icp_config.iters_per_layer[2]);
+	std::string file_name = "freiburg_dataset_icp_"+iters_per_layer+"_"+std::to_string(double(m_icp_config.distance_thresh))+ "_" + std::to_string(double(m_icp_config.angle_thresh))+".csv";
+	output_file.open(file_name);
+	
     for (m_current_frame_number = 1; m_current_frame_number <= n_frames; m_current_frame_number++)
     {
+		float raycast_time, icp_first, icp_second;
         float kernel_time = 0.0f;
         m_timer.start();
-
+		std::pair <float, float>  poseError;
         readNextDephtMap();
         kernel_time += depthFrameToVertexPyramid();
-        kernel_time += raycastVertexAndNormalPyramid();
-        kernel_time += computePose();
+        kernel_time += raycastVertexAndNormalPyramid(raycast_time);
+        kernel_time += computePose(icp_first,icp_second,poseError);
+		output_file << iters_per_layer<<", " << m_icp_config.distance_thresh << ", " << m_icp_config.angle_thresh << ", " << raycast_time << ", " 
+			<<icp_first << "," << icp_second<< ", " << poseError.first << ", " << poseError.second << "\n";
         kernel_time = fuseCurrentDepthToTSDF();
         
         kernel_time = visualizeCurrentModel();
         updateWindowTitle(kernel_time);
     }
+	output_file.close();*/
+
+	initializeTracking();
+	std::ofstream output_file;
+	std::string file_name = "freiburg_dataset_voxel_" + std::to_string(double(m_config.voxel_grid_size)) + "_" + std::to_string(double(m_config.voxel_grid_resolution)) + ".csv";
+	output_file.open(file_name);
+
+	for (m_current_frame_number = 1; m_current_frame_number <= n_frames; m_current_frame_number++)
+	{
+		float raycast_time, icp_first, icp_second;
+		float kernel_time = 0.0f;
+		m_timer.start();
+		std::pair <float, float>  poseError;
+		readNextDephtMap();
+		kernel_time += depthFrameToVertexPyramid();
+		kernel_time += raycastVertexAndNormalPyramid(raycast_time);
+		kernel_time += computePose(icp_first, icp_second, poseError);
+		output_file << m_config.voxel_grid_size << ", " << m_config.voxel_grid_resolution  << ", " << raycast_time << ", "
+			<< icp_first << "," << icp_second << ", " << poseError.first << ", " << poseError.second << "\n";
+		kernel_time = fuseCurrentDepthToTSDF();
+
+		kernel_time = visualizeCurrentModel();
+		updateWindowTitle(kernel_time);
+	}
+	output_file.close();
 }
 
 void KinectFusion::initializeTracking()
@@ -115,26 +147,25 @@ float KinectFusion::depthFrameToVertexPyramid()
     return kernel_time;
 }
 
-float KinectFusion::raycastVertexAndNormalPyramid()
+float KinectFusion::raycastVertexAndNormalPyramid(float &raycast_time)
 {
     float kernel_time = 0.0f;
 
     for (int i = 0; i < m_icp_config.iters_per_layer.size(); i++)
     {
-        float raycast_time;
         kernel_time += raycast_time = kernel::raycast(m_voxel_grid.getStruct(), m_moving_sensor, 
             m_predicted_vertex_pyramid[i], m_predicted_normal_pyramid[i], i);
         
         if (m_config.verbose)
         {
-            std::cout << "Raycast(" + std::to_string(i) + "): " << raycast_time << std::endl;
+           /* std::cout << "Raycast(" + std::to_string(i) + "): " << raycast_time << std::endl;*/
         }
     }
 
     return kernel_time;
 }
 
-float KinectFusion::computePose()
+float KinectFusion::computePose(float &icp_first, float &icp_second, std::pair <float, float>  &poseError)
 {
     float kernel_time;
     RigidTransform3D pose_estimate;
@@ -145,22 +176,25 @@ float KinectFusion::computePose()
 
     auto icp_execution_times = m_icp_registrator.getExecutionTimes();
     kernel_time = icp_execution_times[0] + icp_execution_times[1];
-
+	icp_first = icp_execution_times[0];
+	icp_second = icp_execution_times[1];
     if (m_config.verbose)
     {
-        std::cout << "ICP execution time(1): " << icp_execution_times[0] << std::endl;
-        std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;
+        /*std::cout << "ICP execution time(1): " << icp_execution_times[0] << std::endl;
+        std::cout << "ICP execution time(2): " << icp_execution_times[1] << std::endl << std::endl;*/
     }
 
     if (!m_config.use_kinect && m_config.compute_pose_error)
     {
-        computePoseError();
+		poseError= computePoseError();
     }
+
+	
 
     return kernel_time;
 }
 
-void KinectFusion::computePoseError()
+std::pair <float, float> KinectFusion::computePoseError()
 {
     static constexpr float pi = 3.14159265358979323846f;
 
@@ -171,18 +205,22 @@ void KinectFusion::computePoseError()
     m_total_angle_error += pose_error.first;
     m_total_distance_error += pose_error.second;
     
-    if (pose_error.first > 5.0 || pose_error.second > 0.05)
-    {
-        float angle_error_in_degree = 180.0f * pose_error.first / pi;
-        std::cout << "Frame Number: " << m_current_frame_number << " Angle Error :" << angle_error_in_degree;
-        std::cout << " Distance Error: " << pose_error.second << std::endl;
-    }
+    //if (pose_error.first > 5.0 || pose_error.second > 0.05)
+    //{
+    //    float angle_error_in_degree = 180.0f * pose_error.first / pi;
+    //    std::cout << "Frame Number: " << m_current_frame_number << " Angle Error :" << angle_error_in_degree;
+    //    std::cout << " Distance Error: " << pose_error.second << std::endl;
+    //}
 
-    if (m_current_frame_number % 50 == 0)
-    {
-        std::cout << "Average angle error: " << 180 * (m_total_angle_error / m_current_frame_number) / pi;
-        std::cout << " Average distance error : " << m_total_distance_error / m_current_frame_number << std::endl;
-    }
+    //if (m_current_frame_number % 50 == 0)
+    //{
+    //    /*std::cout << "Average angle error: " << 180 * (m_total_angle_error / m_current_frame_number) / pi;
+    //    std::cout << " Average distance error : " << m_total_distance_error / m_current_frame_number << std::endl;*/
+    //}
+
+	
+	return pose_error;
+	
 }
 
 float KinectFusion::fuseCurrentDepthToTSDF()
@@ -250,4 +288,23 @@ void KinectFusion::changeView()
 			m_window, glm::mat3x3(dummy_sensor.getInversePose()));
 		updateWindowTitle(kernel_time);
 	}
+
+	//while (true)
+	//{
+	//	std::getchar();
+	//	glm::vec3 position=m_moving_sensor.getPosition();
+	//	glm::mat4 rotationMat(1); // Creates a identity matrix
+	//	rotationMat = glm::rotate(rotationMat, 45.0f, glm::vec3(0.0, 0.0, 1.0));
+	//	position = glm::vec3(rotationMat * glm::vec4(position, 1.0));
+	//	float kernel_time = 0.0f;
+	//	Sensor dummy_sensor = m_moving_sensor;
+	//	m_moving_sensor.setPose(glm::translate(glm::rotate(m_moving_sensor.getPose(), 45.0f,
+	//		glm::vec3(0.0, 0.0, 1.0)), position));
+	//	kernel_time += kernel::raycast(m_voxel_grid.getStruct(), m_moving_sensor,
+	//		m_predicted_vertex_pyramid[0], m_predicted_normal_pyramid[0], 0);
+
+	//	kernel_time += kernel::normalMapToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(),
+	//		m_window, glm::mat3x3(m_moving_sensor.getInversePose()));
+	//	updateWindowTitle(kernel_time);
+	//}
 }
