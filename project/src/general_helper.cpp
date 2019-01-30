@@ -40,7 +40,7 @@ std::pair <float, float> poseError(glm::mat4x4 pose_1, glm::mat4x4 pose_2)
     return std::pair <float, float>(angle_error, distance_error);
 }
 
-void writeSurface1x32(std::string file_name, cudaArray* gpu_source, int width, int height)
+void writeSurface1x32(const std::string& file_name, cudaArray* gpu_source, int width, int height)
 {
     std::unique_ptr<float[]> float_data(new float[width * height]);
     auto float_data_ptr = float_data.get();
@@ -53,14 +53,14 @@ void writeSurface1x32(std::string file_name, cudaArray* gpu_source, int width, i
     int size = width * height;
     for (int i = 0; i < size; ++i)
     {
-        byte_data_ptr[i] = static_cast<unsigned char>(float_data_ptr[i] / 200);
+        byte_data_ptr[i] = static_cast<unsigned char>(float_data_ptr[i] * 64.0f);
     }
 
-    auto final_path = std::to_string(width) + "x" + std::to_string(height) + ".png";
+    auto final_path = std::to_string(width) + "x" + std::to_string(height) + file_name + ".png";
     stbi_write_png(final_path.c_str(), width, height, 1, byte_data_ptr, width);
 }
 
-void writeSurface4x32(std::string file_name, cudaArray* gpu_source, int width, int height)
+void writeSurface4x32(const std::string& file_name, cudaArray* gpu_source, int width, int height)
 {
     std::unique_ptr<float[]> float_data(new float[width * height * 4]);
     auto float_data_ptr = float_data.get();
@@ -80,11 +80,11 @@ void writeSurface4x32(std::string file_name, cudaArray* gpu_source, int width, i
         byte_data_ptr[idx_byte + 2] = static_cast<unsigned char>(float_data_ptr[idx_float + 2] * 255.0f);
     }
 
-    auto final_path = std::to_string(width) + "x" + std::to_string(height) + file_name;
+	auto final_path = std::to_string(width) + "x" + std::to_string(height) + file_name + ".png";
     stbi_write_png(final_path.c_str(), width, height, 3, byte_data_ptr, width * 3);
 }
 
-void writeDepthPyramidToFile(std::string file_name,GridMapPyramid<CudaGridMap> pyramid)
+void writeDepthPyramidToFile(const std::string& file_name, GridMapPyramid<CudaGridMap> pyramid)
 {
     for (int i = 0; i < 3; i++)
     {
@@ -93,7 +93,7 @@ void writeDepthPyramidToFile(std::string file_name,GridMapPyramid<CudaGridMap> p
     }
 }
 
-void writeVectorPyramidToFile(std::string file_name, std::array<CudaGridMap, 3> pyramid)
+void writeVectorPyramidToFile(const std::string& file_name, std::array<CudaGridMap, 3> pyramid)
 {
     for (const CudaGridMap &map : pyramid)
     {
