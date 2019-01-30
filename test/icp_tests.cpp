@@ -263,7 +263,7 @@ TEST_F(IcpTests, TestComputePose)
     Sensor depth_sensor_1(525.0f);
     depth_sensor_1.setPose(rgbd_dataset.getCurrentPose());
     CudaGridMap raw_depth_map_meters_1(width, height, depth_desc);
-    kernel::convertToDepthMeters(raw_depth_map_1, raw_depth_map_meters_1, 1.0f / 5000.0f);
+    kernel::convertToDepthMeters(raw_depth_map_1, raw_depth_map_meters_1, 1.0f / 5000.0f, false);
     
     GridMapPyramid<CudaGridMap> depth_map_pyramid_1(width, height, iters_per_layer.size(), depth_desc);
     kernel::applyBilateralFilter(raw_depth_map_meters_1, depth_map_pyramid_1[0]);
@@ -294,7 +294,7 @@ TEST_F(IcpTests, TestComputePose)
     depth_sensor_2.setPose(rgbd_dataset.getCurrentPose());
     
     CudaGridMap raw_depth_map_meters_2(width, height, depth_desc);
-    kernel::convertToDepthMeters(raw_depth_map_2, raw_depth_map_meters_2, 1.0f / 5000.0f);
+    kernel::convertToDepthMeters(raw_depth_map_2, raw_depth_map_meters_2, 1.0f / 5000.0f, false);
     
     GridMapPyramid<CudaGridMap> depth_map_pyramid_2(width, height, iters_per_layer.size(), depth_desc);
     kernel::applyBilateralFilter(raw_depth_map_meters_2, depth_map_pyramid_2[0]);

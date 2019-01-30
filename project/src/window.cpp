@@ -76,28 +76,28 @@ Window::Window(const bool use_kinect = false)
 	HANDLE_ERROR(cudaCreateSurfaceObject(&m_content, &res_desc));
 
 	//Kinect
-    if (use_kinect)
-    {
-        int num_of_sensor;
-        if (NuiGetSensorCount(&num_of_sensor) < 0 || num_of_sensor < 1)
-        {
-            throw std::runtime_error("Kinect could not initialize!");
-        }
+	if (use_kinect)
+	{
+		int num_of_sensor;
+		if (NuiGetSensorCount(&num_of_sensor) < 0 || num_of_sensor < 1)
+		{
+			throw std::runtime_error("Kinect could not initialize!");
+		}
 
-        if (NuiCreateSensorByIndex(0, &m_sensor) < 0)
-        {
-            throw std::runtime_error("Kinect could not initialize!");
-        }
+		if (NuiCreateSensorByIndex(0, &m_sensor) < 0)
+		{
+			throw std::runtime_error("Kinect could not initialize!");
+		}
 
-        //Initialize sensor
-        m_sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH);
-        m_sensor->NuiImageStreamOpen(NUI_IMAGE_TYPE_DEPTH,
-            NUI_IMAGE_RESOLUTION_640x480,
-            NUI_IMAGE_STREAM_FLAG_ENABLE_NEAR_MODE,
-            2,
-            NULL,
-            &m_depth_stream);
-    }
+		//Initialize sensor
+		m_sensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH);
+		m_sensor->NuiImageStreamOpen(NUI_IMAGE_TYPE_DEPTH,
+			NUI_IMAGE_RESOLUTION_640x480,
+			NUI_IMAGE_STREAM_FLAG_ENABLE_NEAR_MODE,
+			2,
+			NULL,
+			&m_depth_stream);
+	}
 }
 
 Window::~Window()
@@ -181,19 +181,23 @@ void Window::handleInput()
 			switch (e.key.keysym.sym)
 			{
 			case SDLK_w:
-				m_wasd_state[0] = true;
+				m_keyboard_state.w = true;
 				break;
 
 			case SDLK_a:
-				m_wasd_state[1] = true;
+				m_keyboard_state.a = true;
 				break;
 
 			case SDLK_s:
-				m_wasd_state[2] = true;
+				m_keyboard_state.s = true;
 				break;
 
 			case SDLK_d:
-				m_wasd_state[3] = true;
+				m_keyboard_state.d = true;
+				break;
+
+			case SDLK_RETURN:
+				m_keyboard_state.enter = true;
 				break;
 			}
 		}
@@ -202,50 +206,48 @@ void Window::handleInput()
 			switch (e.key.keysym.sym)
 			{
 			case SDLK_w:
-				m_wasd_state[0] = false;
+				m_keyboard_state.w = false;
 				break;
 
 			case SDLK_a:
-				m_wasd_state[1] = false;
+				m_keyboard_state.a = false;
 				break;
 
 			case SDLK_s:
-				m_wasd_state[2] = false;
+				m_keyboard_state.s = false;
 				break;
 
 			case SDLK_d:
-				m_wasd_state[3] = false;
+				m_keyboard_state.d = false;
+				break;
+
+			case SDLK_RETURN:
+				m_keyboard_state.enter = false;
 				break;
 			}
 		}
 		else if (e.type == SDL_MOUSEMOTION)
 		{
-			m_mouse_state[0] = m_mouse_state[1];
-			m_mouse_state[1].x = e.motion.x;
-			m_mouse_state[1].y = e.motion.y;
+			m_mouse_state.previous_position = m_mouse_state.current_position;
+			m_mouse_state.current_position = { e.motion.x, e.motion.y };
 		}
 		else if (e.type == SDL_MOUSEBUTTONDOWN)
 		{
-			m_mouse_pressed = true;
+			m_mouse_state.pressed = true;
 		}
 		else if (e.type == SDL_MOUSEBUTTONUP)
 		{
-			m_mouse_pressed = false;
+			m_mouse_state.pressed = false;
 		}
 	}
 }
 
-const std::array<bool, 4>& Window::getWasdState()
+const KeyboardState& Window::getKeyboardState() const
 {
-	return m_wasd_state;
+	return m_keyboard_state;
 }
 
-const std::array<glm::ivec2, 2>& Window::getMouseState()
+const MouseState& Window::getMouseState() const
 {
 	return m_mouse_state;
-}
-
-bool Window::isMousePressed()
-{
-	return m_mouse_pressed;
 }

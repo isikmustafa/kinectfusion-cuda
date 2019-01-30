@@ -10,6 +10,23 @@
 
 struct INuiSensor;
 
+struct KeyboardState
+{
+	bool w{ false };
+	bool a{ false };
+	bool s{ false };
+	bool d{ false };
+	bool enter{ false };
+	bool space{ false };
+};
+
+struct MouseState
+{
+	glm::ivec2 previous_position;
+	glm::ivec2 current_position;
+	bool pressed{ false };
+};
+
 class Window
 {
 public:
@@ -21,9 +38,8 @@ public:
 	void setWindowTitle(const std::string& str) const;
 	cudaSurfaceObject_t get_content() const { return m_content; }
 	void handleInput(); // If not called, state of buttons or mouse is not be updated.
-	const std::array<bool, 4>& getWasdState(); // Returns if W-A-S-D pressed or not.
-	const std::array<glm::ivec2, 2>& getMouseState(); // Returns previous and current mouse position
-	bool isMousePressed();
+	const KeyboardState& getKeyboardState() const;
+	const MouseState& getMouseState() const;
 
 private:
 	SDL_Window* m_window{ nullptr };
@@ -33,7 +49,6 @@ private:
 	cudaGraphicsResource* m_resource{ nullptr };
 	HANDLE m_depth_stream{ nullptr };
 	INuiSensor* m_sensor{ nullptr };
-	std::array<bool, 4> m_wasd_state{ false, false, false, false };
-	std::array<glm::ivec2, 2> m_mouse_state;
-	bool m_mouse_pressed{ false };
+	KeyboardState m_keyboard_state;
+	MouseState m_mouse_state;
 };

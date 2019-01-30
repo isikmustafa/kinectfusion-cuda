@@ -39,10 +39,6 @@ KinectFusion::KinectFusion(KinectFusionConfig &kf_config, IcpConfig &icp_config)
 	}
 }
 
-KinectFusion::~KinectFusion()
-{
-}
-
 void KinectFusion::startTracking(int n_frames)
 {
 	initializeTracking();
@@ -50,6 +46,9 @@ void KinectFusion::startTracking(int n_frames)
 	for (m_current_frame_number = 1; m_current_frame_number <= n_frames; m_current_frame_number++)
 	{
 		m_timer.start();
+
+		m_window.handleInput();
+		m_keyboard_state = m_window.getKeyboardState();
 
 		readNextDephtMap();
 		depthFrameToVertexPyramid();
@@ -61,6 +60,10 @@ void KinectFusion::startTracking(int n_frames)
 		if (m_config.verbose && m_current_frame_number % 50 == 0)
 		{
 			printTimings();
+		}
+		if (m_keyboard_state.enter)
+		{
+			break;
 		}
 
 		updateWindowTitle();
@@ -279,26 +282,26 @@ void KinectFusion::walk()
 
 		//Handle inputs.
 		m_window.handleInput();
-		auto wasd_state = m_window.getWasdState();
+		auto keyboard_state = m_window.getKeyboardState();
 		auto delta_time = m_timer.getTime();
 
 		auto sensitivity = 0.08f * delta_time;
 		auto x_disp = 0.0f;
 		auto z_disp = 0.0f;
 
-		if (wasd_state[0])
+		if (keyboard_state.w)
 		{
 			z_disp += delta_time;
 		}
-		if (wasd_state[2])
+		if (keyboard_state.s)
 		{
 			z_disp -= delta_time;
 		}
-		if (wasd_state[3])
+		if (keyboard_state.d)
 		{
 			x_disp += delta_time;
 		}
-		if (wasd_state[1])
+		if (keyboard_state.a)
 		{
 			x_disp -= delta_time;
 		}
@@ -309,10 +312,10 @@ void KinectFusion::walk()
 			fps_camera.move(x_disp, z_disp);
 		}
 
-		if (m_window.isMousePressed())
+		auto mouse_state = m_window.getMouseState();
+		if (mouse_state.pressed)
 		{
-			auto mouse_state = m_window.getMouseState();
-			auto offset = (mouse_state[0] - mouse_state[1]);
+			auto offset = (mouse_state.previous_position - mouse_state.current_position);
 			auto offset_x = offset.x * sensitivity;
 			auto offset_y = offset.y * sensitivity;
 

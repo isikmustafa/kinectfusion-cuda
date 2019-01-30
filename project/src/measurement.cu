@@ -20,13 +20,13 @@ __global__ void convertToDepthMetersKernel(cudaSurfaceObject_t raw_depth_map, cu
 	surf2Dread(&h_depth, raw_depth_map, i * 2, j);
 	auto depth = __half2float(h_depth);
 
-	//Convert depth value to value in meters
+	//Unmirror the image if it is kinect.
 	if (unmirror)
 	{
 		i = (639 - i);
 	}
 
-	//Also unmirror the kinect image.
+	//Convert depth value to value in meters
 	surf2Dwrite(depth * scale, raw_depth_map_meters, i * 4, j);
 }
 

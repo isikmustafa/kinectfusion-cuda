@@ -37,10 +37,7 @@ class KinectFusion
 {
 public:
     KinectFusion(KinectFusionConfig &kf_config, IcpConfig &icp_config);
-    ~KinectFusion();
 
-    void showCurrentDepth();
-    void showCurrentNormals();
     void startTracking(int n_frames);
 	void changeView();
 	void walk();
@@ -82,6 +79,9 @@ private:
 
 	//Timings
 	std::unordered_map<std::string, float> m_functions_to_times;
+
+	//Inputs
+	KeyboardState m_keyboard_state;
 
 private:
     void initializeTracking();
