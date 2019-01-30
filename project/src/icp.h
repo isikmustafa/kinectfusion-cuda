@@ -14,7 +14,8 @@ struct IcpConfig
     unsigned int height;
     float distance_thresh;
     float angle_thresh; 
-    float stop_threshold;
+	float iteration_stop_thresh_angle;
+	float iteration_stop_thresh_distance;
 };
 
 /*
@@ -43,6 +44,8 @@ private:
     float m_distance_thresh;
     float m_angle_thresh;
     float m_stop_thresh;
+	float m_iteration_stop_thresh_angle;
+	float m_iteration_stop_thresh_distance;
     std::array<float, 2> m_execution_times;
     
     LinearLeastSquares solver;

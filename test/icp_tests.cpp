@@ -245,7 +245,6 @@ TEST_F(IcpTests, TestComputePose)
     icp_config.height = 480;
     icp_config.distance_thresh = 0.5f;
     icp_config.angle_thresh = 6.0f * pi / 18.0f;
-    icp_config.stop_threshold = 1e-6f;
 
     width = 640;
     height = 480;

@@ -3,6 +3,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include "cuda_utils.h"
+#include "general_helper.h"
 #include "icp.cuh"
 #include <glm/gtx/euler_angles.hpp>
 
@@ -10,6 +11,8 @@ ICP::ICP(IcpConfig &config)
     : m_distance_thresh(config.distance_thresh)
     , m_iters_per_layer(config.iters_per_layer)
     , m_angle_thresh(config.angle_thresh)
+	, m_iteration_stop_thresh_angle(config.iteration_stop_thresh_angle)
+	, m_iteration_stop_thresh_distance(config.iteration_stop_thresh_distance)
 {
     HANDLE_ERROR(cudaMalloc(&m_mat_a, config.height * config.width * m_n_variables * sizeof(float)));
     HANDLE_ERROR(cudaMalloc(&m_vec_b, config.height * config.width * sizeof(float)));
@@ -45,12 +48,15 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
             auto grid_dims = vertex_pyramid[layer].getGridDims();
             m_execution_times[1] += solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
+			auto pre_madafaka = pose_estimate;
             updatePose(pose_estimate);
 
-			//std::cout << "ICP residual count: " << countResiduals(grid_dims[0] * grid_dims[1]) / (float)(grid_dims[0] * grid_dims[1]) << std::endl;
+			std::cout << "ICP residual count: " << countResiduals(grid_dims[0] * grid_dims[1]) / (float)(grid_dims[0] * grid_dims[1]) << std::endl;
 
             // If ICP converged, move directly to the next pyramid layer
-            if (solver.getLastError() < m_stop_thresh)
+			auto pose_error = poseError(pre_madafaka.getTransformation(), pose_estimate.getTransformation());
+
+            if (pose_error.first < m_iteration_stop_thresh_angle && pose_error.second < m_iteration_stop_thresh_distance)
             {
                 break;
             }

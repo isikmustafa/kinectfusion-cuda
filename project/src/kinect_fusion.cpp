@@ -157,7 +157,7 @@ void KinectFusion::computePose()
 
 void KinectFusion::computePoseError()
 {
-	static constexpr float pi = 3.14159265358979323846f;
+	constexpr float pi = 3.14159265358979323846f;
 
 	glm::mat4x4 reference_pose = m_config.initial_pose *  m_rgbd_dataset.getInitialPoseInverse()
 		* m_rgbd_dataset.getCurrentPose();
@@ -168,7 +168,7 @@ void KinectFusion::computePoseError()
 
 	if (pose_error.first > 5.0 || pose_error.second > 0.05)
 	{
-		float angle_error_in_degree = 180.0f * pose_error.first / pi;
+		float angle_error_in_degree = glm::degrees(pose_error.first);
 		std::cout << "Frame Number: " << m_current_frame_number << " Angle Error :" << angle_error_in_degree;
 		std::cout << " Distance Error: " << pose_error.second << std::endl;
 	}
@@ -247,7 +247,7 @@ void KinectFusion::changeView()
 		std::cin >> translation_vector.y;
 		std::cin >> translation_vector.z;
 		Sensor dummy_sensor = m_moving_sensor;
-		dummy_sensor.setPose(glm::translate(glm::rotate(dummy_sensor.getPose(), -pi / (180.0f / angle),
+		dummy_sensor.setPose(glm::translate(glm::rotate(dummy_sensor.getPose(), -glm::radians(angle),
 			rotation_axis), translation_vector));
 		kernel::raycast(m_voxel_grid.getStruct(), dummy_sensor,
 			m_predicted_vertex_pyramid[0], m_predicted_normal_pyramid[0], 0);
