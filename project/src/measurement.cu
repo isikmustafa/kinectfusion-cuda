@@ -11,7 +11,7 @@
 constexpr float cSigmaS = 4.0f;
 constexpr float cSigmaR = 0.25f;
 
-__global__ void convertToDepthMetersKernel(cudaSurfaceObject_t raw_depth_map, cudaSurfaceObject_t raw_depth_map_meters, float scale)
+__global__ void convertToDepthMetersKernel(cudaSurfaceObject_t raw_depth_map, cudaSurfaceObject_t raw_depth_map_meters, float scale, bool unmirror)
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	int j = threadIdx.y + blockIdx.y * blockDim.y;
@@ -21,6 +21,12 @@ __global__ void convertToDepthMetersKernel(cudaSurfaceObject_t raw_depth_map, cu
 	auto depth = __half2float(h_depth);
 
 	//Convert depth value to value in meters
+	if (unmirror)
+	{
+		i = (639 - i);
+	}
+
+	//Also unmirror the kinect image.
 	surf2Dwrite(depth * scale, raw_depth_map_meters, i * 4, j);
 }
 
@@ -129,7 +135,7 @@ __global__ void createNormalMapKernel(cudaSurfaceObject_t vertex_map, cudaSurfac
 
 namespace kernel
 {
-	float convertToDepthMeters(const DepthMap& raw_depth_map, const CudaGridMap& raw_depth_map_meters, float scale)
+	float convertToDepthMeters(const DepthMap& raw_depth_map, const CudaGridMap& raw_depth_map_meters, float scale, bool unmirror)
 	{
 		auto dims_input = raw_depth_map.getGridDims();
 		auto dims_output = raw_depth_map_meters.getGridDims();
@@ -143,7 +149,7 @@ namespace kernel
 		dim3 threads(8, 8);
 		dim3 blocks(dims_input[0] / threads.x, dims_input[1] / threads.y);
 		start.record();
-		convertToDepthMetersKernel << <blocks, threads >> > (raw_depth_map.getCudaSurfaceObject(), raw_depth_map_meters.getCudaSurfaceObject(), scale);
+		convertToDepthMetersKernel << <blocks, threads >> > (raw_depth_map.getCudaSurfaceObject(), raw_depth_map_meters.getCudaSurfaceObject(), scale, unmirror);
 		end.record();
 		end.synchronize();
 

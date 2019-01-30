@@ -81,7 +81,7 @@ void KinectFusion::initializeTracking()
 
 	readNextDephtMap();
 	m_functions_to_times["other"] +=
-		kernel::convertToDepthMeters(m_raw_depth_map, m_raw_depth_map_meters, m_config.depth_scale);
+		kernel::convertToDepthMeters(m_raw_depth_map, m_raw_depth_map_meters, m_config.depth_scale, m_config.use_kinect);
 	m_functions_to_times["fuse"] +=
 		kernel::fuse(m_raw_depth_map_meters, m_voxel_grid.getStruct(), m_moving_sensor);
 }
@@ -109,7 +109,7 @@ void KinectFusion::readNextDephtMap()
 void KinectFusion::depthFrameToVertexPyramid()
 {
 	m_functions_to_times["other"] +=
-		kernel::convertToDepthMeters(m_raw_depth_map, m_raw_depth_map_meters, m_config.depth_scale);
+		kernel::convertToDepthMeters(m_raw_depth_map, m_raw_depth_map_meters, m_config.depth_scale, m_config.use_kinect);
 
 	m_functions_to_times["other"] +=
 		kernel::applyBilateralFilter(m_raw_depth_map_meters, m_depth_pyramid[0]);
