@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <glm/gtx/transform.hpp>
-
+#include <fstream>
 #include "tsdf.cuh"
 #include "raycast.cuh"
 #include "measurement.cuh"
@@ -43,6 +43,12 @@ void KinectFusion::startTracking(int n_frames)
 {
 	initializeTracking();
 
+	/*std::ofstream output_file;
+	std::string iters_per_layer = std::to_string(m_icp_config.iters_per_layer[0]) + "."
+		+ std::to_string(m_icp_config.iters_per_layer[1]) + "." + std::to_string(m_icp_config.iters_per_layer[2]);
+	std::string file_name = "freiburg_dataset_icp_" + iters_per_layer + "_" + std::to_string(double(m_icp_config.distance_thresh)) + "_" + std::to_string(double(m_icp_config.angle_thresh)) + ".csv";
+	output_file.open(file_name);*/
+
 	for (m_current_frame_number = 1; m_current_frame_number <= n_frames; m_current_frame_number++)
 	{
 		m_timer.start();
@@ -67,7 +73,12 @@ void KinectFusion::startTracking(int n_frames)
 		}
 
 		updateWindowTitle();
+		/*saveStream(output_file);*/
+		m_fusion_time = 0.0f;
+		m_preprocessing_time = 0.0f;
+		m_display_time = 0.0f;
 	}
+	/*output_file.close();*/
 }
 
 void KinectFusion::initializeTracking()
@@ -83,9 +94,9 @@ void KinectFusion::initializeTracking()
 	}
 
 	readNextDephtMap();
-	m_functions_to_times["other"] +=
+	m_functions_to_times["other"] += m_preprocessing_time +=
 		kernel::convertToDepthMeters(m_raw_depth_map, m_raw_depth_map_meters, m_config.depth_scale, m_config.use_kinect);
-	m_functions_to_times["fuse"] +=
+	m_functions_to_times["fuse"] += m_fusion_time +=
 		kernel::fuse(m_raw_depth_map_meters, m_voxel_grid.getStruct(), m_moving_sensor);
 }
 
@@ -111,19 +122,21 @@ void KinectFusion::readNextDephtMap()
 
 void KinectFusion::depthFrameToVertexPyramid()
 {
-	m_functions_to_times["other"] +=
+	m_functions_to_times["other"] += m_preprocessing_time +=
 		kernel::convertToDepthMeters(m_raw_depth_map, m_raw_depth_map_meters, m_config.depth_scale, m_config.use_kinect);
 
-	m_functions_to_times["other"] +=
+	m_functions_to_times["other"] += m_preprocessing_time +=
 		kernel::applyBilateralFilter(m_raw_depth_map_meters, m_depth_pyramid[0]);
 
-	m_functions_to_times["other"] +=
+	m_functions_to_times["other"] += m_preprocessing_time +=
 		kernel::createVertexMap(m_depth_pyramid[0], m_vertex_pyramid[0], m_moving_sensor.getInverseIntr(0));
 
 	for (int i = 1; i < m_icp_config.iters_per_layer.size(); i++)
 	{
-		m_functions_to_times["other"] += kernel::downSample(m_depth_pyramid[i - 1], m_depth_pyramid[i]);
-		m_functions_to_times["other"] += kernel::createVertexMap(m_depth_pyramid[i], m_vertex_pyramid[i],
+		m_functions_to_times["other"] += m_preprocessing_time +=
+			kernel::downSample(m_depth_pyramid[i - 1], m_depth_pyramid[i]);
+		m_functions_to_times["other"] += m_preprocessing_time +=
+			kernel::createVertexMap(m_depth_pyramid[i], m_vertex_pyramid[i],
 			m_moving_sensor.getInverseIntr(i));
 	}
 }
@@ -132,7 +145,7 @@ void KinectFusion::raycastTsdf()
 {
 	for (int i = 0; i < m_icp_config.iters_per_layer.size(); i++)
 	{
-		m_functions_to_times["raycast" + std::to_string(i)] += kernel::raycast(m_voxel_grid.getStruct(), m_moving_sensor,
+		m_functions_to_times["raycast" + std::to_string(i)] += m_raycast_time = kernel::raycast(m_voxel_grid.getStruct(), m_moving_sensor,
 			m_predicted_vertex_pyramid[i], m_predicted_normal_pyramid[i], i);
 	}
 }
@@ -146,8 +159,8 @@ void KinectFusion::computePose()
 	m_moving_sensor.setPose(pose_estimate.getTransformation());
 
 	auto icp_execution_times = m_icp_registrator.getExecutionTimes();
-	m_functions_to_times["ICP - Residual Construction"] += icp_execution_times[0];
-	m_functions_to_times["ICP - Solve"] += icp_execution_times[1];
+	m_functions_to_times["ICP - Residual Construction"] += m_icp_r_time = icp_execution_times[0];
+	m_functions_to_times["ICP - Solve"] += m_icp_s_time = icp_execution_times[1];
 
 	if (!m_config.use_kinect && m_config.compute_pose_error)
 	{
@@ -163,10 +176,10 @@ void KinectFusion::computePoseError()
 		* m_rgbd_dataset.getCurrentPose();
 	auto pose_error = poseError(reference_pose, m_moving_sensor.getPose());
 
-	m_total_angle_error += pose_error.first;
-	m_total_distance_error += pose_error.second;
+	m_total_angle_error += m_angle_error = pose_error.first;
+	m_total_distance_error += m_distance_error = pose_error.second;
 
-	if (pose_error.first > 5.0 || pose_error.second > 0.05)
+	/*if (pose_error.first > 5.0 || pose_error.second > 0.05)
 	{
 		float angle_error_in_degree = glm::degrees(pose_error.first);
 		std::cout << "Frame Number: " << m_current_frame_number << " Angle Error :" << angle_error_in_degree;
@@ -177,30 +190,31 @@ void KinectFusion::computePoseError()
 	{
 		std::cout << "Average angle error: " << 180 * (m_total_angle_error / m_current_frame_number) / pi;
 		std::cout << " Average distance error : " << m_total_distance_error / m_current_frame_number << std::endl;
-	}
+	}*/
 }
 
 void KinectFusion::fuseCurrentDepthToTSDF()
 {
-	m_functions_to_times["fuse"] += kernel::fuse(m_raw_depth_map_meters, m_voxel_grid.getStruct(), m_moving_sensor);
+	m_functions_to_times["fuse"] += m_fusion_time+= kernel::fuse(m_raw_depth_map_meters, m_voxel_grid.getStruct(), m_moving_sensor);
 }
 
 void KinectFusion::visualizeCurrentModel()
 {
 	if (m_config.use_static_view)
 	{
-		m_functions_to_times["raycast(Visualization)"] += kernel::raycast(m_voxel_grid.getStruct(), m_fixed_sensor, m_predicted_vertex_pyramid[0],
+		m_functions_to_times["raycast(Visualization)"] += m_raycast_time =
+			kernel::raycast(m_voxel_grid.getStruct(), m_fixed_sensor, m_predicted_vertex_pyramid[0],
 			m_predicted_normal_pyramid[0], 0);
 	}
 
 	if (m_config.use_shading)
 	{
-		m_functions_to_times["other"] += kernel::shadingToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(), m_window,
+		m_functions_to_times["other"] += m_display_time += kernel::shadingToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(), m_window,
 			m_config.use_static_view ? m_fixed_sensor : m_moving_sensor);
 	}
 	else
 	{
-		m_functions_to_times["other"] += kernel::normalMapToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(),
+		m_functions_to_times["other"] += m_display_time += kernel::normalMapToWindowContent(m_predicted_normal_pyramid[0].getCudaSurfaceObject(),
 			m_window, glm::mat3x3((m_config.use_static_view ? m_fixed_sensor : m_moving_sensor).getInversePose()));
 	}
 }
@@ -220,12 +234,12 @@ void KinectFusion::updateWindowTitle()
 
 void KinectFusion::printTimings()
 {
-	std::cout << "Average timings" << std::endl;
+	/*std::cout << "Average timings" << std::endl;
 	for (const auto& function_time : m_functions_to_times)
 	{
 		std::cout << function_time.first << ": " << function_time.second / m_current_frame_number << std::endl;
 	}
-	std::cout << std::endl;
+	std::cout << std::endl;*/
 }
 
 void KinectFusion::changeView()
@@ -337,4 +351,15 @@ void KinectFusion::saveTSDF(std::string file_name)
 void KinectFusion::loadTSDF(std::string file_name)
 {
     m_voxel_grid.loadVoxelGrid(file_name);
+}
+
+void KinectFusion::saveStream(std::ofstream &output_file)
+{
+	std::string iters_per_layer = std::to_string(m_icp_config.iters_per_layer[0]) + "."
+		+ std::to_string(m_icp_config.iters_per_layer[1]) + "." + std::to_string(m_icp_config.iters_per_layer[2]);
+	output_file << iters_per_layer << ", " << m_icp_config.distance_thresh << ", " << m_icp_config.angle_thresh << ", " 
+		<< m_distance_error << ", " << m_angle_error 
+		<< m_raycast_time << ", " << m_icp_r_time << "," << m_icp_s_time <<", " <<m_fusion_time << ", " 
+		<< m_preprocessing_time << ", "<<m_display_time  <<  "\n";
+
 }

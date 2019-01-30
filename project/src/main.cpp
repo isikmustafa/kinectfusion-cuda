@@ -11,7 +11,7 @@ int main()
     KinectFusionConfig config_dataset = {};
     config_dataset.use_kinect = false;
     config_dataset.verbose = true;
-    config_dataset.compute_pose_error = false;
+    config_dataset.compute_pose_error = true;
     config_dataset.use_static_view = false;
 	config_dataset.use_shading = false;
     config_dataset.dataset_dir = "rgbd_dataset_freiburg1_xyz";
@@ -48,11 +48,32 @@ int main()
     icp_config.height = 480;
     icp_config.distance_thresh = 0.4f;
     icp_config.angle_thresh = 5.0f * pi / 18.0f;
-    icp_config.stop_threshold = 1e-6f;
+    icp_config.iteration_stop_thresh_angle = 1.0f;
+	icp_config.iteration_stop_thresh_distance = 0.01f;
 
-    KinectFusion awesome(config_kinect, icp_config);
+    KinectFusion awesome(config_dataset, icp_config);
     awesome.startTracking(790);
     //awesome.loadTSDF("kitchen_detail_1.bin");
     //awesome.saveTSDF("kitchen.bin");
     awesome.walk();
+
+	/*std::vector<unsigned int> iters_per_layer[4] = { { 1, 1, 1 }, { 10, 4, 2 }, { 10, 0, 0 }, { 0, 10, 0 } };
+	float distance_thresh[3] = { 0.2f, 0.4f, 0.6f };
+	float angle_thresh[3] = { 3.0f * (pi / 18.0f), 6.0f * (pi / 18.0f), 9.0f * (pi / 18.0f) };
+
+	for (int layer_index = 0; layer_index < 4; layer_index++)
+	{
+		for (int dist_index = 0; dist_index < 3; dist_index++)
+		{
+			for (int angle_index = 0; angle_index < 3; angle_index++)
+			{
+				icp_config.iters_per_layer = iters_per_layer[layer_index];
+				icp_config.distance_thresh = distance_thresh[dist_index];
+				icp_config.angle_thresh = angle_thresh[angle_index];
+				KinectFusion awesome(config_dataset, icp_config);
+				awesome.startTracking(790);
+			}
+		}
+	}*/
+	
 }
