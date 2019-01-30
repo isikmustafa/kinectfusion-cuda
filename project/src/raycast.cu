@@ -28,7 +28,7 @@ __device__ glm::vec2 intersectBBox(const glm::vec3& origin, const glm::vec3& inv
 
 __device__ glm::vec3 computeGradient(const glm::vec3& point, const VoxelGridStruct& voxel_grid)
 {
-	auto uvw_resolution = 0.5f / (voxel_grid.n - 1);
+	auto uvw_resolution = voxel_grid.mue * 0.5f / voxel_grid.total_width_in_meters;
 	auto uvw = point / voxel_grid.total_width_in_meters + glm::vec3(0.5f);
 
 	auto f_x0 = tex3D<float2>(voxel_grid.texture_object, uvw.x + uvw_resolution, uvw.y, uvw.z).x;

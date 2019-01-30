@@ -4,6 +4,7 @@
 
 #include "cuda_utils.h"
 #include "icp.cuh"
+#include <glm/gtx/euler_angles.hpp>
 
 ICP::ICP(IcpConfig &config)
     : m_distance_thresh(config.distance_thresh)
@@ -45,6 +46,8 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
             m_execution_times[1] += solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
             updatePose(pose_estimate);
+
+			//std::cout << "ICP residual count: " << countResiduals(grid_dims[0] * grid_dims[1]) / (float)(grid_dims[0] * grid_dims[1]) << std::endl;
 
             // If ICP converged, move directly to the next pyramid layer
             if (solver.getLastError() < m_stop_thresh)
@@ -91,9 +94,7 @@ void ICP::updatePose(RigidTransform3D &pose)
 
 glm::mat3x3 ICP::buildRotationZYX(float z_angle, float y_angle, float x_angle)
 {
-    return  glm::mat3x3(glm::rotate(z_angle, glm::vec3(0.0f, 0.0f, 1.0f))
-                      * glm::rotate(y_angle, glm::vec3(0.0f, 1.0f, 0.0f))
-                      * glm::rotate(x_angle, glm::vec3(1.0f, 0.0f, 0.0f)));
+	return glm::orientate3(glm::vec3(x_angle, z_angle, y_angle));
 }
 
 unsigned int ICP::countResiduals(unsigned int max_idx)
