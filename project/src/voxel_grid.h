@@ -38,18 +38,18 @@ struct VoxelGridStruct
 	cudaSurfaceObject_t surface_object;
 	cudaTextureObject_t texture_object;
 
-	VoxelGridStruct(float p_total_width_in_meters, int p_n)
+	VoxelGridStruct(float p_total_width_in_meters, int p_n, float mue_scale)
 		: total_width_in_meters(p_total_width_in_meters)
 		, n(p_n)
 		, resolution(p_total_width_in_meters / (p_n - 1))
-		, mue(2.0f * resolution)
+		, mue(mue_scale * resolution)
 	{}
 };
 
 class VoxelGrid
 {
 public:
-	VoxelGrid(float p_total_width_in_meters, int p_n);
+	VoxelGrid(float p_total_width_in_meters, int p_n, float mue_scale);
 	~VoxelGrid();
 
 	const VoxelGridStruct& getStruct() const { return m_struct; }

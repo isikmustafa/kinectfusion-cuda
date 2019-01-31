@@ -9,7 +9,7 @@ namespace kernel
 {
 	//As paper suggests, these are approximately the conservative minimum and conservative maximum sensor ranges.
 	constexpr float cMinDistance = 0.4f;
-	constexpr float cMaxDistance = 8.0f;
+	constexpr float cMaxDistance = 6.0f;
 
 	//All kernel wrapper functions returns the time it takes to execute them in milliseconds.
 	float initializeGrid(const VoxelGridStruct& voxel_grid, const Voxel& value);

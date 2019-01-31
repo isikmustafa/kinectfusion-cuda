@@ -4,8 +4,8 @@
 #include "voxel_grid.h"
 #include "cuda_utils.h"
 
-VoxelGrid::VoxelGrid(float p_total_width_in_millimeters, int p_n)
-	: m_struct(p_total_width_in_millimeters, p_n)
+VoxelGrid::VoxelGrid(float p_total_width_in_millimeters, int p_n, float mue_scale)
+	: m_struct(p_total_width_in_millimeters, p_n, mue_scale)
 {
 	//Allocate 3D array.
 	auto extent = make_cudaExtent(p_n, p_n, p_n);
