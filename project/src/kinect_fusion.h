@@ -27,8 +27,10 @@ struct KinectFusionConfig
     unsigned int frame_height;
     float depth_scale;
     float field_of_view;
-    float voxel_grid_size;
-    float voxel_grid_resolution;
+    float fusion_voxel_grid_size;
+    float fusion_voxel_grid_n;
+	float visualization_voxel_grid_size;
+	float visualization_voxel_grid_n;
     glm::mat4x4 static_viewpoint;
     glm::mat4x4 initial_pose;
 };
@@ -57,7 +59,8 @@ private:
     // Subsystems
     Sensor m_moving_sensor;
     Sensor m_fixed_sensor;
-    VoxelGrid m_voxel_grid;
+    VoxelGrid m_voxel_grid_fusion;
+	VoxelGrid m_voxel_grid_visualization;
     ICP m_icp_registrator;
     RgbdDataset m_rgbd_dataset;
     Window m_window;
@@ -80,16 +83,8 @@ private:
 	//Timings
 	std::unordered_map<std::string, float> m_functions_to_times;
 
-	float m_raycast_time;
-	float m_icp_r_time;
-	float m_icp_s_time;
-	float m_fusion_time=0.0f;
-	float m_preprocessing_time=0.0f;
-	float m_display_time = 0.0f;
 	float m_distance_error;
 	float m_angle_error;
-
-
 
 	//Inputs
 	KeyboardState m_keyboard_state;

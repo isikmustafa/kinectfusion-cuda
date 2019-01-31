@@ -28,36 +28,27 @@ struct IcpConfig
 class ICP
 {
 public:
-    ICP(IcpConfig &config);
+    ICP(const IcpConfig& config);
     ~ICP();
 
-    RigidTransform3D computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
-        GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid,
-        Sensor sensor);
+    RigidTransform3D computePose(GridMapPyramid<CudaGridMap>& vertex_pyramid,
+        GridMapPyramid<CudaGridMap>& target_vertex_pyramid, GridMapPyramid<CudaGridMap>& target_normal_pyramid, const Sensor& sensor);
     
     std::array<float, 2> getExecutionTimes();
 
 private:
-    const unsigned int m_n_variables = 6;
-    cudaChannelFormatDesc m_normal_format_description;
-    std::vector<unsigned int> m_iters_per_layer;
-    float m_distance_thresh;
-    float m_angle_thresh;
-    float m_stop_thresh;
-	float m_iteration_stop_thresh_angle;
-	float m_iteration_stop_thresh_distance;
+	IcpConfig m_icp_config;
     std::array<float, 2> m_execution_times;
     
     LinearLeastSquares solver;
 
     // Buffers for the residual paramterers and the result, allocated once
-    float *m_mat_a;
-    float *m_vec_b;
-    float *m_vec_x;
+    float* m_mat_a;
+    float* m_vec_b;
+    float* m_vec_x;
 
 private:
-    void updatePose(RigidTransform3D &pose);
+    void updatePose(RigidTransform3D& pose);
     glm::mat3x3 buildRotationZYX(float z_angle, float y_angle, float x_angle);
     unsigned int countResiduals(unsigned int max_idx);
 };
-

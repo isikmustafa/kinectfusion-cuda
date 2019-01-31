@@ -7,16 +7,12 @@
 #include "icp.cuh"
 #include <glm/gtx/euler_angles.hpp>
 
-ICP::ICP(IcpConfig &config)
-    : m_distance_thresh(config.distance_thresh)
-    , m_iters_per_layer(config.iters_per_layer)
-    , m_angle_thresh(config.angle_thresh)
-	, m_iteration_stop_thresh_angle(config.iteration_stop_thresh_angle)
-	, m_iteration_stop_thresh_distance(config.iteration_stop_thresh_distance)
+ICP::ICP(const IcpConfig& config)
+	: m_icp_config(config)
 {
-    HANDLE_ERROR(cudaMalloc(&m_mat_a, config.height * config.width * m_n_variables * sizeof(float)));
+    HANDLE_ERROR(cudaMalloc(&m_mat_a, config.height * config.width * 6 * sizeof(float)));
     HANDLE_ERROR(cudaMalloc(&m_vec_b, config.height * config.width * sizeof(float)));
-    HANDLE_ERROR(cudaMalloc(&m_vec_x, m_n_variables * sizeof(float)));
+    HANDLE_ERROR(cudaMalloc(&m_vec_x, 6 * sizeof(float)));
 }
 
 ICP::~ICP()
@@ -27,36 +23,33 @@ ICP::~ICP()
 }
 
 RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap> &vertex_pyramid,
-    GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid,
-    Sensor sensor)
+    GridMapPyramid<CudaGridMap> &target_vertex_pyramid, GridMapPyramid<CudaGridMap> &target_normal_pyramid, const Sensor& sensor)
 {
     RigidTransform3D previous_pose, pose_estimate;
     previous_pose.rot_mat = glm::mat3x3(sensor.getPose());
     previous_pose.transl_vec = sensor.getPosition();
     pose_estimate = previous_pose;
-
     m_execution_times = { 0.0f, 0.0f };
 
-    for (int layer = m_iters_per_layer.size() - 1; layer >= 0; layer--)
+    for (int layer = m_icp_config.iters_per_layer.size() - 1; layer >= 0; layer--)
     {
-        for (int i = 0; i < m_iters_per_layer[layer]; i++)
+        for (int i = 0; i < m_icp_config.iters_per_layer[layer]; i++)
         {
             m_execution_times[0] += kernel::constructIcpResiduals(vertex_pyramid[layer], target_vertex_pyramid[layer], 
                 target_normal_pyramid[layer], previous_pose.rot_mat, previous_pose.transl_vec, pose_estimate.rot_mat, 
-                pose_estimate.transl_vec, sensor.getIntr(layer), m_distance_thresh, m_angle_thresh, m_mat_a, m_vec_b);
+                pose_estimate.transl_vec, sensor.getIntr(layer), m_icp_config.distance_thresh, m_icp_config.angle_thresh, m_mat_a, m_vec_b);
 
             auto grid_dims = vertex_pyramid[layer].getGridDims();
             m_execution_times[1] += solver.solve(m_mat_a, m_vec_b, grid_dims[0] * grid_dims[1], m_vec_x);
     
-			auto pre_madafaka = pose_estimate;
+			auto previous_estimate = pose_estimate;
             updatePose(pose_estimate);
 
-			std::cout << "ICP residual count: " << countResiduals(grid_dims[0] * grid_dims[1]) / (float)(grid_dims[0] * grid_dims[1]) << std::endl;
+			//std::cout << "ICP residual count: " << countResiduals(grid_dims[0] * grid_dims[1]) / (float)(grid_dims[0] * grid_dims[1]) << std::endl;
 
-            // If ICP converged, move directly to the next pyramid layer
-			auto pose_error = poseError(pre_madafaka.getTransformation(), pose_estimate.getTransformation());
-
-            if (pose_error.first < m_iteration_stop_thresh_angle && pose_error.second < m_iteration_stop_thresh_distance)
+            // If ICP does not make much difference, move directly to the next pyramid layer
+			auto pose_error = poseError(previous_estimate.getTransformation(), pose_estimate.getTransformation());
+            if (pose_error.first < m_icp_config.iteration_stop_thresh_angle && pose_error.second < m_icp_config.iteration_stop_thresh_distance)
             {
                 break;
             }
@@ -71,12 +64,12 @@ std::array<float, 2> ICP::getExecutionTimes()
     return m_execution_times;
 }
 
-void ICP::updatePose(RigidTransform3D &pose)
+void ICP::updatePose(RigidTransform3D& pose)
 {
     std::array<float, 6> vec_x_host;
-    HANDLE_ERROR(cudaMemcpy(&vec_x_host, m_vec_x, m_n_variables * sizeof(float), cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(&vec_x_host, m_vec_x, 6 * sizeof(float), cudaMemcpyDeviceToHost));
 
-    for (int i = 0; i < m_n_variables; i++)
+    for (int i = 0; i < 6; i++)
     {
         if (!std::isfinite(vec_x_host[i]))
         {
