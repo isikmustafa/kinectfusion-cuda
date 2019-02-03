@@ -32,13 +32,13 @@ namespace kernel
 		- vec_b: 1D float array of length (width * height) representing the vector b
 */
 	float constructIcpResiduals(CudaGridMap &vertex_map, CudaGridMap &target_vertex_map, CudaGridMap &target_normal_map,
-		glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3x3 curr_rot_mat_estimate,
-		glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, float distance_thresh, float angle_thresh,
+		glm::mat3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3 curr_rot_mat_estimate,
+		glm::vec3 current_transl_vec_estimate, glm::mat3 sensor_intrinsics, float distance_thresh, float angle_thresh,
 		float *mat_A, float *vec_b);
 }
 
-__device__ inline glm::ivec2 computeCorrespondence(glm::vec3 &vertex_global, glm::mat3x3 &prev_rot_mat,
-	glm::vec3 &prev_transl_vec, glm::mat3x3 &sensor_intrinsics)
+__device__ inline glm::ivec2 computeCorrespondence(glm::vec3 &vertex_global, glm::mat3 &prev_rot_mat,
+	glm::vec3 &prev_transl_vec, glm::mat3 &sensor_intrinsics)
 {
 	auto point = sensor_intrinsics * glm::transpose(prev_rot_mat) * (vertex_global - prev_transl_vec);
 	int u = glm::floor(point.x / point.z);
@@ -63,7 +63,7 @@ __device__ inline bool areVerticesTooFarAway(glm::vec3 &vertex_1, glm::vec3 &ver
 	return glm::distance(vertex_1, vertex_2) > distance_threshold;
 }
 
-__device__ inline bool areNormalsTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3x3 &rotation_mat,
+__device__ inline bool areNormalsTooDifferent(glm::vec3 &normal, glm::vec3 &target_normal, glm::mat3 &rotation_mat,
 	float angle_threshold)
 {
 	auto new_normal = glm::normalize(rotation_mat * normal);

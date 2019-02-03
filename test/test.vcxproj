@@ -35,8 +35,11 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\project\src;..\3rd\stb;..\3rd\SDL2-2.0.9\include;$(KINECTSDK10_DIR)\inc;..\3rd\glm;$(IncludePath)</IncludePath>
+    <IncludePath>..\3rd\eigen;..\project\src;..\3rd\stb;..\3rd\SDL2-2.0.9\include;$(KINECTSDK10_DIR)\inc;..\3rd\glm;$(IncludePath)</IncludePath>
     <LibraryPath>$(KINECTSDK10_DIR)\lib\amd64;..project\src\x64\Debug;..\3rd\SDL2-2.0.9\lib\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>..\3rd\eigen;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemGroup>
     <ClInclude Include="cuda_wrapper.cuh" />

@@ -5,8 +5,8 @@
 #include "cuda_event.h"
 
 __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cudaSurfaceObject_t target_vertex_map, 
-    cudaSurfaceObject_t target_normal_map, glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, 
-    glm::mat3x3 curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, 
+    cudaSurfaceObject_t target_normal_map, glm::mat3 prev_rot_mat, glm::vec3 prev_transl_vec, 
+    glm::mat3 curr_rot_mat_estimate, glm::vec3 current_transl_vec_estimate, glm::mat3 sensor_intrinsics, 
     unsigned int width, unsigned int height, float distance_thresh, float angle_thresh, float mat_A[][6], float vec_b[])
 {
     /* 
@@ -84,8 +84,8 @@ __global__ void constructIcpResidualsKernel(cudaSurfaceObject_t vertex_map, cuda
 namespace kernel
 {
     float constructIcpResiduals(CudaGridMap &vertex_map, CudaGridMap &target_vertex_map, CudaGridMap &target_normal_map, 
-		glm::mat3x3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3x3 curr_rot_mat_estimate, 
-        glm::vec3 current_transl_vec_estimate, glm::mat3x3 sensor_intrinsics, float distance_thresh, float angle_thresh, 
+		glm::mat3 prev_rot_mat, glm::vec3 prev_transl_vec, glm::mat3 curr_rot_mat_estimate, 
+        glm::vec3 current_transl_vec_estimate, glm::mat3 sensor_intrinsics, float distance_thresh, float angle_thresh, 
         float *mat_A, float *vec_b)
     {
 		auto dims = vertex_map.getGridDims();

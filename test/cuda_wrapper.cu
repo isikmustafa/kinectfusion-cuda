@@ -4,13 +4,13 @@
 #include "device_helper.cuh"
 
 __global__ void computeCorrespondenceTestKernel(glm::vec2 *result_coords, glm::vec3 vertex_global, 
-    glm::mat3x3 rotation_mat, glm::vec3 translation_vec, glm::mat3x3 sensor_intrinsics)
+    glm::mat3 rotation_mat, glm::vec3 translation_vec, glm::mat3 sensor_intrinsics)
 {
     *result_coords = computeCorrespondence(vertex_global, rotation_mat, translation_vec, sensor_intrinsics);
 }
 
-glm::vec2 computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3x3 rotation_mat, glm::vec3 translation_vec, 
-    glm::mat3x3 intrinsics)
+glm::vec2 computeCorrespondenceTestWrapper(glm::vec3 vertex, glm::mat3 rotation_mat, glm::vec3 translation_vec, 
+    glm::mat3 intrinsics)
 {
     glm::vec2 *result_device;
     HANDLE_ERROR(cudaMalloc(&result_device, sizeof(std::array<int, 2>)));
@@ -50,12 +50,12 @@ glm::vec3 computeNormalTestWrapper(CudaGridMap &vertex_map, unsigned int u, unsi
 
 
 __global__ void normalsAreTooDifferentTestKernel(bool *result, glm::vec3 normal, glm::vec3 target_normal, 
-    glm::mat3x3 rotation_mat, float angle_thresh)
+    glm::mat3 rotation_mat, float angle_thresh)
 {
     *result = areNormalsTooDifferent(normal, target_normal, rotation_mat, angle_thresh);
 }
 
-bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal, glm::mat3x3 rotation_mat, 
+bool normalsAreTooDifferentTestWrapper(glm::vec3 normal, glm::vec3 target_normal, glm::mat3 rotation_mat, 
     float angle_thresh)
 {
     bool *result_device;

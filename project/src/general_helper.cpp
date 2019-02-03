@@ -8,11 +8,11 @@
 
 #include "cuda_utils.h"
 
-std::pair <float, float> poseError(glm::mat4x4 pose_1, glm::mat4x4 pose_2)
+std::pair <float, float> poseError(glm::mat4 pose_1, glm::mat4 pose_2)
 {
 	glm::vec3 v = glm::normalize(glm::vec3(1.0, 1.0, 1.0));
-	glm::vec3 true_rotated_v = glm::mat3x3(pose_1) * v;
-	glm::vec3 rotated_v = glm::mat3x3(pose_2) * v;
+	glm::vec3 true_rotated_v = glm::mat3(pose_1) * v;
+	glm::vec3 rotated_v = glm::mat3(pose_2) * v;
 	float angle_error = glm::distance(true_rotated_v, rotated_v);
 
 	float distance_error = glm::distance(glm::vec3(pose_1[3]), glm::vec3(pose_2[3]));

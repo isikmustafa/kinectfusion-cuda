@@ -7,6 +7,7 @@ struct RigidTransform3D
 	glm::mat3 rot_mat;
 	glm::vec3 transl_vec;
 
+	RigidTransform3D() = default;
 	RigidTransform3D(const glm::mat4& transformation)
 		: rot_mat(transformation)
 		, transl_vec(transformation[3])

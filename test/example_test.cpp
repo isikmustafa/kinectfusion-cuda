@@ -41,7 +41,7 @@ TEST_F(ExampleTestFixture, ExampleTest)
 
 TEST_F(ExampleTestFixture, TestGlmToArray)
 {
-    glm::mat3x3 true_rot_mat = glm::mat3x3(
+    glm::mat3 true_rot_mat = glm::mat3(
         glm::vec3(0.0, 1.0, 0.0),
         glm::vec3(-1.0, 42.0, 0.0),
         glm::vec3(0.0, 0.0, 1.0));

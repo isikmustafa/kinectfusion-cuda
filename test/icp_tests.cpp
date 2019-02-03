@@ -30,13 +30,13 @@ protected:
     std::vector<void *> cuda_pointers_to_free;
     std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
 
-    glm::mat3x3 intrinsics = glm::mat3x3(
+    glm::mat3 intrinsics = glm::mat3(
         glm::vec3(2.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 2.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f));
     
     // 90 degree turn to the right
-    glm::mat3x3 rotation_mat = glm::mat3x3(
+    glm::mat3 rotation_mat = glm::mat3(
         glm::vec3(0.0f, -1.0f, 0.0f),
         glm::vec3(1.0f,  0.0f, 0.0f),
         glm::vec3(0.0f,  0.0f, 1.0f));
@@ -146,16 +146,10 @@ TEST_F(IcpTests, TestSolveLinearSystem)
     cuda_pointers_to_free.push_back(vec_b_device);
     HANDLE_ERROR(cudaMemcpy(vec_b_device, &vec_b, sizeof(std::array<float, 7>), cudaMemcpyHostToDevice));
 
-    std::array<float, 6> *result_device;
-    HANDLE_ERROR(cudaMalloc(&result_device, sizeof(std::array<float, 6>)));
     cuda_pointers_to_free.push_back(vec_b_device);
 
     LinearLeastSquares solver;
-    solver.solve((float *)mat_a_device, (float *)vec_b_device, 7, (float *)result_device);
-
-    std::array<float, 6> result_host;
-    HANDLE_ERROR(cudaMemcpy(&result_host, result_device, sizeof(std::array<float, 6>), cudaMemcpyDeviceToHost));
-
+    auto result_host = solver.solve((float *)mat_a_device, (float *)vec_b_device, 7);
     for (int i = 0; i < 6; i ++)
     {
         ASSERT_NEAR(1.0, result_host[i], 0.0001);
@@ -188,13 +182,13 @@ TEST_F(IcpTests, TestConstructIcpResiduals)
     CudaGridMap vertex_map(2, 2, format_description);
     HANDLE_ERROR(cudaMemcpyToArray(vertex_map.getCudaArray(), 0, 0, &vertices[0][0], n_bytes, cudaMemcpyHostToDevice));
 
-    glm::mat3x3 no_rotation(
+    glm::mat3 no_rotation(
         glm::vec3(1.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 1.0f));
     glm::vec3 no_translation(0.0);
 
-    glm::mat3x3 intrinsics(
+    glm::mat3 intrinsics(
         glm::vec3(2.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 2.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f));
@@ -307,7 +301,7 @@ TEST_F(IcpTests, TestComputePose)
     
     // ######### Save pose #########
     RigidTransform3D true_pose;
-    glm::mat4x4 homo = depth_sensor_1.getInversePose() * depth_sensor_2.getPose();
+    glm::mat4 homo = depth_sensor_1.getInversePose() * depth_sensor_2.getPose();
     true_pose.rot_mat = glm::mat3(homo);
     true_pose.transl_vec = homo[3];
 

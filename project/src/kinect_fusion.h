@@ -31,8 +31,8 @@ struct KinectFusionConfig
     float fusion_voxel_grid_n;
 	float visualization_voxel_grid_size;
 	float visualization_voxel_grid_n;
-    glm::mat4x4 static_viewpoint;
-    glm::mat4x4 initial_pose;
+    glm::mat4 static_viewpoint;
+    glm::mat4 initial_pose;
 };
 
 class KinectFusion

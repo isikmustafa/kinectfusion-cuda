@@ -49,6 +49,6 @@ private:
 
 private:
     void updatePose(RigidTransform3D& pose, const std::array<float, 6>& result);
-    glm::mat3x3 buildRotationZYX(float z_angle, float y_angle, float x_angle);
+    glm::mat3 buildRotationZYX(float z_angle, float y_angle, float x_angle);
     unsigned int countResiduals(unsigned int max_idx);
 };

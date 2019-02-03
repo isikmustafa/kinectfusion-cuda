@@ -14,12 +14,12 @@ class RgbdDataset
 public:
 	void load(const std::string& path);
 	std::string getNextDepthImagePath();
-    glm::mat4x4 getCurrentPose();
-    glm::mat4x4 getInitialPoseInverse();
+    glm::mat4 getCurrentPose();
+    glm::mat4 getInitialPoseInverse();
 	bool isFinished() const;
 
 private:
-    glm::mat4x4 m_initial_pose_inverse;
-	std::vector<std::pair<std::string, glm::mat4x4>> m_depth_pose_pairs;
+    glm::mat4 m_initial_pose_inverse;
+	std::vector<std::pair<std::string, glm::mat4>> m_depth_pose_pairs;
 	int m_current_index;
 };

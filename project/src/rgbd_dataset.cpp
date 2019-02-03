@@ -81,12 +81,12 @@ std::string RgbdDataset::getNextDepthImagePath()
 	return m_depth_pose_pairs[m_current_index++].first;
 }
 
-glm::mat4x4 RgbdDataset::getCurrentPose()
+glm::mat4 RgbdDataset::getCurrentPose()
 {
     return m_depth_pose_pairs[m_current_index].second;
 }
 
-glm::mat4x4 RgbdDataset::getInitialPoseInverse()
+glm::mat4 RgbdDataset::getInitialPoseInverse()
 {
     return m_initial_pose_inverse;
 }
