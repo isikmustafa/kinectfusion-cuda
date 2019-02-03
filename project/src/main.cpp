@@ -20,9 +20,9 @@ int main()
     dataset_config.frame_width = 640;
     dataset_config.frame_height = 480;
     dataset_config.field_of_view = 525.0f;
-	dataset_config.fusion_voxel_grid_size = 12.0f;
+	dataset_config.fusion_voxel_grid_size = 8.0f;
 	dataset_config.fusion_voxel_grid_n = 256;
-	dataset_config.visualization_voxel_grid_size = 4.0f;
+	dataset_config.visualization_voxel_grid_size = 3.0f;
 	dataset_config.visualization_voxel_grid_n = 512;
     dataset_config.static_viewpoint = glm::rotate(- pi / 36.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     dataset_config.static_viewpoint[3] = glm::vec4(0.0f, -0.2f, -1.8f, 1.0f);
@@ -50,7 +50,7 @@ int main()
     //kinect_config.initial_pose[3] = glm::vec4(0.0, 0.0, -0.5, 1.0);
 
 	IcpConfig icp_config;
-    icp_config.iters_per_layer = {10, 4, 2};
+    icp_config.iters_per_layer = {10, 5, 3};
     icp_config.width = 640;
     icp_config.height = 480;
     icp_config.distance_thresh = 0.4f;

@@ -13,7 +13,7 @@
 
 constexpr int gWidth = 640;
 constexpr int gHeight = 480;
-constexpr bool gVSync = true;
+constexpr bool gVSync = false;
 
 Window::Window(const bool use_kinect = false)
 {

@@ -15,6 +15,9 @@ project/packages
 *.pdb
 /project/rgbd_dataset_freiburg1_xyz
 /project/rgbd_dataset_freiburg1_rpy
+/project/rgbd_dataset_freiburg1_360
+/project/rgbd_dataset_freiburg2_desk
 /project/rgbd_dataset_freiburg3_teddy
+/project/rgbd_dataset_freiburg1_plant
 /project/Predicted-Truth
 *.bin

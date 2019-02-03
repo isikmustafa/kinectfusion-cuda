@@ -1,11 +1,12 @@
 #pragma once
-#include <vector>
 
 #include "cuda_grid_map.h"
 #include "grid_map_pyramid.h"
 #include "rigid_transform_3d.h"
 #include "linear_least_squares.h"
 #include "sensor.h"
+
+#include <vector>
 
 struct IcpConfig
 {
@@ -40,15 +41,14 @@ private:
 	IcpConfig m_icp_config;
     std::array<float, 2> m_execution_times;
     
-    LinearLeastSquares solver;
+    LinearLeastSquares m_solver;
 
     // Buffers for the residual paramterers and the result, allocated once
     float* m_mat_a;
     float* m_vec_b;
-    float* m_vec_x;
 
 private:
-    void updatePose(RigidTransform3D& pose);
+    void updatePose(RigidTransform3D& pose, const std::array<float, 6>& result);
     glm::mat3x3 buildRotationZYX(float z_angle, float y_angle, float x_angle);
     unsigned int countResiduals(unsigned int max_idx);
 };

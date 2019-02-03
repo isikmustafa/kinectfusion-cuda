@@ -9,85 +9,41 @@
 LinearLeastSquares::LinearLeastSquares()
 {
     HANDLE_CUBLAS_ERROR(cublasCreate(&m_cublas_handle));
-    HANDLE_CUSOLVER_ERROR(cusolverDnCreate(&m_cusolver_handle));
-
-    HANDLE_ERROR(cudaMalloc(&m_coef_mat, m_n_variables *m_n_variables * sizeof(float)));
-    HANDLE_ERROR(cudaMalloc((void **)& m_info, sizeof(int)));
-
-    HANDLE_CUSOLVER_ERROR(cusolverDnSpotrf_bufferSize(m_cusolver_handle, m_fillmode, m_n_variables, nullptr, 
-        m_n_variables, &m_workspace_size));
-    HANDLE_ERROR(cudaMalloc((void **)&m_workspace, m_workspace_size * sizeof(float)));
+    HANDLE_ERROR(cudaMalloc(&m_ATA_device, 36 * sizeof(float)));
+	HANDLE_ERROR(cudaMalloc(&m_ATb_device, 6 * sizeof(float)));
 }
 
 LinearLeastSquares::~LinearLeastSquares()
 {
-    HANDLE_ERROR(cudaFree(m_coef_mat));
-    HANDLE_ERROR(cudaFree(m_workspace));
-    HANDLE_ERROR(cudaFree(m_info));
+	HANDLE_CUBLAS_ERROR(cublasDestroy(m_cublas_handle));
+    HANDLE_ERROR(cudaFree(m_ATA_device));
+	HANDLE_ERROR(cudaFree(m_ATb_device));
 }
 
-float LinearLeastSquares::solve(float *mat_a_transp, float *vec_b, unsigned int n_equations, float *result_x)
+std::array<float, 6> LinearLeastSquares::solve(float* mat_a_transpose_device, float* vec_b_device, unsigned int n_equations)
 {
-    Timer timer;
-    timer.start();
+	float alpha = 1.0f;
+	float beta = 0.0f;
 
-    // Use the result vector as buffer for the result
-    float *bias_vec = result_x;
+	// Compute m_ATA_device = transpose(A) * A  where transpose(A) = mat_a_transpose_device
+	HANDLE_CUBLAS_ERROR(cublasSgemm(m_cublas_handle, CUBLAS_OP_N, CUBLAS_OP_T, 6, 6, n_equations,
+		&alpha, mat_a_transpose_device, 6, mat_a_transpose_device, 6, &beta, m_ATA_device, 6));
 
-    // Calcuate the squared coefficient matrix and the bias vector for the system: coeff_mat * x = bias_vec
-    //      coeff_mat = transpose(mat_a) * mat_a
-    //      bias_vec = transpose(mat_a) * vec_b
-    cudaMatrixMatrixMultiplication(mat_a_transp, mat_a_transp, m_coef_mat, m_n_variables, n_equations, 
-        m_n_variables, CUBLAS_OP_T, m_cublas_handle);
-    cudaMatrixVectorMultiplication(mat_a_transp, vec_b, bias_vec, m_n_variables, n_equations, m_cublas_handle);
+	// Compute m_ATb_device = transpose(A) * b  where transpose(A) = mat_a_transpose_device and b = vec_b_device
+	HANDLE_CUBLAS_ERROR(cublasSgemv(m_cublas_handle, CUBLAS_OP_N, 6, n_equations, &alpha, mat_a_transpose_device, 6,
+		vec_b_device, 1, &beta, m_ATb_device, 1));
 	
-    // Save copies of coeff_mat and bias_vec for the error calculation later
-    std::array<std::array<float, 6>, 6> coef_mat_host;
-    std::array<float, 6> bias_vec_host;
-	HANDLE_ERROR(cudaMemcpy(&coef_mat_host, m_coef_mat, sizeof(std::array<std::array<float, 6>, 6>), 
-        cudaMemcpyDeviceToHost));
-	HANDLE_ERROR(cudaMemcpy(&bias_vec_host, bias_vec, 6 * sizeof(float), cudaMemcpyDeviceToHost));
+	// Copy data from device to host.
+	HANDLE_ERROR(cudaMemcpy(m_ATA_host.data(), m_ATA_device, 36 * sizeof(float), cudaMemcpyDeviceToHost));
+	HANDLE_ERROR(cudaMemcpy(m_ATb_host.data(), m_ATb_device, 6 * sizeof(float), cudaMemcpyDeviceToHost));
 
-    // Cholesky decomposition of coeff_mat = L * L^T, lower triangle of coeff_mat is replaced by the factor L
-    HANDLE_CUSOLVER_ERROR(cusolverDnSpotrf(m_cusolver_handle, m_fillmode, m_n_variables, m_coef_mat, m_n_variables, 
-        m_workspace, m_workspace_size, m_info));
+	// Solve the normal equation on host.
+	m_result = m_ATA_host.fullPivLu().solve(m_ATb_host);
     
-    // Solve coeff_mat * x = bias_vec , where coeff_mat is cholesky factorized, bias_vec is overwritten by the solution
-    HANDLE_CUSOLVER_ERROR(cusolverDnSpotrs(m_cusolver_handle, m_fillmode, m_n_variables, 1, m_coef_mat, m_n_variables, 
-        bias_vec, m_n_variables, m_info));
-
-    // Copy also result to host to compute error
-	std::array<float, 6> vec_x_host;
-	HANDLE_ERROR(cudaMemcpy(&vec_x_host, result_x, 6 * sizeof(float), cudaMemcpyDeviceToHost));
-
-    computeError(coef_mat_host, vec_x_host, bias_vec_host);
-
-    // Finished: result_x already points to the solution
-    
-    return timer.getTime() * 1000.0;
+	return { m_result(0), m_result(1), m_result(2), m_result(3), m_result(4), m_result(5) };
 }
 
-int LinearLeastSquares::getCuSolverErrorInfo()
+float LinearLeastSquares::computeError()
 {
-    int info;
-    HANDLE_ERROR(cudaMemcpy(&info, m_info, sizeof(int), cudaMemcpyDeviceToHost));
-    return info;
-}
-
-float LinearLeastSquares::getLastError()
-{
-    return m_last_error;
-}
-
-void LinearLeastSquares::computeError(std::array<std::array<float, 6>, 6> &coef_mat, std::array<float, 6> vec_x,
-    std::array<float, 6> &bias_vec)
-{
-    m_last_error = 0;
-    for (int i = 0; i < 6; i++)
-    {
-        for (int j = 0; j < 6; j++)
-        {
-            m_last_error += coef_mat[i][j] * vec_x[i] - bias_vec[i];
-        }
-    }
+	return (m_ATA_host * m_result - m_ATb_host).norm();
 }

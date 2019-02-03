@@ -15,7 +15,7 @@ KinectFusion::KinectFusion(KinectFusionConfig &kf_config, IcpConfig &icp_config)
 	, m_icp_config(icp_config)
 	, m_moving_sensor(kf_config.field_of_view)
 	, m_fixed_sensor(kf_config.field_of_view)
-	, m_voxel_grid_fusion(kf_config.fusion_voxel_grid_size, kf_config.fusion_voxel_grid_n, 5.0f)
+	, m_voxel_grid_fusion(kf_config.fusion_voxel_grid_size, kf_config.fusion_voxel_grid_n, 3.0f)
 	, m_voxel_grid_visualization(kf_config.visualization_voxel_grid_size, kf_config.visualization_voxel_grid_n, 2.0f)
 	, m_icp_registrator(icp_config)
 	, m_window(kf_config.use_kinect)
@@ -153,8 +153,7 @@ void KinectFusion::raycastTsdf()
 
 void KinectFusion::computePose()
 {
-	RigidTransform3D pose_estimate;
-	pose_estimate = m_icp_registrator.computePose(m_vertex_pyramid, m_predicted_vertex_pyramid,
+	RigidTransform3D pose_estimate = m_icp_registrator.computePose(m_vertex_pyramid, m_predicted_vertex_pyramid,
 		m_predicted_normal_pyramid, m_moving_sensor);
 
 	m_moving_sensor.setPose(pose_estimate.getTransformation());
