@@ -85,16 +85,11 @@ void ICP::updatePose(RigidTransform3D& pose, const std::array<float, 6>& result)
     float t_y = result[4];
     float t_z = result[5];
 
-    glm::mat3 incremental_rotation = buildRotationZYX(alpha, gamma, beta);
+	glm::mat3 incremental_rotation = glm::orientate3(glm::vec3(beta, alpha, gamma));
     glm::vec3 incremental_translation(t_x, t_y, t_z);
 
     pose.rot_mat = glm::transpose(incremental_rotation) * pose.rot_mat;
     pose.transl_vec = glm::transpose(incremental_rotation) * pose.transl_vec + incremental_translation;
-}
-
-glm::mat3 ICP::buildRotationZYX(float z_angle, float y_angle, float x_angle)
-{
-	return glm::orientate3(glm::vec3(x_angle, z_angle, y_angle));
 }
 
 unsigned int ICP::countResiduals(unsigned int max_idx)
