@@ -38,7 +38,7 @@ std::array<float, 6> LinearLeastSquares::solve(float* mat_a_transpose_device, fl
 	HANDLE_ERROR(cudaMemcpy(m_ATb_host.data(), m_ATb_device, 6 * sizeof(float), cudaMemcpyDeviceToHost));
 
 	// Solve the normal equation on host.
-	m_result = m_ATA_host.fullPivLu().solve(m_ATb_host);
+	m_result = m_ATA_host.llt().solve(m_ATb_host);
     
 	return { m_result(0), m_result(1), m_result(2), m_result(3), m_result(4), m_result(5) };
 }
