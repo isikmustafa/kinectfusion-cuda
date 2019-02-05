@@ -5,3 +5,11 @@ How to build?
  - Go here https://www.libsdl.org/download-2.0.php to download precompiled dynamic and static libraries. Put them under 3rd\SDL2-2.0.9\libs. You can build the SDL if the precompiled libraries are not suitable for you.
  - Open the visual studio project (works fine with VS 2017). Build and run it.
  - We were able to run it 30 frames per second on our Nvidia GTX 960M graphics card.
+
+Some pictures of reconstructed kitchen:
+
+ ![alt text](https://raw.githubusercontent.com/isikmustafa/kinectfusion-cuda/master/images/kitchen1.png)
+ 
+ ![alt text](https://raw.githubusercontent.com/isikmustafa/kinectfusion-cuda/master/images/kitchen2.png)
+ 
+ ![alt text](https://raw.githubusercontent.com/isikmustafa/kinectfusion-cuda/master/images/kitchen3.png)
