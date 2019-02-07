@@ -45,20 +45,14 @@ void KinectFusion::startTracking(int n_frames)
 {
 	initializeTracking();
 
-	/*std::ofstream output_file;
-	std::string iters_per_layer = std::to_string(m_icp_config.iters_per_layer[0]) + "."
-		+ std::to_string(m_icp_config.iters_per_layer[1]) + "." + std::to_string(m_icp_config.iters_per_layer[2]);
-	std::string file_name = "freiburg_dataset_icp_" + iters_per_layer + "_" + std::to_string(double(m_icp_config.distance_thresh)) + "_" + std::to_string(double(m_icp_config.angle_thresh)) + ".csv";
-	output_file.open(file_name);*/
-
 	for (m_current_frame_number = 1; m_current_frame_number <= n_frames; m_current_frame_number++)
 	{
-		m_timer.start();
-
 		m_window.handleInput();
 		m_keyboard_state = m_window.getKeyboardState();
 
 		readNextDephtMap();
+
+		m_timer.start();
 		depthFrameToVertexPyramid();
 		raycastTsdf();
 		computePose();
@@ -75,9 +69,7 @@ void KinectFusion::startTracking(int n_frames)
 		}
 
 		updateWindowTitle();
-		/*saveStream(output_file);*/
 	}
-	/*output_file.close();*/
 }
 
 void KinectFusion::initializeTracking()
@@ -176,13 +168,6 @@ void KinectFusion::computePoseError()
 
 	m_total_angle_error += m_angle_error = pose_error.first;
 	m_total_distance_error += m_distance_error = pose_error.second;
-
-	/*if (pose_error.first > 5.0 || pose_error.second > 0.05)
-	{
-		float angle_error_in_degree = glm::degrees(pose_error.first);
-		std::cout << "Frame Number: " << m_current_frame_number << " Angle Error :" << angle_error_in_degree;
-		std::cout << " Distance Error: " << pose_error.second << std::endl;
-	}*/
 
 	if (m_current_frame_number % 50 == 0)
 	{

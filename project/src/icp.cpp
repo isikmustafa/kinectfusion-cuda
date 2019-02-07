@@ -54,12 +54,6 @@ RigidTransform3D ICP::computePose(GridMapPyramid<CudaGridMap>& vertex_pyramid,
         }
     }
 
-	auto det = glm::determinant(pose_estimate.rot_mat);
-	if (det< 0.98f || det > 1.001f)
-	{
-		std::cout << det << std::endl;
-	}
-
     return pose_estimate;
 }
 
